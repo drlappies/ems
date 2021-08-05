@@ -3,6 +3,11 @@ class UserService {
         this.knex = knex
     }
 
+    getAllUser = async () => {
+        const user = await this.knex.select().from('users');
+        return user
+    }
+
     createUser = async (username, password, role) => {
         const [user] = await this.knex.insert({
             username: username,
