@@ -1,7 +1,9 @@
+const { hashPassword, checkPassword } = require('../utils/hashPassword');
+
 class EmployeeController {
     constructor(employeeService) {
         this.employeeService = employeeService
-    }
+    } 
 
     getEmployee = async (req, res) => {
         try {
@@ -26,11 +28,16 @@ class EmployeeController {
 
     createEmployee = async (req, res) => {
         try {
-            const { firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date } = req.body;
-            if (!firstname || !lastname || !address || !phone_number || !emergency_contact_person || !emergency_contact_number || !onboard_date) {
+            const { username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date } = req.body;
+            if (!username || !password || !role || !firstname || !lastname || !address || !phone_number || !emergency_contact_person || !emergency_contact_number || !onboard_date) {
                 return res.status(401).json({ error: 'Missing required fields' });
             }
-            const employee = await this.employeeService.createEmployee(firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date)
+            const isUsernameTaken = await this.employeeService.checkDuplicate(username)
+            if (isUsernameTaken) {
+                return res.status(409).json({ error: 'Username has been taken' })
+            }
+            const hashedPassword = await hashPassword(password)
+            const employee = await this.employeeService.createEmployee(username, hashedPassword, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date)
             return res.status(200).json({
                 success: `Successfully created employee: ${employee.lastname} ${employee.firstname}`
             })
@@ -43,8 +50,9 @@ class EmployeeController {
     updateEmployee = async (req, res) => {
         try {
             const { id } = req.params;
-            const { firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status } = req.body;
-            const employee = await this.employeeService.updateEmployee(id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position)
+            const { username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status } = req.body;
+            const hashedPassword = await hashPassword(password)
+            const employee = await this.employeeService.updateEmployee(id, username, hashedPassword, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status)
             return res.status(200).json({
                 success: `Successfully created employee: ${employee.lastname} ${employee.firstname} id: ${employee.id}`
             })

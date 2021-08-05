@@ -13,8 +13,11 @@ class EmployeeService {
         return employee
     }
 
-    createEmployee = async (firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date) => {
+    createEmployee = async (username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date) => {
         const [employee] = await this.knex.insert({
+            username: username,
+            password: password,
+            role: role,
             firstname: firstname,
             lastname: lastname,
             address: address,
@@ -45,6 +48,11 @@ class EmployeeService {
     deleteEmployee = async (id) => {
         const [employee] = await this.knex('employee').where({ id: id }).del(['id', 'firstname', 'lastname']);
         return employee
+    }
+
+    checkDuplicate = async (username) => {
+        const isUsernameTaken = await this.knex('employee').where('username', username);
+        return isUsernameTaken
     }
 }
 
