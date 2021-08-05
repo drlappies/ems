@@ -12,6 +12,20 @@ class UserService {
         return { user: user }
     }
 
+    updateUser = async (id, username, password, role) => {
+        const [user] = await this.knex('users').where('id', id).update({
+            username: username,
+            password: password,
+            role: role
+        }, ['id', 'username', 'role'])
+        return { user: user }
+    }
+
+    deleteUser = async (id) => {
+        const [user] = await this.knex('users').where('id', id).del(['id', 'username'])
+        return { user: user }
+    }
+
     checkDuplicate = async (username) => {
         const isUsernameTaken = await this.knex('users').where('username', username);
         return isUsernameTaken
