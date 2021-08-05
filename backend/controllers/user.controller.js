@@ -1,0 +1,30 @@
+const { hashPassword, checkPassword } = require('../utils/hashPassword');
+
+class UserController {
+    constructor(userService) {
+        this.userService = userService
+    }
+
+    createUser = async (req, res) => {
+        try {
+            const { username, password, role } = req.body;
+            if (!username || !password || !role) {
+                return res.status(401).json({ error: 'Missing either username, password, or role.' })
+            }
+            const isUsernameTaken = await this.userService.checkDuplicate(username);
+            if (isUsernameTaken.length >= 1) {
+                return res.status(409).json({ error: 'Username is already taken.' })
+            }
+            const hashedPassword = await hashPassword(password);
+            const { user } = await this.userService.createUser(username, hashedPassword, role);
+            res.status(200).json({
+                success: `Successfully created user ${user.username} id: ${user.id} role: ${user.role}`
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({ error: err })
+        }
+    }
+}
+
+module.exports = UserController
