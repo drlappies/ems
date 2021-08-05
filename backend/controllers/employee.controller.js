@@ -1,0 +1,71 @@
+class EmployeeController {
+    constructor(employeeService) {
+        this.employeeService = employeeService
+    }
+
+    getEmployee = async (req, res) => {
+        try {
+            const { id } = req.params;
+            const employee = await this.employeeService.getEmployee(id);
+            return res.status(200).json(employee)
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({ error: err })
+        }
+    }
+
+    getAllEmployee = async (req, res) => {
+        try {
+            const employee = await this.employeeService.getAllEmployee();
+            return res.status(200).json(employee);
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ error: err })
+        }
+    }
+
+    createEmployee = async (req, res) => {
+        try {
+            const { firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date } = req.body;
+            if (!firstname || !lastname || !address || !phone_number || !emergency_contact_person || !emergency_contact_number || !onboard_date) {
+                return res.status(401).json({ error: 'Missing required fields' });
+            }
+            const employee = await this.employeeService.createEmployee(firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date)
+            return res.status(200).json({
+                success: `Successfully created employee: ${employee.lastname} ${employee.firstname}`
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({ error: err })
+        }
+    }
+
+    updateEmployee = async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status } = req.body;
+            const employee = await this.employeeService.updateEmployee(id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position)
+            return res.status(200).json({
+                success: `Successfully created employee: ${employee.lastname} ${employee.firstname} id: ${employee.id}`
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({ error: err })
+        }
+    }
+
+    deleteEmployee = async (req, res) => {
+        try {
+            const { id } = req.params;
+            const employee = await this.employeeService.deleteEmployee(id);
+            return res.status(200).json({
+                success: `Successfully deleted employee: ${employee.lastname} ${employee.firstname} id: ${employee.id}`
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({ error: err })
+        }
+    }
+}
+
+module.exports = EmployeeController

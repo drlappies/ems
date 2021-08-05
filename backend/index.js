@@ -18,5 +18,14 @@ const userController = new UserController(userService);
 const userRoute = UserRoute(userController);
 app.use('/user', userRoute);
 
+const { EmployeeRoute } = require('./routes/employee.route');
+const EmployeeController = require('./controllers/employee.controller');
+const EmployeeService = require('./services/employee.service');
+
+const employeeService = new EmployeeService(knex);
+const employeeController = new EmployeeController(employeeService);
+const employeeRoute = EmployeeRoute(employeeController);
+app.use('/employee', employeeRoute)
+
 app.listen(3000, () => console.log('localhost:3000'))
 
