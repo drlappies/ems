@@ -5,9 +5,9 @@ class UserService {
 
     createUser = async (username, password, role) => {
         const [user] = await this.knex.insert({
-            username,
-            password,
-            role,
+            username: username,
+            password: password,
+            role: role,
         }).into('users').returning(['id', 'username', 'role']);
         return { user: user }
     }
