@@ -18,7 +18,7 @@ class UserController {
             const hashedPassword = await hashPassword(password);
             const { user } = await this.userService.createUser(username, hashedPassword, role);
             return res.status(200).json({
-                success: `Successfully created user: ${user.username} id: ${user.id} role: ${user.role}`
+                success: `Successfully created user: ${user.username} id: ${user.id} role: ${user.role}`,
             })
         } catch (err) {
             console.log(err)
