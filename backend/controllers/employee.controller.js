@@ -3,7 +3,7 @@ const { hashPassword, checkPassword } = require('../utils/hashPassword');
 class EmployeeController {
     constructor(employeeService) {
         this.employeeService = employeeService
-    } 
+    }
 
     getEmployee = async (req, res) => {
         try {
@@ -33,7 +33,7 @@ class EmployeeController {
                 return res.status(401).json({ error: 'Missing required fields' });
             }
             const isUsernameTaken = await this.employeeService.checkDuplicate(username)
-            if (isUsernameTaken) {
+            if (isUsernameTaken.length >= 1) {
                 return res.status(409).json({ error: 'Username has been taken' })
             }
             const hashedPassword = await hashPassword(password)
