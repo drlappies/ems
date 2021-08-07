@@ -36,5 +36,14 @@ const attendanceController = new AttendanceController(attendanceService);
 const attendanceRoute = AttendanceRoute(attendanceController);
 app.use('/attendance', attendanceRoute)
 
+const { LeaveRoute } = require('./routes/leave.route');
+const LeaveController = require('./controllers/leave.controller');
+const LeaveService = require('./services/leave.service');
+
+const leaveService = new LeaveService(knex);
+const leaveController = new LeaveController(leaveService);
+const leaveRoute = LeaveRoute(leaveController);
+app.use('/leave', leaveRoute);
+
 app.listen(3000, () => console.log('localhost:3000'))
 
