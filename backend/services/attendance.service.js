@@ -27,11 +27,11 @@ class AttendanceService extends EmployeeService {
     }
 
     createTimeOut = async (employeeId) => {
-        const currentDate = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`
         const currentTime = new Date()
+        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
         const check_out = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
         const [attendance] = await this.knex('attendance')
-            .where('date', currentDate)
+            .where('date', date)
             .andWhere('employee_id', employeeId)
             .update({
                 check_out: check_out
@@ -39,7 +39,7 @@ class AttendanceService extends EmployeeService {
         return attendance
     }
 
-    createSpecificTimeIn = async (employeeId, checkInTime, checkInDate) => {
+    createSpecificTimeIn = async (employeeId, checkInTime, checkOutTime, checkInDate) => {
         const employee = await this.getEmployee(employeeId);
         let status;
         if (checkInTime > employee.start_hour) {
@@ -50,27 +50,58 @@ class AttendanceService extends EmployeeService {
         const [attendance] = await this.knex('attendance').insert({
             employee_id: employeeId,
             check_in: checkInTime,
+            check_out: checkOutTime,
             date: checkInDate,
             status: status
         }).returning(['check_in', 'date'])
         return attendance
     }
 
-    checkIfAlreadyTimedIn = async (employeeId) => {
-        const currentDate = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`
+    createSpecificTimeOut = async (employeeId, checkOutTime, checkInDate) => {
+        const [attendance] = await this.knex('attendance')
+            .where('employee_id', employeeId)
+            .andWhere('date', checkInDate)
+            .whereNull('check_out')
+            .update({
+                check_out: checkOutTime
+            }, ['check_out', 'date'])
+        return attendance
+    }
+
+    checkIfSpecificAlreadyTimedIn = async (employeeId, checkInDate) => {
         const attendance = await this.knex.select()
             .from('attendance')
             .where('employee_id', employeeId)
-            .andWhere('date', currentDate);
+            .andWhere('date', checkInDate)
+        return attendance;
+    }
+
+    checkIfSpecificAlreadyTimedOut = async (employeeId, checkInDate) => {
+        const attendance = await this.knex.select()
+            .from('attendance')
+            .where('employee_id', employeeId)
+            .andWhere('date', checkInDate)
+            .whereNull('check_out')
+        return attendance
+    }
+
+    checkIfAlreadyTimedIn = async (employeeId) => {
+        const currentTime = new Date()
+        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
+        const attendance = await this.knex.select()
+            .from('attendance')
+            .where('employee_id', employeeId)
+            .andWhere('date', date);
         return attendance
     }
 
     checkIfAlreadyTimedOut = async (employeeId) => {
-        const currentDate = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`
+        const currentTime = new Date()
+        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
         const attendance = await this.knex.select()
             .from('attendance')
             .where('employee_id', employeeId)
-            .andWhere('date', currentDate)
+            .andWhere('date', date)
             .whereNotNull('check_out')
         return attendance;
     }

@@ -53,8 +53,8 @@ class AttendanceController {
 
     createSpecificTimeIn = async (req, res) => {
         try {
-            const { employeeId, checkInTime, checkInDate } = req.body
-            if (!employeeId && !checkInTime && !checkInDate) {
+            const { employeeId, checkInTime, checkOutTime, checkInDate } = req.body
+            if (!employeeId && !checkInTime && !checkOutTime && !checkInDate) {
                 return res.status(400).json({
                     error: 'Missing required fields!'
                 })
@@ -65,11 +65,48 @@ class AttendanceController {
                     error: 'Cannot create specific time-in on future dates'
                 })
             }
-            console.log(employeeId)
-            console.log(this.createSpecificTimeIn)
-            const attendance = await this.AttendanceService.createSpecificTimeIn(employeeId, checkInTime, checkInDate);
+            const attendance = await this.AttendanceService.checkIfSpecificAlreadyTimedIn(employeeId, checkInDate);
+            if (attendance.length >= 1) {
+                return res.status(400).json({
+                    error: 'Already timed in/ out on such specific date.'
+                })
+            }
+            const timeIn = await this.AttendanceService.createSpecificTimeIn(employeeId, checkInTime, checkOutTime, checkInDate);
             return res.status(200).json({
-                success: `Successfully re-timed in at ${attendance.check_in} on ${attendance.date}`
+                success: `Successfully re-timed in at ${timeIn.check_in} on ${timeIn.date}`
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    createSpecificTimeOut = async (req, res) => {
+        try {
+            const { employeeId, checkOutTime, checkInDate } = req.body;
+            if (!employeeId && !checkOutTime && !checkInDate) {
+                return res.status(400).json({
+                    error: 'Missing required fields'
+                })
+            }
+            const currentTime = new Date();
+            const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
+            if (date === checkInDate) {
+                return res.status(400).json({
+                    error: 'Cannot create specific time out on that specific date. Please use the usual time out feature.'
+                })
+            }
+            const attendance = await this.AttendanceService.checkIfAlreadyTimedOut(employeeId, checkInDate);
+            if (attendance.length >= 1) {
+                return res.status(400).json({
+                    error: 'Alread timed out on such specific date'
+                })
+            }
+            const timeOut = await this.AttendanceService.createSpecificTimeOut(employeeId, checkOutTime, checkInDate);
+            return res.status(200).json({
+                success: `Successfully re-timed out at ${timeOut.check_out} on ${timeOut.date}`
             })
         } catch (err) {
             console.log(err)

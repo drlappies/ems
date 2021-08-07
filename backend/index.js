@@ -27,5 +27,14 @@ const departmentController = new DepartmentController(departmentService);
 const departmentRoute = DepartmentRoute(departmentController);
 app.use('/department', departmentRoute)
 
+const { AttendanceRoute } = require('./routes/attendance.route');
+const AttendanceController = require('./controllers/attendance.controller');
+const AttendanceService = require('./services/attendance.service');
+
+const attendanceService = new AttendanceService(knex);
+const attendanceController = new AttendanceController(attendanceService);
+const attendanceRoute = AttendanceRoute(attendanceController);
+app.use('/attendance', attendanceRoute)
+
 app.listen(3000, () => console.log('localhost:3000'))
 
