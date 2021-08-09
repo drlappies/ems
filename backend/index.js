@@ -45,5 +45,32 @@ const leaveController = new LeaveController(leaveService);
 const leaveRoute = LeaveRoute(leaveController);
 app.use('/leave', leaveRoute);
 
+const { ReimbursementRoute } = require('./routes/reimbursement.route');
+const ReimbursementController = require('./controllers/reimbursement.controller');
+const ReimbursementService = require('./services/reimbursement.service');
+
+const reimbursementService = new ReimbursementService(knex);
+const reimbursementController = new ReimbursementController(reimbursementService);
+const reimbursementRoute = ReimbursementRoute(reimbursementController);
+app.use('/reimbursement', reimbursementRoute)
+
+const { DeductionRoute } = require('./routes/deduction.route');
+const DeductionController = require('./controllers/deduction.controller');
+const DeductionService = require('./services/deduction.service');
+
+const deductionService = new DeductionService(knex);
+const deductionController = new DeductionController(deductionService);
+const deductionRoute = DeductionRoute(deductionController);
+app.use('/deduction', deductionRoute);
+
+const { AllowanceRoute } = require('./routes/allowance.route');
+const AllowanceController = require('./controllers/allowance.controller');
+const AllowanceService = require('./services/allowance.service');
+
+const allowanceService = new AllowanceService(knex);
+const allowanceController = new AllowanceController(allowanceService);
+const allowanceRoute = AllowanceRoute(allowanceController);
+app.use('/allowance', allowanceRoute);
+
 app.listen(3000, () => console.log('localhost:3000'))
 
