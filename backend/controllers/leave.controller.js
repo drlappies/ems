@@ -36,6 +36,11 @@ class LeaveController {
     createLeave = async (req, res) => {
         try {
             const { employeeId, reason, from, to, duration, type } = req.body;
+            if (!employeeId && !reason && !from && !to && !duration && !type) {
+                return res.status(400).json({
+                    error: 'Missing required fields.'
+                })
+            }
             const leave = await this.LeaveService.createLeave(employeeId, reason, from, to, duration, type);
             res.status(200).json({
                 success: `Successfully applied for leave from ${leave.from} to ${leave.to} for reason: ${leave.reason} type: ${leave.type} duration: ${leave.duration}`
@@ -52,6 +57,11 @@ class LeaveController {
         try {
             const { id } = req.params;
             const { status } = req.body;
+            if (!id && !status) {
+                return res.status(400).json({
+                    error: 'Missing required fields.'
+                })
+            }
             const leave = await this.LeaveService.approveLeave(id, status);
             res.status(200).json({
                 success: `Successfully ${leave.status} leave id: ${leave.id}`

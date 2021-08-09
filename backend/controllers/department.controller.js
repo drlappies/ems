@@ -6,6 +6,11 @@ class DepartmentController {
     getDepartment = async (req, res) => {
         try {
             const { id } = req.params;
+            if (!id) {
+                return res.status(400).json({
+                    error: 'Missing required fields.'
+                })
+            }
             const dept = await this.departmentService.getDepartment(id);
             return res.status(200).json(dept)
         } catch (err) {
@@ -27,6 +32,11 @@ class DepartmentController {
     createDepartment = async (req, res) => {
         try {
             const { name, description } = req.body;
+            if (!name && !description) {
+                return res.status(400).json({
+                    error: 'Missing required fields.'
+                })
+            }
             const dept = await this.departmentService.createDepartment(name, description);
             return res.status(200).json({
                 success: `Successfully created department: ${dept.name} id: ${dept.id}`
@@ -41,6 +51,11 @@ class DepartmentController {
         try {
             const { id } = req.params;
             const { name, description } = req.body;
+            if (!id && !name && !description) {
+                return res.status(400).json({
+                    error: 'Missing required fields.'
+                })
+            }
             const dept = await this.departmentService.updateDepartment(id, name, description);
             return res.status(200).json({
                 success: `Successfully updated department: ${dept.name} id: ${dept.id}`
@@ -54,6 +69,11 @@ class DepartmentController {
     deleteDepartment = async (req, res) => {
         try {
             const { id } = req.params;
+            if (!id) {
+                return res.status(400).json({
+                    error: 'Missing required fields.'
+                })
+            }
             const dept = await this.departmentService.deleteDepartment(id);
             return res.status(200).json({
                 success: `Successfully deleted department: ${dept.name} id: ${dept.id}`

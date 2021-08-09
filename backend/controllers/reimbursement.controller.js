@@ -6,6 +6,11 @@ class ReimbursementController {
     createReimbursement = async (req, res) => {
         try {
             const { employeeId, date, amount, reason } = req.body;
+            if (!employeeId && !date && !amount && !reason) {
+                return res.status(400).json({
+                    error: 'Missing required fields.'
+                })
+            }
             const reimbursement = await this.ReimbursementService.createReimbursement(employeeId, date, amount, reason);
             return res.status(200).json({
                 success: `Successfully created reimbursement. Date: ${reimbursement.date} Reason: ${reimbursement.reason} Amount: ${reimbursement.amount} `
@@ -22,6 +27,11 @@ class ReimbursementController {
         try {
             const { id } = req.params;
             const { status } = req.body;
+            if (!id && !status) {
+                return res.status(400).json({
+                    error: 'Missing required fields.'
+                })
+            }
             const reimbursement = await this.ReimbursementService.approveReimbursement(id, status);
             return res.status(200).json({
                 success: `Successfully ${reimbursement.status} reimbursement ${reimbursement.id}`
@@ -49,6 +59,11 @@ class ReimbursementController {
     getReimbursement = async (req, res) => {
         try {
             const { id } = req.params;
+            if (!id) {
+                return res.status(400).json({
+                    error: 'Missing required fields.'
+                })
+            }
             const reimbursement = await this.ReimbursementService.getReimbursement(id)
             return res.status(200).json(reimbursement)
         } catch (err) {
