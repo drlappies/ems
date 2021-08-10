@@ -72,5 +72,14 @@ const allowanceController = new AllowanceController(allowanceService);
 const allowanceRoute = AllowanceRoute(allowanceController);
 app.use('/allowance', allowanceRoute);
 
+const { BonusRoute } = require('./routes/bonus.route');
+const BonusController = require('./controllers/bonus.controller')
+const BonusService = require('./services/bonus.service');
+
+const bonusService = new BonusService(knex);
+const bonusController = new BonusController(bonusService);
+const bonusRoute = BonusRoute(bonusController);
+app.use('/bonus', bonusRoute)
+
 app.listen(3000, () => console.log('localhost:3000'))
 
