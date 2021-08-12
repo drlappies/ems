@@ -81,5 +81,14 @@ const bonusController = new BonusController(bonusService);
 const bonusRoute = BonusRoute(bonusController);
 app.use('/bonus', bonusRoute)
 
+const { PayrollRoute } = require('./routes/payroll.route');
+const PayrollController = require('./controllers/payroll.controller');
+const PayrollService = require('./services/payroll.service');
+
+const payrollService = new PayrollService(knex);
+const payrollController = new PayrollController(payrollService);
+const payrollRoute = PayrollRoute(payrollController);
+app.use('/payroll', payrollRoute)
+
 app.listen(3000, () => console.log('localhost:3000'))
 
