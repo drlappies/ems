@@ -37,7 +37,7 @@ class AllowanceService {
             .join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
             .join('employee', 'allowance_employee.employee_id', 'employee.id')
             .select(['allowance_id', 'employee_id', 'allowance.name', 'allowance.description', 'allowance.amount', 'allowance.status', 'employee.firstname', 'employee.lastname'])
-            .where('allowance_id', id)
+            .where('allowance_employee.allowance_id', id)
         return allowance
     }
 
