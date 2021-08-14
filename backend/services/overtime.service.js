@@ -38,12 +38,13 @@ class OvertimeService {
         return overtime
     }
 
-    updateOvertime = async (id, from, to) => {
+    updateOvertime = async (id, from, to, status) => {
         const [overtime] = await this.knex('overtime')
             .where('id', id)
             .update({
                 from: from,
-                to: to
+                to: to,
+                status: status
             }, ['id'])
         return overtime
     }
