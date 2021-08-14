@@ -13,6 +13,7 @@ exports.up = async function (knex) {
             table.decimal('allowance', 8, 2).notNullable();
             table.decimal('deduction', 8, 2).notNullable();
             table.decimal('bonus', 8, 2).notNullable();
+            table.decimal('overtime', 8, 2).notNullable();
             table.enu('status', ['pending', 'confirmed']).defaultTo('pending')
         })
     }
