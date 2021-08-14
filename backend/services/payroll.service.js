@@ -39,6 +39,14 @@ class PayrollService {
             .andWhere('date', '<=', ending_date)
             .andWhere('employee_id', employee_id)
 
+        const overtime = await this.knex('overtime')
+            .select(['from', 'to', 'date'])
+            .where('date', '>=', starting_date)
+            .andWhere('date', '<=', ending_date)
+            .andWhere('employee_id', employee_id)
+            .andWhere('status', 'approved')
+            .whereNotNull('to')
+
         const allowance = await this.knex('allowance_employee')
             .select(['allowance_employee.allowance_id', 'allowance_employee.employee_id', 'allowance.name', 'allowance.amount'])
             .join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
@@ -68,9 +76,21 @@ class PayrollService {
             amount = amount + dailySalary
         }
 
-        for (let i = 0; i < allowance.length; i++) {
-            const monthsDiff = ((new Date(ending_date).getFullYear() - new Date(starting_date).getFullYear()) * 12) - new Date(starting_date).getMonth() + new Date(ending_date).getMonth() + 1
-            amount = amount + (allowance[i].amount * monthsDiff)
+        // for (let i = 0; i < allowance.length; i++) {
+        //     const monthsDiff = ((new Date(ending_date).getFullYear() - new Date(starting_date).getFullYear()) * 12) - new Date(starting_date).getMonth() + new Date(ending_date).getMonth() + 1
+        //     amount = amount + (allowance[i].amount * monthsDiff)
+        // }
+
+        let totalOvertime = 0;
+        for (let i = 0; i < overtime.length; i++) {
+            let from = new Date(`December 17, 1995 ${overtime[i].from}`)
+            let to = new Date(`December 17, 1995 ${overtime[i].to}`)
+            if (to.getMinutes() >= 30) {
+                to = new Date(new Date(to.setHours(to.getHours() + 1)).setMinutes(0))
+
+            }
+            amount = amount + (employee.ot_hourly_salary * (to.getHours() - from.getHours()))
+            totalOvertime = totalOvertime + (employee.ot_hourly_salary * (to.getHours() - from.getHours()))
         }
 
         for (let i = 0; i < leave.length; i++) {
@@ -120,6 +140,7 @@ class PayrollService {
             allowance: parseInt(totalAllowance),
             deduction: parseInt(totalDeduction),
             bonus: parseInt(totalBonus),
+            overtime: parseInt(totalOvertime)
         }, ['id', 'from', 'to', 'amount', 'employee_id'])
 
         return payroll
