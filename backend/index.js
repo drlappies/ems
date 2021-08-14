@@ -90,5 +90,14 @@ const payrollController = new PayrollController(payrollService);
 const payrollRoute = PayrollRoute(payrollController);
 app.use('/payroll', payrollRoute)
 
+const { OvertimeRoute } = require('./routes/overtime.route');
+const OvertimeController = require('./controllers/overtime.controller');
+const OvertimeService = require('./services/overtime.service');
+
+const overtimeService = new OvertimeService(knex);
+const overtimeController = new OvertimeController(overtimeService);
+const overtimeRoute = OvertimeRoute(overtimeController);
+app.use('/overtime', overtimeRoute)
+
 app.listen(3000, () => console.log('localhost:3000'))
 
