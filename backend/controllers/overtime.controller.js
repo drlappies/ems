@@ -90,13 +90,13 @@ class OvertimeController {
     updateOvertime = async (req, res) => {
         try {
             const { id } = req.params;
-            const { from, to } = req.body;
+            const { from, to, status } = req.body;
             if (!id || !from || !to) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
             }
-            const overtime = await this.OvertimeService.updateOvertime(id, from, to);
+            const overtime = await this.OvertimeService.updateOvertime(id, from, to, status);
             return res.status(200).json({
                 success: `Successfully updated overtime record ${overtime.id}`
             })
