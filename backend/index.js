@@ -99,5 +99,14 @@ const overtimeController = new OvertimeController(overtimeService);
 const overtimeRoute = OvertimeRoute(overtimeController);
 app.use('/overtime', overtimeRoute)
 
-app.listen(3000, () => console.log('localhost:3000'))
+const { LoginRoute } = require('./routes/login.route');
+const LoginController = require('./controllers/login.controller');
+const LoginService = require('./services/login.service');
+
+const loginService = new LoginService(knex);
+const loginController = new LoginController(loginService)
+const loginRoute = LoginRoute(loginController)
+app.use('/auth', loginRoute)
+
+app.listen(5000, () => console.log('localhost:5000'))
 
