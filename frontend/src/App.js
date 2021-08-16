@@ -1,30 +1,32 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { verifyThunk } from './actions/auth';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import Home from './components/Home'
 import Navbar from './components/Navbar';
 import Login from './components/Login';
+import Dashboard from './components/Dashboard';
+import Attendance from './components/Attendance';
+import AdminRoute from './components/routes/Admin';
+import PrivateRoute from './components/routes/Private';
+import Head from './components/Head'
 import 'semantic-ui-css/semantic.min.css'
 
 function App() {
-  const dispatch = useDispatch()
-  const auth = useSelector(state => state.auth.isAuthenticated)
-
-  useEffect(() => {
-    dispatch(verifyThunk(window.localStorage.getItem('jwt')))
-  }, [dispatch])
+  const auth = useSelector(state => state.auth)
 
   return (
     <Router>
-      {!auth ?
+      {!auth.isAuthenticated ?
         <Route exact path="/" component={Login} />
         :
-        <Navbar>
-          <Switch>
-            <Route exact path="/home" component={Home} />
-          </Switch>
-        </Navbar>
+        <React.Fragment>
+          <Head />
+          <Navbar>
+            <Switch>
+              <AdminRoute exact path="/dashboard" component={Dashboard} />
+              <PrivateRoute exact path="/attendance/time" component={Attendance} />
+            </Switch>
+          </Navbar>
+        </React.Fragment>
       }
     </Router>
   );
