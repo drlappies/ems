@@ -15,7 +15,8 @@ class AttendanceController {
             }
             const timeIn = await this.AttendanceService.createTimeIn(employeeId);
             return res.status(200).json({
-                success: `Successfully timed in at ${timeIn.check_in} on ${timeIn.date}`
+                success: `Successfully timed in at ${timeIn.check_in} on ${timeIn.date}`,
+                timein: timeIn.check_in
             })
         } catch (err) {
             console.log(err)
@@ -41,7 +42,8 @@ class AttendanceController {
             }
             const timeOut = await this.AttendanceService.createTimeOut(employeeId);
             return res.status(200).json({
-                success: `Successfully time out at ${timeOut.check_out} on ${timeOut.date}`
+                success: `Successfully time out at ${timeOut.check_out} on ${timeOut.date}`,
+                timeout: timeOut.check_out
             })
         } catch (err) {
             console.log(err)
@@ -111,6 +113,44 @@ class AttendanceController {
         } catch (err) {
             console.log(err)
             return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    getTodayAttendanceByEmployee = async (req, res) => {
+        try {
+            const { employeeId } = req.params;
+            const attendance = await this.AttendanceService.getTodayAttendanceByEmployee(employeeId)
+            return res.status(200).json(attendance)
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    getAllAttendance = async (req, res) => {
+        try {
+            const { starting, ending } = req.query
+            const attendance = await this.AttendanceService.getAllAttendance(starting, ending);
+            return res.status(200).json(attendance)
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    getOnTimeRate = async (req, res) => {
+        try {
+            const rate = await this.AttendanceService.getOnTimeRate();
+            return res.status(200).json({ rate: rate })
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({
                 error: err
             })
         }

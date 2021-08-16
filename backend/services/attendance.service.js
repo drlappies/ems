@@ -105,6 +105,28 @@ class AttendanceService extends EmployeeService {
             .whereNotNull('check_out')
         return attendance;
     }
+
+    getTodayAttendanceByEmployee = async (employeeId) => {
+        const currentTime = new Date()
+        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
+        const [attendance] = await this.knex('attendance')
+            .where('date', date)
+            .andWhere('employee_id', employeeId)
+        return attendance
+    }
+
+    getAllAttendance = async (starting, ending) => {
+        const attendance = await this.knex('attendance')
+            .select()
+        return attendance
+    }
+
+    getOnTimeRate = async () => {
+        const [attendance] = await this.knex('attendance').count('status')
+        const [on_time] = await this.knex('attendance').count('status').where('status', 'on_time')
+        const rate = Math.round((on_time.count / attendance.count) * 100)
+        return rate
+    }
 }
 
 module.exports = AttendanceService

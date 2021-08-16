@@ -6,5 +6,8 @@ module.exports.AttendanceRoute = (AttendanceController) => {
     router.post('/time-out', AttendanceController.createTimeOut);
     router.post('/re-time-in', AttendanceController.createSpecificTimeIn);
     router.post('/re-time-out', AttendanceController.createSpecificTimeOut);
+    router.get('/', AttendanceController.getAllAttendance)
+    router.get('/rate', AttendanceController.getOnTimeRate)
+    router.get('/:employeeId', AttendanceController.getTodayAttendanceByEmployee)
     return router
 }
