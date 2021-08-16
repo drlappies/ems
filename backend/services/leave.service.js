@@ -40,6 +40,13 @@ class LeaveService {
             }, ['id', 'status'])
         return leave
     }
+
+    leaveRate = async () => {
+        const [attendance] = await this.knex('attendance').count('id')
+        const [leave] = await this.knex('leave').count('id')
+        const rate = Math.round((leave.count / attendance.count) * 100)
+        return rate
+    }
 }
 
 module.exports = LeaveService

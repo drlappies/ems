@@ -73,6 +73,18 @@ class LeaveController {
             })
         }
     }
+
+    leaveRate = async (req, res) => {
+        try {
+            const rate = await this.LeaveService.leaveRate();
+            return res.status(200).json({ rate: rate })
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({
+                error: err
+            })
+        }
+    }
 }
 
 module.exports = LeaveController
