@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+import { useHistory } from 'react-router';
 import { useDispatch } from 'react-redux'
 import { loginThunk } from '../actions/auth'
 import { Container, Form, Button, Segment, Grid, Header, GridColumn } from 'semantic-ui-react'
 import Popup from './Popup';
 
 function Login() {
-    const dispatch = useDispatch()
+    const history = useHistory();
+    const dispatch = useDispatch();
     const [state, setState] = useState({
         username: '',
         password: '',
@@ -24,7 +26,7 @@ function Login() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        dispatch(loginThunk(state.username, state.password))
+        dispatch(loginThunk(state.username, state.password, history))
     }
 
     return (
