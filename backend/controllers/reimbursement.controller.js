@@ -46,7 +46,8 @@ class ReimbursementController {
 
     getAllReimbursement = async (req, res) => {
         try {
-            const reimbursement = await this.ReimbursementService.getAllReimbursement();
+            const { status } = req.body
+            const reimbursement = await this.ReimbursementService.getAllReimbursement(status);
             return res.status(200).json(reimbursement)
         } catch (err) {
             console.log(err)
