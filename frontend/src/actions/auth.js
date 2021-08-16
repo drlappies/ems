@@ -12,6 +12,7 @@ export const verifyThunk = (token) => {
             dispatch({
                 type: 'LOGIN',
                 payload: {
+                    id: res.data.payload.id,
                     username: res.data.payload.username,
                     firstname: res.data.payload.firstname,
                     lastname: res.data.payload.lastname,
@@ -19,7 +20,9 @@ export const verifyThunk = (token) => {
                     ot_entitled: res.data.payload.ot_entitled,
                 }
             })
+            window.localStorage.setItem('jwt', res.data.token)
         } catch (err) {
+            console.log(err)
             dispatch({
                 type: 'LOGOUT'
             })
@@ -27,7 +30,7 @@ export const verifyThunk = (token) => {
     }
 }
 
-export const loginThunk = (username, password) => {
+export const loginThunk = (username, password, history) => {
     return async (dispatch) => {
         try {
             const body = {
@@ -40,6 +43,7 @@ export const loginThunk = (username, password) => {
             dispatch({
                 type: 'LOGIN',
                 payload: {
+                    id: res.data.payload.id,
                     username: res.data.payload.username,
                     firstname: res.data.payload.firstname,
                     lastname: res.data.payload.lastname,
@@ -48,17 +52,19 @@ export const loginThunk = (username, password) => {
                 }
             })
             window.localStorage.setItem('jwt', res.data.token)
+            history.push('/dashboard')
         } catch (err) {
             dispatch(popMessage(err.response.data.message, 'ERROR'))
         }
     }
 }
 
-export const logoutThunk = () => {
+export const logoutThunk = (history) => {
     return (dispatch) => {
         dispatch({
             type: 'LOGOUT'
         })
         window.localStorage.removeItem('jwt')
+        history.push('/')
     }
 }

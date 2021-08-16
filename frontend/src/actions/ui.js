@@ -6,3 +6,11 @@ export const popMessage = (message, type) => {
         })
     }
 }
+
+export const toggleSidebar = () => {
+    return (dispatch) => {
+        dispatch({
+            type: 'SIDEBAR'
+        })
+    }
+}

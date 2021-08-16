@@ -1,5 +1,6 @@
 const initialState = {
     isAuthenticated: false,
+    id: '',
     username: '',
     firstname: '',
     lastname: '',
@@ -11,6 +12,7 @@ const authReducer = (state = initialState, action) => {
     switch (action.type) {
         case 'LOGIN':
             return {
+                id: action.payload.id,
                 username: action.payload.username,
                 firstname: action.payload.firstname,
                 lastname: action.payload.lastname,

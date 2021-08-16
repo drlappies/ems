@@ -1,7 +1,8 @@
 const initialState = {
     message: '',
     type: '',
-    visible: false
+    visible: false,
+    sidebar: false
 }
 
 const uiReducer = (state = initialState, action) => {
@@ -23,6 +24,11 @@ const uiReducer = (state = initialState, action) => {
                 message: '',
                 type: '',
                 visible: false
+            }
+        case 'SIDEBAR':
+            return {
+                ...state,
+                sidebar: !state.sidebar
             }
         default:
             return state
