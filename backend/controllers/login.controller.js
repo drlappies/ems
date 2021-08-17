@@ -28,9 +28,15 @@ class LoginController {
             }
             const payload = {
                 id: user.id,
+                dept: user.dept_id,
+                post: user.post_id,
                 username: user.username,
                 firstname: user.firstname,
                 lastname: user.lastname,
+                address: user.address,
+                phone_number: user.phone_number,
+                emergency_contact_person: user.emergency_contact_person,
+                emergency_contact_number: user.emergency_contact_number,
                 role: user.role,
                 ot_entitled: user.ot_pay_entitled,
             }
