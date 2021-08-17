@@ -10,6 +10,7 @@ import AdminRoute from './components/routes/Admin';
 import PrivateRoute from './components/routes/Private';
 import Head from './components/Head'
 import 'semantic-ui-css/semantic.min.css'
+import AttendanceOvertime from './components/AttendanceOvertime';
 
 function App() {
   const auth = useSelector(state => state.auth)
@@ -26,6 +27,7 @@ function App() {
               <AdminRoute exact path="/dashboard" component={Dashboard} />
               <PrivateRoute exact path="/attendance/time" component={Attendance} />
               <PrivateRoute exact path="/attendance/history" component={AttendanceHistory} />
+              <PrivateRoute exact path="/attendance/overtime" component={AttendanceOvertime} />
             </Switch>
           </Navbar>
         </React.Fragment>
