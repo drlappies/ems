@@ -2,7 +2,6 @@ import React from 'react';
 import { Container, Grid } from 'semantic-ui-react'
 import Punch from './Punch'
 import Popup from './Popup';
-import '../App.css'
 
 function Attendance() {
     return (
