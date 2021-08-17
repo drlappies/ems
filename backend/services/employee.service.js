@@ -9,7 +9,10 @@ class EmployeeService {
     }
 
     getAllEmployee = async () => {
-        const employee = await this.knex.select().from('employee');
+        const employee = await this.knex('employee')
+            .leftJoin('departments', 'employee.dept_id', 'departments.id')
+            .leftJoin('positions', 'employee.post_id', 'positions.id')
+            .select(['employee.id', 'employee.firstname', 'employee.lastname', 'employee.address', 'employee.phone_number', 'employee.emergency_contact_person', 'employee.emergency_contact_number', 'employee.onboard_date', 'employee.status', 'employee.created_at', 'employee.updated_at', 'employee.role', 'employee.start_hour', 'employee.end_hour', 'employee.salary_monthly', 'employee.ot_pay_entitled', 'employee.ot_hourly_salary', 'departments.name', 'positions.post'])
         return employee
     }
 

@@ -55,8 +55,8 @@ function Punch() {
                 </Card.Description>
             </Card.Content>
             <Card.Content>
-                <Button disabled={punch.checkInTime} primary onClick={() => dispatch(timeInThunk(auth.id))}>Time in</Button>
-                <Button disabled={punch.checkOutTime} secondary onClick={() => dispatch(timeOutThunk(auth.id))}>Time out</Button>
+                <Button primary onClick={() => dispatch(timeInThunk(auth.id))}>Time in</Button>
+                <Button secondary onClick={() => dispatch(timeOutThunk(auth.id))}>Time out</Button>
             </Card.Content>
         </Card>
     )

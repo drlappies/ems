@@ -171,7 +171,14 @@ class PayrollService {
         return payroll
     }
 
-    getAllPayroll = async () => {
+    getAllPayroll = async (starting, ending) => {
+        if (starting && ending) {
+            const payroll = await this.knex('payroll')
+                .select()
+                .where('date', '>=', starting)
+                .andWhere('date', '<=', ending)
+            return payroll
+        }
         const payroll = await this.knex('payroll').select()
         return payroll
     }

@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Attendance from './components/Attendance';
+import AttendanceHistory from './components/AttendanceHistory';
 import AdminRoute from './components/routes/Admin';
 import PrivateRoute from './components/routes/Private';
 import Head from './components/Head'
@@ -24,6 +25,7 @@ function App() {
             <Switch>
               <AdminRoute exact path="/dashboard" component={Dashboard} />
               <PrivateRoute exact path="/attendance/time" component={Attendance} />
+              <PrivateRoute exact path="/attendance/history" component={AttendanceHistory} />
             </Switch>
           </Navbar>
         </React.Fragment>

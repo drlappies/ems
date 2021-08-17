@@ -1,3 +1,5 @@
+import { CHECK_IN, CHECK_OUT, FETCH_PUNCH_STATUS } from '../types/punch'
+
 const initialState = {
     checkInTime: null,
     checkOutTime: null,
@@ -6,17 +8,18 @@ const initialState = {
 
 const punchReducer = (state = initialState, action) => {
     switch (action.type) {
-        case 'CHECKIN':
+        case CHECK_IN:
             return {
                 ...state,
-                checkInTime: action.payload
+                checkInTime: action.payload.checkInTime,
+                status: action.payload.status
             }
-        case 'CHECKOUT':
+        case CHECK_OUT:
             return {
                 ...state,
-                checkOutTime: action.payload
+                checkOutTime: action.payload.checkOutTime
             }
-        case 'STATUS':
+        case FETCH_PUNCH_STATUS:
             return {
                 ...state,
                 checkInTime: action.payload.checkInTime,

@@ -1,3 +1,4 @@
+import { CHECK_IN, CHECK_OUT, FETCH_PUNCH_STATUS } from '../types/punch'
 import axios from 'axios'
 import { popMessage } from './ui'
 
@@ -12,9 +13,13 @@ export const timeInThunk = (employeeId) => {
                     'jwt': window.localStorage.getItem('jwt')
                 }
             })
+            console.log(res)
             dispatch({
-                type: 'CHECKIN',
-                payload: res.data.timein
+                type: CHECK_IN,
+                payload: {
+                    checkInTime: res.data.timeIn.check_in,
+                    status: res.data.timeIn.status
+                }
             })
             dispatch(popMessage(res.data.success, 'SUCCESS'))
         } catch (err) {
@@ -35,8 +40,10 @@ export const timeOutThunk = (employeeId) => {
                 }
             })
             dispatch({
-                type: 'CHECKOUT',
-                payload: res.data.timeout
+                type: CHECK_OUT,
+                payload: {
+                    checkOutTime: res.data.timeout
+                }
             })
             dispatch(popMessage(res.data.success, 'SUCCESS'))
         } catch (err) {
@@ -53,20 +60,18 @@ export const fetchPunchStatusThunk = (employeeId) => {
                     'jwt': window.localStorage.getItem('jwt')
                 }
             })
-            console.log(res)
             if (res.data.hasOwnProperty('id')) {
                 dispatch({
-                    type: 'STATUS',
+                    type: FETCH_PUNCH_STATUS,
                     payload: {
                         checkInTime: res.data.check_in,
                         checkOutTime: res.data.check_out,
                         status: res.data.status
                     }
                 })
-                console.log(res.data)
             } else {
                 dispatch({
-                    type: 'STATUS',
+                    type: FETCH_PUNCH_STATUS,
                     payload: {
                         checkInTime: null,
                         checkOutTime: null,
