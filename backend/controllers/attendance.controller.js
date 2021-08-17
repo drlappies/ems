@@ -16,7 +16,7 @@ class AttendanceController {
             const timeIn = await this.AttendanceService.createTimeIn(employeeId);
             return res.status(200).json({
                 success: `Successfully timed in at ${timeIn.check_in} on ${timeIn.date}`,
-                timein: timeIn.check_in
+                timeIn: timeIn
             })
         } catch (err) {
             console.log(err)
@@ -133,8 +133,8 @@ class AttendanceController {
 
     getAllAttendance = async (req, res) => {
         try {
-            const { starting, ending } = req.query
-            const attendance = await this.AttendanceService.getAllAttendance(starting, ending);
+            const { starting, ending, employee_id, page } = req.query
+            const attendance = await this.AttendanceService.getAllAttendance(starting, ending, page, employee_id);
             return res.status(200).json(attendance)
         } catch (err) {
             console.log(err)
