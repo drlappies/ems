@@ -1,104 +1,166 @@
-import { FETCH_ATTENDANCE, NEXT_ATTENDANCE, PREVIOUS_ATTENDANCE, TO_ATTENDANCE } from '../types/attendance'
+import { FETCH_ATTENDANCE, NEXT_ATTENDANCE, PREVIOUS_ATTENDANCE, TO_ATTENDANCE, DELETE_ATTENDANCE, UPDATE_ATTENDANCE } from '../types/attendance'
+import { SUCCESS, ERROR } from '../types/ui'
+import { popErrorMessage, popSuccessMessage } from './ui'
 import axios from 'axios'
 
 export const fetchAttendance = (currentPage, starting, ending) => {
     return async (dispatch) => {
-        const res = await axios.get('/attendance', {
-            params: {
-                page: currentPage,
-                starting: starting,
-                ending: ending
-            }
-        });
-        dispatch({
-            type: FETCH_ATTENDANCE,
-            payload: {
-                record: res.data.attendance,
-                count: res.data.count.count,
-                page: res.data.page
-            }
-        })
+        try {
+            const res = await axios.get('/attendance', {
+                params: {
+                    page: currentPage,
+                    starting: starting,
+                    ending: ending
+                }
+            });
+            dispatch({
+                type: FETCH_ATTENDANCE,
+                payload: {
+                    record: res.data.attendance,
+                    count: res.data.count.count,
+                    page: res.data.page
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
     }
 }
 
 export const fetchNext = (nextPage, starting, ending) => {
     return async (dispatch) => {
-        const res = await axios.get('/attendance', {
-            params: {
-                page: nextPage,
-                starting: starting,
-                ending: ending
-            }
-        })
-        dispatch({
-            type: NEXT_ATTENDANCE,
-            payload: {
-                record: res.data.attendance,
-                count: res.data.count.count,
-                page: res.data.page
-            }
-        })
+        try {
+            const res = await axios.get('/attendance', {
+                params: {
+                    page: nextPage,
+                    starting: starting,
+                    ending: ending
+                }
+            })
+            dispatch({
+                type: NEXT_ATTENDANCE,
+                payload: {
+                    record: res.data.attendance,
+                    count: res.data.count.count,
+                    page: res.data.page
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
     }
 }
 
 export const fetchPrevious = (previousPage, starting, ending) => {
     return async (dispatch) => {
-        const res = await axios.get('/attendance', {
-            params: {
-                page: previousPage,
-                starting: starting,
-                ending: ending
-            }
-        })
-        dispatch({
-            type: PREVIOUS_ATTENDANCE,
-            payload: {
-                record: res.data.attendance,
-                count: res.data.count.count,
-                page: res.data.page
-            }
-        })
+        try {
+            const res = await axios.get('/attendance', {
+                params: {
+                    page: previousPage,
+                    starting: starting,
+                    ending: ending
+                }
+            })
+            dispatch({
+                type: PREVIOUS_ATTENDANCE,
+                payload: {
+                    record: res.data.attendance,
+                    count: res.data.count.count,
+                    page: res.data.page
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
     }
 }
 
 export const fetchSpecific = (page, starting, ending) => {
     return async (dispatch) => {
-        const res = await axios.get('/attendance', {
-            params: {
-                page: page,
-                starting: starting,
-                ending: ending
-            }
-        })
-        dispatch({
-            type: TO_ATTENDANCE,
-            payload: {
-                record: res.data.attendance,
-                count: res.data.count.count,
-                page: res.data.page,
-                to: page
-            }
-        })
+        try {
+            const res = await axios.get('/attendance', {
+                params: {
+                    page: page,
+                    starting: starting,
+                    ending: ending
+                }
+            })
+            dispatch({
+                type: TO_ATTENDANCE,
+                payload: {
+                    record: res.data.attendance,
+                    count: res.data.count.count,
+                    page: res.data.page,
+                    to: page
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
     }
 }
 
 export const fetchByQuery = (starting, ending, employee_id) => {
     return async (dispatch) => {
-        const res = await axios.get('/attendance', {
-            params: {
-                employee_id: employee_id,
-                starting: starting,
-                ending: ending,
-                page: 0
+        try {
+            const res = await axios.get('/attendance', {
+                params: {
+                    employee_id: employee_id,
+                    starting: starting,
+                    ending: ending,
+                    page: 0
+                }
+            })
+            dispatch({
+                type: FETCH_ATTENDANCE,
+                payload: {
+                    record: res.data.attendance,
+                    count: res.data.count.count,
+                    page: res.data.page
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }
+}
+
+export const deleteAttendance = (id) => {
+    return async (dispatch) => {
+        try {
+            const res = await axios.delete(`/attendance/${id}`)
+            dispatch({
+                type: DELETE_ATTENDANCE,
+                payload: {
+                    id: id
+                }
+            })
+            dispatch(popSuccessMessage(`Successfully deleted attendance record id: ${res.data.id}`))
+        } catch (err) {
+            console.log(err)
+        }
+    }
+}
+
+export const updateAttendance = (id, check_in, check_out) => {
+    return async (dispatch) => {
+        try {
+            const body = {
+                check_in: check_in,
+                check_out: check_out
             }
-        })
-        dispatch({
-            type: FETCH_ATTENDANCE,
-            payload: {
-                record: res.data.attendance,
-                count: res.data.count.count,
-                page: res.data.page
-            }
-        })
+            const res = await axios.put(`/attendance/${id}`, body)
+            dispatch({
+                type: UPDATE_ATTENDANCE,
+                payload: {
+                    id: id,
+                    check_in: check_in,
+                    check_out: check_out
+                }
+            })
+            dispatch(popSuccessMessage(`Successfully updated attendance record id: ${res.data.id}`))
+        } catch (err) {
+            console.log(err)
+        }
     }
 }
