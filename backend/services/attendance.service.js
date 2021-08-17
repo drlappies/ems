@@ -22,7 +22,7 @@ class AttendanceService extends EmployeeService {
             check_in: check_in,
             date: date,
             status: status,
-        }).returning(['check_in', 'date'])
+        }).returning(['check_in', 'date', 'status'])
         return attendance
     }
 
@@ -115,10 +115,39 @@ class AttendanceService extends EmployeeService {
         return attendance
     }
 
-    getAllAttendance = async (starting, ending) => {
-        const attendance = await this.knex('attendance')
-            .select()
-        return attendance
+    getAllAttendance = async (starting, ending, page, employee_id) => {
+        const currentPage = page * 15
+        if (employee_id) {
+            const [count] = await this.knex('attendance')
+                .count('id')
+                .where('date', '>=', starting)
+                .andWhere('date', '<=', ending)
+                .andWhere('employee_id', employee_id)
+            const attendance = await this.knex('attendance')
+                .select(['attendance.id', 'attendance.employee_id', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status', 'employee.firstname', 'employee.lastname'])
+                .join('employee', 'attendance.employee_id', 'employee.id')
+                .limit(15)
+                .offset(currentPage)
+                .orderBy('id')
+                .where('date', '>=', starting)
+                .andWhere('date', '<=', ending)
+                .andWhere('employee_id', employee_id)
+            return { attendance: attendance, count: count, page: page }
+        } else {
+            const [count] = await this.knex('attendance')
+                .count('id')
+                .where('date', '>=', starting)
+                .andWhere('date', '<=', ending)
+            const attendance = await this.knex('attendance')
+                .select(['attendance.id', 'attendance.employee_id', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status', 'employee.firstname', 'employee.lastname'])
+                .join('employee', 'attendance.employee_id', 'employee.id')
+                .limit(15)
+                .offset(currentPage)
+                .orderBy('id')
+                .where('date', '>=', starting)
+                .andWhere('date', '<=', ending)
+            return { attendance: attendance, count: count, page: page }
+        }
     }
 
     getOnTimeRate = async () => {
