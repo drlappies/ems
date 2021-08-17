@@ -4,13 +4,15 @@ import uiReducer from './ui';
 import punchReducer from "./punch";
 import attendanceReducer from "./attendance";
 import employeeReducer from "./employee";
+import overtimeReducer from "./overtime";
 
 const reducer = combineReducers({
     auth: authReducer,
     ui: uiReducer,
     punch: punchReducer,
     attendance: attendanceReducer,
-    employee: employeeReducer
+    employee: employeeReducer,
+    overtime: overtimeReducer
 })
 
 export default reducer
