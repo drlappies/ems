@@ -19,7 +19,8 @@ class OvertimeController {
             }
             const timein = await this.OvertimeService.createOvertimeTimein(employee_id, 'now');
             return res.status(200).json({
-                success: `Successfully timed in for overtime at ${timein.from} on ${timein.date.getFullYear()}-${timein.date.getMonth() + 1}-${timein.date.getDate()}`
+                success: `Successfully timed in for overtime at ${timein.from} on ${timein.date.getFullYear()}-${timein.date.getMonth() + 1}-${timein.date.getDate()}`,
+                timein: timein.from
             })
         } catch (err) {
             console.log(err)
@@ -45,7 +46,8 @@ class OvertimeController {
             }
             const timeout = await this.OvertimeService.createOvertimeTimeout(employee_id);
             return res.status(200).json({
-                success: `Successfully timed out for overtime at ${timeout.to} on ${timeout.date.getFullYear()}-${timeout.date.getMonth() + 1}-${timeout.date.getDate()}`
+                success: `Successfully timed out for overtime at ${timeout.to} on ${timeout.date.getFullYear()}-${timeout.date.getMonth() + 1}-${timeout.date.getDate()}`,
+                timeout: timeout.to
             })
         } catch (err) {
             console.log(err)

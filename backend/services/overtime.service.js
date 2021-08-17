@@ -11,7 +11,7 @@ class OvertimeService {
             employee_id: employee_id,
             from: from,
             date: date
-        }, ['employee_id', 'from', 'to', 'date'])
+        }, ['employee_id', 'from', 'date'])
         return overtimeTimein
     }
 
@@ -85,10 +85,11 @@ class OvertimeService {
     }
 
     getOvertime = async (id) => {
+        const currentTime = new Date()
+        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
         const [overtime] = await this.knex('overtime')
-            .join('employee', 'overtime.employee_id', 'employee.id')
-            .select(['overtime.id', 'overtime.employee_id', 'employee.firstname', 'employee.lastname', 'overtime.date', 'overtime.from', 'overtime.to'])
-            .where('overtime.id', id)
+            .where('employee_id', id)
+            .andWhere('date', date)
         return overtime
     }
 
