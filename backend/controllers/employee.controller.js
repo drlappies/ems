@@ -19,7 +19,9 @@ class EmployeeController {
     getAllEmployee = async (req, res) => {
         try {
             const employee = await this.employeeService.getAllEmployee();
-            return res.status(200).json(employee);
+            return res.status(200).json({
+                employee: employee
+            });
         } catch (err) {
             console.log(err);
             return res.status(500).json({ error: err })
