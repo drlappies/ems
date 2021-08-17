@@ -1,3 +1,5 @@
+import { SUCCESS, ERROR, DISMISS, SIDEBAR } from "../types/ui"
+
 export const popMessage = (message, type) => {
     return (dispatch) => {
         dispatch({
@@ -7,10 +9,36 @@ export const popMessage = (message, type) => {
     }
 }
 
+export const popSuccessMessage = (message) => {
+    return (dispatch) => {
+        dispatch({
+            type: SUCCESS,
+            payload: message
+        })
+    }
+}
+
+export const popErrorMessage = (message) => {
+    return (dispatch) => {
+        dispatch({
+            type: ERROR,
+            payload: message
+        })
+    }
+}
+
+export const dismissMessage = () => {
+    return (dispatch) => {
+        dispatch({
+            type: DISMISS
+        })
+    }
+}
+
 export const toggleSidebar = () => {
     return (dispatch) => {
         dispatch({
-            type: 'SIDEBAR'
+            type: SIDEBAR
         })
     }
 }

@@ -1,6 +1,6 @@
 import { CHECK_IN, CHECK_OUT, FETCH_PUNCH_STATUS } from '../types/punch'
 import axios from 'axios'
-import { popMessage } from './ui'
+import { popSuccessMessage, popErrorMessage } from './ui'
 
 export const timeInThunk = (employeeId) => {
     return async (dispatch) => {
@@ -21,9 +21,9 @@ export const timeInThunk = (employeeId) => {
                     status: res.data.timeIn.status
                 }
             })
-            dispatch(popMessage(res.data.success, 'SUCCESS'))
+            dispatch(popSuccessMessage(res.data.success))
         } catch (err) {
-            dispatch(popMessage(err.response.data.error, 'ERROR'))
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
@@ -45,9 +45,9 @@ export const timeOutThunk = (employeeId) => {
                     checkOutTime: res.data.timeout
                 }
             })
-            dispatch(popMessage(res.data.success, 'SUCCESS'))
+            dispatch(popSuccessMessage(res.data.success))
         } catch (err) {
-            dispatch(popMessage(err.response.data.error, 'ERROR'))
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
@@ -80,7 +80,7 @@ export const fetchPunchStatusThunk = (employeeId) => {
                 })
             }
         } catch (err) {
-            dispatch(popMessage(err.response.data.error, 'ERROR'))
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }

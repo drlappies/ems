@@ -1,5 +1,6 @@
 import axios from 'axios'
-import { popMessage } from './ui'
+import { popSuccessMessage, popErrorMessage } from './ui'
+import { LOGIN, LOGOUT } from '../types/auth'
 
 export const verifyThunk = (token) => {
     return async (dispatch) => {
@@ -10,7 +11,7 @@ export const verifyThunk = (token) => {
                 }
             })
             dispatch({
-                type: 'LOGIN',
+                type: LOGIN,
                 payload: {
                     id: res.data.payload.id,
                     username: res.data.payload.username,
@@ -24,7 +25,7 @@ export const verifyThunk = (token) => {
         } catch (err) {
             console.log(err)
             dispatch({
-                type: 'LOGOUT'
+                type: LOGOUT
             })
         }
     }
@@ -41,7 +42,7 @@ export const loginThunk = (username, password, history) => {
                 withCredentials: true
             })
             dispatch({
-                type: 'LOGIN',
+                type: LOGIN,
                 payload: {
                     id: res.data.payload.id,
                     username: res.data.payload.username,
@@ -51,10 +52,11 @@ export const loginThunk = (username, password, history) => {
                     ot_entitled: res.data.payload.ot_entitled,
                 }
             })
+            dispatch(popSuccessMessage(`Welcome, ${res.data.payload.lastname} ${res.data.payload.firstname}`))
             window.localStorage.setItem('jwt', res.data.token)
             history.push('/dashboard')
         } catch (err) {
-            dispatch(popMessage(err.response.data.message, 'ERROR'))
+            dispatch(popErrorMessage(err.response.data.message))
         }
     }
 }
@@ -62,7 +64,7 @@ export const loginThunk = (username, password, history) => {
 export const logoutThunk = (history) => {
     return (dispatch) => {
         dispatch({
-            type: 'LOGOUT'
+            type: LOGOUT
         })
         window.localStorage.removeItem('jwt')
         history.push('/')
