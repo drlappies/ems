@@ -1,4 +1,4 @@
-import { FETCH_ATTENDANCE, NEXT_ATTENDANCE, PREVIOUS_ATTENDANCE, TO_ATTENDANCE } from '../types/attendance'
+import { FETCH_ATTENDANCE, NEXT_ATTENDANCE, PREVIOUS_ATTENDANCE, TO_ATTENDANCE, DELETE_ATTENDANCE, UPDATE_ATTENDANCE } from '../types/attendance'
 
 const initialState = {
     record: [],
@@ -39,6 +39,17 @@ const attendanceReducer = (state = initialState, action) => {
                 pageLength: Array.from(Array(Math.round(action.payload.count / 15)).keys()),
                 currentPage: parseInt(action.payload.page),
                 currentRange: [action.payload.to, action.payload.to + 1, action.payload.to + 2]
+            }
+        case DELETE_ATTENDANCE:
+            return {
+                ...state,
+                record: state.record.filter(el => el.id !== action.payload.id),
+                pageLength: state.record.filter(el => el.id !== action.payload.id).length / 15
+            }
+        case UPDATE_ATTENDANCE:
+            return {
+                ...state,
+                record: state.record.map(el => el.id === action.payload.id ? { ...el, check_in: action.payload.check_in, check_out: action.payload.check_out } : el)
             }
         default:
             return state
