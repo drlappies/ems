@@ -155,6 +155,33 @@ class AttendanceController {
             })
         }
     }
+
+    deleteAttendance = async (req, res) => {
+        try {
+            const { id } = req.params
+            const attendance = await this.AttendanceService.deleteAttendance(id)
+            return res.status(200).json(attendance)
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    updateAttendance = async (req, res) => {
+        try {
+            const { id } = req.params
+            const { check_in, check_out } = req.body
+            const attendance = await this.AttendanceService.updateAttendance(id, check_in, check_out)
+            return res.status(200).json(attendance)
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({
+                error: err
+            })
+        }
+    }
 }
 
 module.exports = AttendanceController
