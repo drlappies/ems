@@ -156,6 +156,23 @@ class AttendanceService extends EmployeeService {
         const rate = Math.round((on_time.count / attendance.count) * 100)
         return rate
     }
+
+    deleteAttendance = async (id) => {
+        const [attendance] = await this.knex('attendance')
+            .where('id', id)
+            .del(['id', 'employee_id', 'check_in', 'check_out', 'date', 'status'])
+        return attendance
+    }
+
+    updateAttendance = async (id, check_in, check_out) => {
+        const [attendance] = await this.knex('attendance')
+            .where('id', id)
+            .update({
+                check_in: check_in,
+                check_out: check_out
+            }, ['id', 'check_in', 'check_out'])
+        return attendance
+    }
 }
 
 module.exports = AttendanceService
