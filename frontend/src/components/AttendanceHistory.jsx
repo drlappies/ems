@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { fetchAttendance, fetchNext, fetchPrevious, fetchSpecific, fetchByQuery, deleteAttendance, updateAttendance } from '../actions/attendance';
+import { fetchAttendance, fetchNext, fetchPrevious, fetchByQuery, deleteAttendance, updateAttendance } from '../actions/attendance';
 import { fetchEmployee } from '../actions/employee'
 import { useSelector, useDispatch } from 'react-redux';
-import { Icon, Menu, Table, Grid, Dropdown, Modal, Button, Form } from 'semantic-ui-react'
+import { Menu, Table, Grid, Dropdown, Form } from 'semantic-ui-react'
+import TableHeader from './TableHeader';
+import TableFooter from './TableFooter';
+import TableBody from './TableBody';
+import Config from './Config';
 
 function AttendanceHistory() {
     const date = new Date().toISOString().slice(0, 10)
@@ -27,25 +31,22 @@ function AttendanceHistory() {
         }
     })
 
+    const header = ['ID', 'Employee ID', 'Firstname', 'Lastname', 'Date', 'Time in', 'Time out', 'Status', 'Actions']
+
     useEffect(() => {
         dispatch(fetchAttendance(attendance.currentPage, state.starting, state.ending))
         dispatch(fetchEmployee())
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch])
 
-    const handleFlipTo = (page) => {
-        if (attendance.currentPage >= attendance.pageLength.length - 1) return;
-        dispatch(fetchSpecific(page, state.starting, state.ending))
-    }
-
     const handleFlipToPrevious = () => {
         if (attendance.currentPage <= 0) return;
-        dispatch(fetchPrevious(attendance.currentPage - 1, state.starting, state.ending))
+        dispatch(fetchPrevious(attendance.currentPage, state.starting, state.ending))
     }
 
     const handleFlipToNext = () => {
-        if (attendance.currentPage >= attendance.pageLength.length - 1) return;
-        dispatch(fetchNext(attendance.currentPage + 1, state.starting, state.ending))
+        if (attendance.currentPageEnd >= attendance.pageLength) return;
+        dispatch(fetchNext(attendance.currentPage, state.starting, state.ending))
     }
 
     const handleChange = (e, result) => {
@@ -139,127 +140,80 @@ function AttendanceHistory() {
                 </Grid.Row>
                 <Grid.Row>
                     <Table celled>
-                        <Table.Header>
-                            <Table.Row>
-                                <Table.HeaderCell>id</Table.HeaderCell>
-                                <Table.HeaderCell>Employee ID</Table.HeaderCell>
-                                <Table.HeaderCell>Firstname</Table.HeaderCell>
-                                <Table.HeaderCell>Lastname</Table.HeaderCell>
-                                <Table.HeaderCell>Date</Table.HeaderCell>
-                                <Table.HeaderCell>Time in</Table.HeaderCell>
-                                <Table.HeaderCell>Time out</Table.HeaderCell>
-                                <Table.HeaderCell>Status</Table.HeaderCell>
-                                <Table.HeaderCell>Actions</Table.HeaderCell>
-                            </Table.Row>
-                        </Table.Header>
-                        <Table.Body>
-                            {attendance.record.map((el, i) =>
-                                <Table.Row key={i}>
-                                    <Table.Cell>{el.id}</Table.Cell>
-                                    <Table.Cell>{el.employee_id}</Table.Cell>
-                                    <Table.Cell>{el.firstname}</Table.Cell>
-                                    <Table.Cell>{el.lastname}</Table.Cell>
-                                    <Table.Cell>{new Date(el.date).getFullYear()} - {new Date(el.date).getMonth() + 1} - {new Date(el.date).getDate()}</Table.Cell>
-                                    <Table.Cell>{el.check_in}</Table.Cell>
-                                    <Table.Cell>{el.check_out}</Table.Cell>
-                                    <Table.Cell>{el.status}</Table.Cell>
-                                    <Table.Cell>
-                                        <Dropdown>
-                                            <Dropdown.Menu>
-                                                <Dropdown.Item onClick={() => toggleUpdate(el)}>
-                                                    Update
-                                                </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => toggleDelete(el)}>
-                                                    Delete
-                                                </Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    </Table.Cell>
-                                </Table.Row>
-                            )}
-                        </Table.Body>
-                        <Table.Footer>
-                            <Table.Row>
-                                <Table.HeaderCell colSpan='9'>
-                                    <Menu floated='right' pagination>
-                                        <Menu.Item as='a' icon onClick={() => handleFlipToPrevious()}>
-                                            <Icon name='chevron left' />
-                                        </Menu.Item>
-                                        {attendance.currentRange.map((el, i) =>
-                                            <Menu.Item key={i} onClick={() => handleFlipTo(el)}>
-                                                {el}
-                                            </Menu.Item>
-                                        )}
-                                        <Menu.Item as='a' icon onClick={() => handleFlipToNext()}>
-                                            <Icon name='chevron right' />
-                                        </Menu.Item>
-                                    </Menu>
-                                </Table.HeaderCell>
-                            </Table.Row>
-                        </Table.Footer>
+                        <TableHeader header={header} />
+                        <TableBody
+                            data={attendance.record}
+                            primaryAction={"Update"}
+                            primaryFunc={toggleUpdate}
+                            secondaryAction={"Delete"}
+                            secondaryFunc={toggleDelete}
+                        />
+                        <TableFooter
+                            colSpan={9}
+                            onPrevious={() => handleFlipToPrevious()}
+                            onNext={() => handleFlipToNext()}
+                            pageTotal={attendance.pageLength}
+                            pageStart={attendance.currentPageStart}
+                            pageEnd={attendance.currentPageEnd}
+                        />
                     </Table>
                 </Grid.Row>
             </Grid>
-            <Modal
-                size="tiny"
-                open={state.delete}
-            >
-                <Modal.Header>Delete attendance record</Modal.Header>
-                {state.delete ?
-                    <Modal.Content>
-                        <p>Are you sure you want to delete the following attendance record?</p>
-                        <p>Attendance record id: {state.deletion.id}</p>
-                        <p>Employee id: {state.deletion.employee_id}</p>
-                        <p>Employee: {state.deletion.firstname} {state.deletion.lastname}</p>
-                        <p>Date: {new Date(state.deletion.date).getFullYear()} - {new Date(state.deletion.date).getMonth() + 1} - {new Date(state.deletion.date).getDate()}</p>
-                        <p>Check in: {state.deletion.check_in}</p>
-                        <p>Check out: {state.deletion.check_out}</p>
-                        <p>Status: {state.deletion.status}</p>
-                    </Modal.Content>
-                    : null}
-                <Modal.Actions>
-                    <Button negative onClick={() => toggleDelete()}>
-                        No
-                    </Button>
-                    <Button positive onClick={() => handleDelete()}>
-                        Yes
-                    </Button>
-                </Modal.Actions>
-            </Modal>
-            <Modal
-                size="tiny"
-                open={state.update}
-            >
-                <Modal.Header>Update attendance record</Modal.Header>
-                {state.update ?
-                    <Modal.Content>
-                        <p>Attendance record id: {state.updates.id}</p>
-                        <p>Employee id: {state.updates.employee_id}</p>
-                        <p>Employee: {state.updates.firstname} {state.updates.lastname}</p>
-                        <p>Date: {new Date(state.updates.date).getFullYear()} - {new Date(state.updates.date).getMonth() + 1} - {new Date(state.updates.date).getDate()}</p>
-                        <Form>
-                            <Form.Field>
-                                <label htmlFor="check_in">Check in</label>
-                                <input id="check_in" name="check_in" type="time" step="1" value={state.updates.check_in} onChange={(e) => handleUpdateChange(e)} />
-                            </Form.Field>
-                            <Form.Field>
-                                <label htmlFor="check_out">Check out</label>
-                                <input id="check_out" name="check_out" type="time" step="1" value={state.updates.check_out} onChange={(e) => handleUpdateChange(e)} />
-                            </Form.Field>
-                        </Form>
-                    </Modal.Content>
-                    :
-                    null
+            <Config
+                isConfigOpen={state.delete}
+                configSize={"tiny"}
+                configType={"Delete Attendance Record"}
+                configContent={
+                    <React.Fragment>
+                        {state.deletion ?
+                            <React.Fragment>
+                                <p>Are you sure you want to delete the following attendance record?</p>
+                                <p>Attendance record id: {state.deletion.id}</p>
+                                <p>Employee id: {state.deletion.employee_id}</p>
+                                <p>Employee: {state.deletion.firstname} {state.deletion.lastname}</p>
+                                <p>Date: {new Date(state.deletion.date).getFullYear()} - {new Date(state.deletion.date).getMonth() + 1} - {new Date(state.deletion.date).getDate()}</p>
+                                <p>Check in: {state.deletion.check_in}</p>
+                                <p>Check out: {state.deletion.check_out}</p>
+                                <p>Status: {state.deletion.status}</p>
+                            </React.Fragment> : null}
+                    </React.Fragment>
                 }
-                <Modal.Actions>
-                    <Button negative onClick={() => toggleUpdate()}>
-                        Cancel
-                    </Button>
-                    <Button positive onClick={() => handleUpdate()}>
-                        Update
-                    </Button>
-                </Modal.Actions>
-            </Modal>
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={toggleDelete}
+                configSecondaryAction={"Delete"}
+                configSecondaryFunc={handleDelete}
+            />
+            <Config
+                isConfigOpen={state.update}
+                configSize={"tiny"}
+                configType={"Update Attendance Record"}
+                configContent={
+                    <React.Fragment>
+                        {state.updates ?
+                            <React.Fragment>
+                                <p>Attendance record id: {state.updates.id}</p>
+                                <p>Employee id: {state.updates.employee_id}</p>
+                                <p>Employee: {state.updates.firstname} {state.updates.lastname}</p>
+                                <p>Date: {new Date(state.updates.date).getFullYear()} - {new Date(state.updates.date).getMonth() + 1} - {new Date(state.updates.date).getDate()}</p>
+                                <Form>
+                                    <Form.Field>
+                                        <label htmlFor="check_in">Check in</label>
+                                        <input id="check_in" name="check_in" type="time" step="1" value={state.updates.check_in} onChange={(e) => handleUpdateChange(e)} />
+                                    </Form.Field>
+                                    <Form.Field>
+                                        <label htmlFor="check_out">Check out</label>
+                                        <input id="check_out" name="check_out" type="time" step="1" value={state.updates.check_out} onChange={(e) => handleUpdateChange(e)} />
+                                    </Form.Field>
+                                </Form>
+                            </React.Fragment>
+                            : null}
+                    </React.Fragment>
+                }
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={toggleUpdate}
+                configSecondaryAction={"Update"}
+                configSecondaryFunc={handleUpdate}
+            />
         </div>
     )
 }
