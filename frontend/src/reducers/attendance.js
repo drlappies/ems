@@ -1,10 +1,11 @@
-import { FETCH_ATTENDANCE, NEXT_ATTENDANCE, PREVIOUS_ATTENDANCE, TO_ATTENDANCE, DELETE_ATTENDANCE, UPDATE_ATTENDANCE } from '../types/attendance'
+import { FETCH_ATTENDANCE, DELETE_ATTENDANCE, UPDATE_ATTENDANCE } from '../types/attendance'
 
 const initialState = {
     record: [],
-    pageLength: [],
+    pageLength: 0,
     currentPage: 0,
-    currentRange: [0, 1, 2]
+    currentPageStart: 0,
+    currentPageEnd: 0
 }
 
 const attendanceReducer = (state = initialState, action) => {
@@ -13,32 +14,10 @@ const attendanceReducer = (state = initialState, action) => {
             return {
                 ...state,
                 record: action.payload.record,
-                pageLength: Array.from(Array(Math.round(action.payload.count / 15)).keys()),
-                currentPage: parseInt(action.payload.page),
-            }
-        case NEXT_ATTENDANCE:
-            return {
-                ...state,
-                record: action.payload.record,
-                pageLength: Array.from(Array(Math.round(action.payload.count / 15)).keys()),
-                currentPage: parseInt(action.payload.page),
-                currentRange: state.currentRange.map(el => el + 1)
-            }
-        case PREVIOUS_ATTENDANCE:
-            return {
-                ...state,
-                record: action.payload.record,
-                pageLength: Array.from(Array(Math.round(action.payload.count / 15)).keys()),
-                currentPage: parseInt(action.payload.page),
-                currentRange: state.currentRange.map(el => el - 1)
-            }
-        case TO_ATTENDANCE:
-            return {
-                ...state,
-                record: action.payload.record,
-                pageLength: Array.from(Array(Math.round(action.payload.count / 15)).keys()),
-                currentPage: parseInt(action.payload.page),
-                currentRange: [action.payload.to, action.payload.to + 1, action.payload.to + 2]
+                pageLength: action.payload.count,
+                currentPage: action.payload.page,
+                currentPageStart: action.payload.pageStart,
+                currentPageEnd: action.payload.pageEnd
             }
         case DELETE_ATTENDANCE:
             return {

@@ -1,4 +1,4 @@
-import { FETCH_ATTENDANCE, NEXT_ATTENDANCE, PREVIOUS_ATTENDANCE, TO_ATTENDANCE, DELETE_ATTENDANCE, UPDATE_ATTENDANCE } from '../types/attendance'
+import { FETCH_ATTENDANCE, DELETE_ATTENDANCE, UPDATE_ATTENDANCE } from '../types/attendance'
 import { SUCCESS, ERROR } from '../types/ui'
 import { popErrorMessage, popSuccessMessage } from './ui'
 import axios from 'axios'
@@ -11,14 +11,16 @@ export const fetchAttendance = (currentPage, starting, ending) => {
                     page: currentPage,
                     starting: starting,
                     ending: ending
-                }
+                },
             });
             dispatch({
                 type: FETCH_ATTENDANCE,
                 payload: {
                     record: res.data.attendance,
                     count: res.data.count.count,
-                    page: res.data.page
+                    page: res.data.currentPage,
+                    pageStart: res.data.pageStart,
+                    pageEnd: res.data.pageEnd
                 }
             })
         } catch (err) {
@@ -27,22 +29,24 @@ export const fetchAttendance = (currentPage, starting, ending) => {
     }
 }
 
-export const fetchNext = (nextPage, starting, ending) => {
+export const fetchNext = (page, starting, ending) => {
     return async (dispatch) => {
         try {
             const res = await axios.get('/attendance', {
                 params: {
-                    page: nextPage,
+                    page: page + 15,
                     starting: starting,
                     ending: ending
                 }
             })
             dispatch({
-                type: NEXT_ATTENDANCE,
+                type: FETCH_ATTENDANCE,
                 payload: {
                     record: res.data.attendance,
                     count: res.data.count.count,
-                    page: res.data.page
+                    page: res.data.currentPage,
+                    pageStart: res.data.pageStart,
+                    pageEnd: res.data.pageEnd
                 }
             })
         } catch (err) {
@@ -51,47 +55,24 @@ export const fetchNext = (nextPage, starting, ending) => {
     }
 }
 
-export const fetchPrevious = (previousPage, starting, ending) => {
+export const fetchPrevious = (page, starting, ending) => {
     return async (dispatch) => {
         try {
             const res = await axios.get('/attendance', {
                 params: {
-                    page: previousPage,
+                    page: page - 15,
                     starting: starting,
                     ending: ending
                 }
             })
             dispatch({
-                type: PREVIOUS_ATTENDANCE,
+                type: FETCH_ATTENDANCE,
                 payload: {
                     record: res.data.attendance,
                     count: res.data.count.count,
-                    page: res.data.page
-                }
-            })
-        } catch (err) {
-            console.log(err)
-        }
-    }
-}
-
-export const fetchSpecific = (page, starting, ending) => {
-    return async (dispatch) => {
-        try {
-            const res = await axios.get('/attendance', {
-                params: {
-                    page: page,
-                    starting: starting,
-                    ending: ending
-                }
-            })
-            dispatch({
-                type: TO_ATTENDANCE,
-                payload: {
-                    record: res.data.attendance,
-                    count: res.data.count.count,
-                    page: res.data.page,
-                    to: page
+                    page: res.data.currentPage,
+                    pageStart: res.data.pageStart,
+                    pageEnd: res.data.pageEnd
                 }
             })
         } catch (err) {
@@ -116,7 +97,9 @@ export const fetchByQuery = (starting, ending, employee_id) => {
                 payload: {
                     record: res.data.attendance,
                     count: res.data.count.count,
-                    page: res.data.page
+                    page: res.data.currentPage,
+                    pageStart: res.data.pageStart,
+                    pageEnd: res.data.pageEnd
                 }
             })
         } catch (err) {
@@ -145,6 +128,7 @@ export const deleteAttendance = (id) => {
 export const updateAttendance = (id, check_in, check_out) => {
     return async (dispatch) => {
         try {
+            console.log('hits')
             const body = {
                 check_in: check_in,
                 check_out: check_out

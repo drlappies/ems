@@ -116,7 +116,10 @@ class AttendanceService extends EmployeeService {
     }
 
     getAllAttendance = async (starting, ending, page, employee_id) => {
-        const currentPage = page * 15
+        let pageStart = parseInt(page) + 1;
+        let pageEnd = parseInt(page) + 15;
+        let currentPage = parseInt(page)
+
         if (employee_id) {
             const [count] = await this.knex('attendance')
                 .count('id')
@@ -124,29 +127,35 @@ class AttendanceService extends EmployeeService {
                 .andWhere('date', '<=', ending)
                 .andWhere('employee_id', employee_id)
             const attendance = await this.knex('attendance')
-                .select(['attendance.id', 'attendance.employee_id', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status', 'employee.firstname', 'employee.lastname'])
+                .select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
                 .join('employee', 'attendance.employee_id', 'employee.id')
                 .limit(15)
-                .offset(currentPage)
+                .offset(page)
                 .orderBy('id')
                 .where('date', '>=', starting)
                 .andWhere('date', '<=', ending)
                 .andWhere('employee_id', employee_id)
-            return { attendance: attendance, count: count, page: page }
+            if (pageEnd > count.count) {
+                pageEnd = parseInt(count.count)
+            }
+            return { attendance: attendance, count: count, currentPage: currentPage, pageStart: pageStart, pageEnd: pageEnd }
         } else {
             const [count] = await this.knex('attendance')
                 .count('id')
                 .where('date', '>=', starting)
                 .andWhere('date', '<=', ending)
             const attendance = await this.knex('attendance')
-                .select(['attendance.id', 'attendance.employee_id', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status', 'employee.firstname', 'employee.lastname'])
+                .select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
                 .join('employee', 'attendance.employee_id', 'employee.id')
                 .limit(15)
-                .offset(currentPage)
+                .offset(page)
                 .orderBy('id')
                 .where('date', '>=', starting)
                 .andWhere('date', '<=', ending)
-            return { attendance: attendance, count: count, page: page }
+            if (pageEnd > count.count) {
+                pageEnd = parseInt(count.count)
+            }
+            return { attendance: attendance, count: count, currentPage: currentPage, pageStart: pageStart, pageEnd: pageEnd }
         }
     }
 
