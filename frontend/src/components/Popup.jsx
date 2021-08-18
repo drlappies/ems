@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Message } from 'semantic-ui-react'
+import { Message, Grid } from 'semantic-ui-react'
 import { dismissMessage } from '../actions/ui'
 
 function Popup(props) {
@@ -16,11 +16,15 @@ function Popup(props) {
     }
 
     return (
-        <Message hidden={!notification.visible} success={isSuccess} error={isError} onDismiss={() => dispatch(dismissMessage())}>
-            <Message.Content>
-                {notification.message}
-            </Message.Content>
-        </Message>
+        <Grid centered>
+            <Grid.Row>
+                <Message compact floating size="large" hidden={!notification.visible} success={isSuccess} error={isError} onDismiss={() => dispatch(dismissMessage())}>
+                    <Message.Content>
+                        {notification.message}
+                    </Message.Content>
+                </Message>
+            </Grid.Row>
+        </Grid>
     )
 }
 

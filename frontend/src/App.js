@@ -11,6 +11,8 @@ import PrivateRoute from './components/routes/Private';
 import Head from './components/Head'
 import 'semantic-ui-css/semantic.min.css'
 import AttendanceOvertime from './components/AttendanceOvertime';
+import OvertimeHistory from './components/OvertimeHistory';
+import Popup from './components/Popup';
 
 function App() {
   const auth = useSelector(state => state.auth)
@@ -22,12 +24,14 @@ function App() {
         :
         <React.Fragment>
           <Head />
+          <Popup />
           <Navbar>
             <Switch>
               <AdminRoute exact path="/dashboard" component={Dashboard} />
               <PrivateRoute exact path="/attendance/time" component={Attendance} />
               <PrivateRoute exact path="/attendance/history" component={AttendanceHistory} />
               <PrivateRoute exact path="/attendance/overtime" component={AttendanceOvertime} />
+              <PrivateRoute exact path="/attendance/history/overtime" component={OvertimeHistory} />
             </Switch>
           </Navbar>
         </React.Fragment>
