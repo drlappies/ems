@@ -1,5 +1,4 @@
 import { FETCH_ATTENDANCE, DELETE_ATTENDANCE, UPDATE_ATTENDANCE } from '../types/attendance'
-import { SUCCESS, ERROR } from '../types/ui'
 import { popErrorMessage, popSuccessMessage } from './ui'
 import axios from 'axios'
 
@@ -25,6 +24,7 @@ export const fetchAttendance = (currentPage, starting, ending) => {
             })
         } catch (err) {
             console.log(err)
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
@@ -51,6 +51,7 @@ export const fetchNext = (page, starting, ending) => {
             })
         } catch (err) {
             console.log(err)
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
@@ -77,6 +78,7 @@ export const fetchPrevious = (page, starting, ending) => {
             })
         } catch (err) {
             console.log(err)
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
@@ -104,6 +106,7 @@ export const fetchByQuery = (starting, ending, employee_id) => {
             })
         } catch (err) {
             console.log(err)
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
@@ -121,6 +124,7 @@ export const deleteAttendance = (id) => {
             dispatch(popSuccessMessage(`Successfully deleted attendance record id: ${res.data.id}`))
         } catch (err) {
             console.log(err)
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
@@ -145,6 +149,7 @@ export const updateAttendance = (id, check_in, check_out) => {
             dispatch(popSuccessMessage(`Successfully updated attendance record id: ${res.data.id}`))
         } catch (err) {
             console.log(err)
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
