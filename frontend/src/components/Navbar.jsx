@@ -40,6 +40,9 @@ function Navbar(props) {
                         <Menu.Item as={Link} to="/attendance/history">
                             Attendance History
                         </Menu.Item>
+                        <Menu.Item as={Link} to="/attendance/history/overtime">
+                            Overtime History
+                        </Menu.Item>
                     </Menu.Menu>
                 </Menu.Item>
                 <Menu.Item>
