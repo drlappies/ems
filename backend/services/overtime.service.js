@@ -45,7 +45,7 @@ class OvertimeService {
                 from: from,
                 to: to,
                 status: status
-            }, ['id'])
+            }, ['id', 'from', 'to', 'status'])
         return overtime
     }
 
@@ -77,11 +77,50 @@ class OvertimeService {
         return overtimeTimein
     }
 
-    getAllOvertime = async () => {
+    getAllOvertime = async (starting, ending, employee_id, page, status) => {
+        let currentPage = parseInt(page);
+        let pageStart = parseInt(page) + 1;
+        let pageEnd = parseInt(page) + 15;
+
+        const [count] = await this.knex('overtime')
+            .count('id')
+            .where('date', '>=', starting)
+            .andWhere('date', '<=', ending)
+            .modify((queryBuilder) => {
+                if (employee_id) {
+                    queryBuilder.where('overtime.employee_id', employee_id)
+                }
+            })
+            .modify((queryBuilder) => {
+                if (status) {
+                    queryBuilder.where('overtime.status', status)
+                }
+            })
+
         const overtime = await this.knex('overtime')
             .join('employee', 'overtime.employee_id', 'employee.id')
-            .select(['overtime.id', 'overtime.employee_id', 'employee.firstname', 'employee.lastname', 'overtime.date', 'overtime.from', 'overtime.to'])
-        return overtime
+            .select(['overtime.id', 'overtime.employee_id', 'employee.firstname', 'employee.lastname', 'overtime.from', 'overtime.to', 'overtime.date', 'overtime.status'])
+            .limit(15)
+            .offset(page)
+            .orderBy('id')
+            .where('date', '>=', starting)
+            .andWhere('date', '<=', ending)
+            .modify((queryBuilder) => {
+                if (employee_id) {
+                    queryBuilder.where('overtime.employee_id', employee_id)
+                }
+            })
+            .modify((queryBuilder) => {
+                if (status) {
+                    queryBuilder.where('overtime.status', status)
+                }
+            })
+
+        if (pageEnd > count.count) {
+            pageEnd = parseInt(count.count)
+        }
+
+        return { overtime: overtime, count: count.count, currentPage: currentPage, pageStart: pageStart, pageEnd: pageEnd }
     }
 
     getOvertime = async (id) => {
