@@ -8,9 +8,6 @@ function AttendanceOvertime() {
         <Container>
             <Grid centered>
                 <Grid.Row>
-                    <Popup />
-                </Grid.Row>
-                <Grid.Row>
                     <Overtime />
                 </Grid.Row>
             </Grid>
