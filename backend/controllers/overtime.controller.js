@@ -100,7 +100,8 @@ class OvertimeController {
             }
             const overtime = await this.OvertimeService.updateOvertime(id, from, to, status);
             return res.status(200).json({
-                success: `Successfully updated overtime record ${overtime.id}`
+                success: `Successfully updated overtime record id: ${overtime.id}`,
+                update: overtime
             })
         } catch (err) {
             console.log(err)
@@ -190,7 +191,8 @@ class OvertimeController {
 
     getAllOvertime = async (req, res) => {
         try {
-            const overtime = await this.OvertimeService.getAllOvertime();
+            const { starting, ending, employee_id, page, status } = req.query
+            const overtime = await this.OvertimeService.getAllOvertime(starting, ending, employee_id, page, status);
             return res.status(200).json(overtime)
         } catch (err) {
             console.log(err)
