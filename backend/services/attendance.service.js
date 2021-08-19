@@ -120,43 +120,34 @@ class AttendanceService extends EmployeeService {
         let pageEnd = parseInt(page) + 15;
         let currentPage = parseInt(page)
 
-        if (employee_id) {
-            const [count] = await this.knex('attendance')
-                .count('id')
-                .where('date', '>=', starting)
-                .andWhere('date', '<=', ending)
-                .andWhere('employee_id', employee_id)
-            const attendance = await this.knex('attendance')
-                .select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
-                .join('employee', 'attendance.employee_id', 'employee.id')
-                .limit(15)
-                .offset(page)
-                .orderBy('id')
-                .where('date', '>=', starting)
-                .andWhere('date', '<=', ending)
-                .andWhere('employee_id', employee_id)
-            if (pageEnd > count.count) {
-                pageEnd = parseInt(count.count)
-            }
-            return { attendance: attendance, count: count, currentPage: currentPage, pageStart: pageStart, pageEnd: pageEnd }
-        } else {
-            const [count] = await this.knex('attendance')
-                .count('id')
-                .where('date', '>=', starting)
-                .andWhere('date', '<=', ending)
-            const attendance = await this.knex('attendance')
-                .select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
-                .join('employee', 'attendance.employee_id', 'employee.id')
-                .limit(15)
-                .offset(page)
-                .orderBy('id')
-                .where('date', '>=', starting)
-                .andWhere('date', '<=', ending)
-            if (pageEnd > count.count) {
-                pageEnd = parseInt(count.count)
-            }
-            return { attendance: attendance, count: count, currentPage: currentPage, pageStart: pageStart, pageEnd: pageEnd }
+        const [count] = await this.knex('attendance')
+            .count('id')
+            .where('date', '>=', starting)
+            .andWhere('date', '<=', ending)
+            .modify((queryBuilder) => {
+                if (employee_id) {
+                    queryBuilder.where('employee_id', employee_id)
+                }
+            })
+
+        const attendance = await this.knex('attendance')
+            .select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
+            .join('employee', 'attendance.employee_id', 'employee.id')
+            .limit(15)
+            .offset(page)
+            .orderBy('id')
+            .where('date', '>=', starting)
+            .andWhere('date', '<=', ending)
+            .modify((queryBuilder) => {
+                if (employee_id) {
+                    queryBuilder.where('employee_id', employee_id)
+                }
+            })
+
+        if (pageEnd > count.count) {
+            pageEnd = parseInt(count.count)
         }
+        return { attendance: attendance, count: count, currentPage: currentPage, pageStart: pageStart, pageEnd: pageEnd }
     }
 
     getOnTimeRate = async () => {
