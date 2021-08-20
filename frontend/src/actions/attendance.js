@@ -153,3 +153,34 @@ export const updateAttendance = (id, check_in, check_out) => {
         }
     }
 }
+
+export const createAttendance = (employee_id, date, check_in, check_out, status) => {
+    return async (dispatch) => {
+        try {
+            const body = {
+                employee_id: employee_id,
+                date: date,
+                check_in: check_in,
+                check_out: check_out,
+                status: status
+            }
+            console.log(body)
+            const res = await axios.post('/attendance', body)
+            console.log(res)
+            dispatch({
+                type: FETCH_ATTENDANCE,
+                payload: {
+                    record: res.data.attendance,
+                    count: res.data.attendance.length,
+                    currentPage: 0,
+                    currentPageStart: 1,
+                    currentPageEnd: 1
+                }
+            })
+            dispatch(popSuccessMessage(res.data.success))
+        } catch (err) {
+            console.log(err)
+            dispatch(popErrorMessage(err.response.data.error))
+        }
+    }
+}
