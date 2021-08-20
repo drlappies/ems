@@ -29,9 +29,9 @@ function App() {
             <Switch>
               <AdminRoute exact path="/dashboard" component={Dashboard} />
               <PrivateRoute exact path="/attendance/time" component={Attendance} />
-              <PrivateRoute exact path="/attendance/history" component={AttendanceHistory} />
+              <AdminRoute exact path="/attendance/history" component={AttendanceHistory} />
               <PrivateRoute exact path="/attendance/overtime" component={AttendanceOvertime} />
-              <PrivateRoute exact path="/attendance/history/overtime" component={OvertimeHistory} />
+              <AdminRoute exact path="/attendance/history/overtime" component={OvertimeHistory} />
             </Switch>
           </Navbar>
         </React.Fragment>
