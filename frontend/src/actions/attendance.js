@@ -166,7 +166,6 @@ export const createAttendance = (employee_id, date, check_in, check_out, status)
             }
             console.log(body)
             const res = await axios.post('/attendance', body)
-            console.log(res)
             dispatch({
                 type: FETCH_ATTENDANCE,
                 payload: {
