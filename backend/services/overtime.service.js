@@ -28,14 +28,22 @@ class OvertimeService {
         return overtimeTimeout
     }
 
-    createOvertime = async (employee_id, date, from, to) => {
+    createOvertime = async (employee_id, date, from, to, status) => {
         const [overtime] = await this.knex('overtime').insert({
             employee_id: employee_id,
             date: date,
             from: from,
-            to: to
-        }, ['date', 'from', 'to'])
-        return overtime
+            to: to,
+            status: status
+        }, ['id', 'from', 'to', 'date', 'status', 'employee_id'])
+
+        const created = await this.knex('overtime')
+            .join('employee', 'overtime.employee_id', 'employee.id')
+            .select(['overtime.id', 'overtime.employee_id', 'employee.firstname', 'employee.lastname', 'overtime.from', 'overtime.to', 'overtime.date', 'overtime.status'])
+            .where('overtime.employee_id', overtime.employee_id)
+            .andWhere('date', overtime.date)
+
+        return created
     }
 
     updateOvertime = async (id, from, to, status) => {
@@ -54,27 +62,6 @@ class OvertimeService {
             .where('id', id)
             .del(['id'])
         return overtime
-    }
-
-    recreateOvertimeTimeout = async (employee_id, date, to) => {
-        const [overtimeTimeout] = await this.knex('overtime')
-            .where('employee_id', employee_id)
-            .andWhere('date', date)
-            .whereNull('to')
-            .update({
-                to: to
-            }, ['employee_id', 'date', 'to'])
-        return overtimeTimeout
-    }
-
-    recreateOvertimeTimein = async (employee_id, date, from) => {
-        const [overtimeTimein] = await this.knex('overtime')
-            .insert({
-                employee_id: employee_id,
-                date: date,
-                from: from
-            }, ['date', 'from'])
-        return overtimeTimein
     }
 
     getAllOvertime = async (starting, ending, employee_id, page, status) => {
@@ -151,19 +138,14 @@ class OvertimeService {
         return overtime
     }
 
-    checkIfSpecificTimedin = async (employee_id, date) => {
+    checkForConflict = async (employee_id, date) => {
         const overtime = await this.knex('overtime')
             .where('employee_id', employee_id)
             .andWhere('date', date)
-        return overtime
-    }
-
-    checkIfSpecificTimedout = async (employee_id, date) => {
-        const overtime = await this.knex('overtime')
-            .where('employee_id', employee_id)
-            .andWhere('date', date)
-            .whereNotNull('to')
-        return overtime
+        if (overtime.length >= 1) {
+            return true
+        }
+        return false
     }
 }
 
