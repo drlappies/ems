@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { fetchAttendance, fetchNext, fetchPrevious, fetchByQuery, deleteAttendance, updateAttendance } from '../actions/attendance';
+import { fetchAttendance, fetchNext, fetchPrevious, fetchByQuery, deleteAttendance, updateAttendance, createAttendance } from '../actions/attendance';
 import { fetchEmployee } from '../actions/employee'
 import { useSelector, useDispatch } from 'react-redux';
-import { Menu, Table, Grid, Dropdown, Form } from 'semantic-ui-react'
+import { Menu, Table, Grid, Dropdown, Form, Button } from 'semantic-ui-react'
 import TableHeader from './TableHeader';
 import TableFooter from './TableFooter';
 import TableBody from './TableBody';
@@ -20,7 +20,13 @@ function AttendanceHistory() {
         delete: false,
         update: false,
         deletion: null,
-        updates: null
+        updates: null,
+        isCreating: false,
+        createCheckin: "",
+        createCheckout: "",
+        createDate: "",
+        createEmployee: "",
+        createStatus: ""
     })
 
     const options = employee.record.map((el, i) => {
@@ -30,6 +36,11 @@ function AttendanceHistory() {
             value: el.id
         }
     })
+
+    const statusOptions = [
+        { key: 0, text: "On-Time", value: "on_time" },
+        { key: 1, text: "Late", value: "late" }
+    ]
 
     const header = ['ID', 'Employee ID', 'Firstname', 'Lastname', 'Date', 'Time in', 'Time out', 'Status', 'Actions']
 
@@ -83,6 +94,15 @@ function AttendanceHistory() {
         })
     }
 
+    const toggleCreate = () => {
+        setState(prevState => {
+            return {
+                ...prevState,
+                isCreating: !prevState.isCreating
+            }
+        })
+    }
+
     const handleUpdateChange = (e) => {
         const { name, value } = e.target
         setState(prevState => {
@@ -104,6 +124,11 @@ function AttendanceHistory() {
     const handleUpdate = () => {
         dispatch(updateAttendance(state.updates.id, state.updates.check_in, state.updates.check_out))
         toggleUpdate()
+    }
+
+    const handleCreate = () => {
+        dispatch(createAttendance(state.createEmployee, state.createDate, state.createCheckin, state.createCheckout, state.createStatus))
+        toggleCreate()
     }
 
     return (
@@ -137,6 +162,11 @@ function AttendanceHistory() {
                             Search
                         </Menu.Item>
                     </Menu>
+                </Grid.Row>
+                <Grid.Row textAlign="right">
+                    <Grid.Column>
+                        <Button color="blue" onClick={() => toggleCreate()}>Create record</Button>
+                    </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
                     <Table celled>
@@ -213,6 +243,41 @@ function AttendanceHistory() {
                 configPrimaryFunc={toggleUpdate}
                 configSecondaryAction={"Update"}
                 configSecondaryFunc={handleUpdate}
+            />
+            <Config
+                isConfigOpen={state.isCreating}
+                configSize={"tiny"}
+                configType={"Create Attendance Record"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={toggleCreate}
+                configContent={
+                    <React.Fragment>
+                        <Form>
+                            <Form.Field>
+                                <label htmlFor="createDate">Date</label>
+                                <input id="createDate" name="createDate" type="date" value={state.createDate} onChange={(e) => handleChange(e)} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="createCheckin">Check In Time</label>
+                                <input id="createCheckin" name="createCheckin" type="time" step="1" value={state.createCheckin} onChange={(e) => handleChange(e)} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="createCheckout">Check Out Time</label>
+                                <input id="createCheckout" name="createCheckout" type="time" step="1" value={state.createCheckout} onChange={(e) => handleChange(e)} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="createEmployee">Employee</label>
+                                <Form.Select id="createEmployee" name="createEmployee" options={options} onChange={handleChange} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="createStatus">Status</label>
+                                <Form.Select id="createStatus" name="createStatus" options={statusOptions} onChange={handleChange} />
+                            </Form.Field>
+                        </Form>
+                    </React.Fragment>
+                }
+                configSecondaryAction={"Create"}
+                configSecondaryFunc={handleCreate}
             />
         </div>
     )
