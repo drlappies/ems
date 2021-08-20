@@ -173,6 +173,23 @@ class AttendanceService extends EmployeeService {
             }, ['id', 'check_in', 'check_out'])
         return attendance
     }
+
+    createAttendance = async (employee_id, date, check_in, check_out, status) => {
+        const [attendance] = await this.knex('attendance').insert({
+            employee_id: employee_id,
+            check_in: check_in,
+            check_out: check_out,
+            date: date,
+            status: status
+        }, ['id', 'employee_id', 'date'])
+
+        const create = await this.knex('attendance')
+            .join('employee', 'attendance.employee_id', 'employee.id')
+            .select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
+            .where('attendance.employee_id', attendance.employee_id)
+            .andWhere('attendance.date', attendance.date)
+        return create
+    }
 }
 
 module.exports = AttendanceService

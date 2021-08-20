@@ -182,6 +182,22 @@ class AttendanceController {
             })
         }
     }
+
+    createAttendance = async (req, res) => {
+        try {
+            const { employee_id, date, check_in, check_out, status } = req.body
+            const attendance = await this.AttendanceService.createAttendance(employee_id, date, check_in, check_out, status)
+            return res.status(200).json({
+                success: `Successfully created attendance record at ${attendance[0].date}`,
+                attendance: attendance
+            })
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({
+                error: err
+            })
+        }
+    }
 }
 
 module.exports = AttendanceController
