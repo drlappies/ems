@@ -193,3 +193,33 @@ export const fetchByQuery = (starting, ending, employee_id, status) => {
         }
     }
 }
+
+export const createOvertimeRecord = (employee_id, starting, ending, date, status) => {
+    return async (dispatch) => {
+        try {
+            const body = {
+                employee_id: employee_id,
+                from: starting,
+                to: ending,
+                date: date,
+                status: status ? 'approved' : 'pending'
+            }
+            const res = await axios.post('/overtime', body)
+            console.log(res)
+            dispatch({
+                type: FETCH_OVERTIME_RECORD,
+                payload: {
+                    record: res.data.overtime,
+                    currentPage: 0,
+                    currentPageStart: 1,
+                    currentPageEnd: 1,
+                    pageLength: res.data.overtime.count
+                }
+            })
+            dispatch(popSuccessMessage(res.data.success))
+        } catch (err) {
+            console.log(err)
+            dispatch(popErrorMessage(err.response.data.error))
+        }
+    }
+}
