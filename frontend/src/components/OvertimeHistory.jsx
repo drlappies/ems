@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchOvertimeRecord, updateOvertimeRecord, fetchNextOvertimeRecord, fetchPreviousOvertimeRecord, fetchByQuery } from '../actions/overtime';
-import { Menu, Table, Grid, Dropdown, Form } from 'semantic-ui-react'
+import { fetchOvertimeRecord, updateOvertimeRecord, fetchNextOvertimeRecord, fetchPreviousOvertimeRecord, fetchByQuery, createOvertimeRecord } from '../actions/overtime';
+import { fetchEmployee } from '../actions/employee'
+import { Menu, Table, Grid, Dropdown, Form, Button, Checkbox } from 'semantic-ui-react'
 import TableBody from './TableBody';
 import TableHeader from './TableHeader';
 import TableFooter from './TableFooter';
@@ -17,8 +18,14 @@ function OvertimeHistory() {
         ending: date,
         employee_id: "",
         isUpdating: false,
+        isCreating: false,
         update: null,
-        status: ""
+        status: "",
+        createStarting: "",
+        createEnding: "",
+        createDate: "",
+        createEmployee: "",
+        createIsApproved: false,
     })
 
     const options = employee.record.map((el, i) => {
@@ -37,6 +44,7 @@ function OvertimeHistory() {
 
     useEffect(() => {
         dispatch(fetchOvertimeRecord(state.starting, state.ending, state.employee_id, overtime.currentPage))
+        dispatch(fetchEmployee())
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch])
 
@@ -54,7 +62,12 @@ function OvertimeHistory() {
     }
 
     const handleChange = (e, result) => {
-        const { name, value } = result || e.target
+        let { name, value } = result || e.target
+        if (result) {
+            if (result.type === "checkbox") {
+                value = result.checked
+            }
+        }
         setState(prevState => {
             return {
                 ...prevState,
@@ -86,6 +99,15 @@ function OvertimeHistory() {
         })
     }
 
+    const toggleCreate = () => {
+        setState(prevState => {
+            return {
+                ...prevState,
+                isCreating: !prevState.isCreating
+            }
+        })
+    }
+
     const handleApprove = () => {
         dispatch(updateOvertimeRecord(state.update.id, state.update.from, state.update.to, 'approved'))
         toggleUpdate()
@@ -94,6 +116,11 @@ function OvertimeHistory() {
     const handleReject = () => {
         dispatch(updateOvertimeRecord(state.update.id, state.update.from, state.update.to, 'rejected'))
         toggleUpdate()
+    }
+
+    const handleCreate = () => {
+        dispatch(createOvertimeRecord(state.createEmployee, state.createStarting, state.createEnding, state.createDate, state.createIsApproved))
+        toggleCreate()
     }
 
     return (
@@ -134,6 +161,11 @@ function OvertimeHistory() {
                         Search
                     </Menu.Item>
                 </Menu>
+            </Grid.Row>
+            <Grid.Row textAlign="right">
+                <Grid.Column>
+                    <Button color="blue" onClick={() => toggleCreate()}>Create record</Button>
+                </Grid.Column>
             </Grid.Row>
             <Grid.Row>
                 <Table celled>
@@ -187,6 +219,41 @@ function OvertimeHistory() {
                                 </Form>
                             </React.Fragment>
                             : null}
+                    </React.Fragment>
+                }
+            />
+            <Config
+                isConfigOpen={state.isCreating}
+                configSize={"tiny"}
+                configType={"Insert Overtime Record"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={toggleCreate}
+                configSecondaryAction={"Insert"}
+                configSecondaryFunc={handleCreate}
+                configSecondaryColor={"green"}
+                configContent={
+                    <React.Fragment>
+                        <Form>
+                            <Form.Field>
+                                <label htmlFor="starting">Check In Time</label>
+                                <input type="time" step="1" id="starting" name="createStarting" value={state.createStarting} onChange={(e) => handleChange(e)} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="ending">Check Out Time</label>
+                                <input type="time" step="1" id="ending" name="createEnding" value={state.createEnding} onChange={(e) => handleChange(e)} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="date">Date</label>
+                                <input type="date" id="date" name="createDate" value={state.createDate} onChange={(e) => handleChange(e)} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employee">Employee</label>
+                                <Form.Select id="employee" name="createEmployee" options={options} onChange={handleChange} />
+                            </Form.Field>
+                            <Form.Field>
+                                <Checkbox label="Approve upon insert" name="createIsApproved" checked={state.createIsApproved} onChange={handleChange} />
+                            </Form.Field>
+                        </Form>
                     </React.Fragment>
                 }
             />
