@@ -22,7 +22,9 @@ class DepartmentController {
     getAllDepartment = async (req, res) => {
         try {
             const dept = await this.departmentService.getAllDepartment();
-            return res.status(200).json(dept)
+            return res.status(200).json({
+                dept: dept
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({ error: err })
