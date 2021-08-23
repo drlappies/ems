@@ -9,7 +9,9 @@ class EmployeeController {
         try {
             const { id } = req.params;
             const employee = await this.employeeService.getEmployee(id);
-            return res.status(200).json(employee)
+            return res.status(200).json({
+                employee: employee
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({ error: err })
@@ -18,7 +20,8 @@ class EmployeeController {
 
     getAllEmployee = async (req, res) => {
         try {
-            const employee = await this.employeeService.getAllEmployee();
+            const { employeeFirstname, employeeLastname, joinStart, joinEnd, status } = req.query
+            const employee = await this.employeeService.getAllEmployee(employeeFirstname, employeeLastname, joinStart, joinEnd, status);
             return res.status(200).json({
                 employee: employee
             });
@@ -52,11 +55,12 @@ class EmployeeController {
     updateEmployee = async (req, res) => {
         try {
             const { id } = req.params;
-            const { username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status } = req.body;
-            const hashedPassword = await hashPassword(password)
-            const employee = await this.employeeService.updateEmployee(id, username, hashedPassword, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status)
+            const { username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status, ot_entitled, ot_pay, salary, starting, ending } = req.body;
+            // const hashedPassword = await hashPassword(password)
+            const employee = await this.employeeService.updateEmployee(id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status, ot_entitled, ot_pay, salary, starting, ending, role)
             return res.status(200).json({
-                success: `Successfully created employee: ${employee.lastname} ${employee.firstname} id: ${employee.id}`
+                success: `Successfully updated employee: ${employee.lastname} ${employee.firstname} id: ${employee.id}`,
+                employee: employee
             })
         } catch (err) {
             console.log(err)
@@ -69,7 +73,8 @@ class EmployeeController {
             const { id } = req.params;
             const employee = await this.employeeService.deleteEmployee(id);
             return res.status(200).json({
-                success: `Successfully deleted employee: ${employee.lastname} ${employee.firstname} id: ${employee.id}`
+                success: `Successfully deleted employee: ${employee.lastname} ${employee.firstname} id: ${employee.id}`,
+                employee: employee
             })
         } catch (err) {
             console.log(err)
