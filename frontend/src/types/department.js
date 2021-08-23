@@ -1,0 +1,1 @@
+export const FETCH_DEPARTMENT = "FETCH_DEPARTMENT"
