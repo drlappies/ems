@@ -1,0 +1,1 @@
+export const FETCH_POSITION = "FETCH_POSITION"
