@@ -108,5 +108,14 @@ const loginController = new LoginController(loginService)
 const loginRoute = LoginRoute(loginController)
 app.use('/auth', loginRoute)
 
+const { PositionRoute } = require('./routes/position.route')
+const PositionController = require('./controllers/position.controller')
+const PositionService = require('./services/position.service')
+
+const positionService = new PositionService(knex);
+const positionController = new PositionController(positionService)
+const positionRoute = PositionRoute(positionController)
+app.use('/position', positionRoute)
+
 app.listen(5000, () => console.log('localhost:5000'))
 
