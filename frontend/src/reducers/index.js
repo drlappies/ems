@@ -6,6 +6,8 @@ import attendanceReducer from "./attendance";
 import employeeReducer from "./employee";
 import overtimeReducer from "./overtime";
 import configReducer from "./config";
+import departmentReducer from "./department";
+import positionReducer from "./position";
 
 const reducer = combineReducers({
     auth: authReducer,
@@ -14,7 +16,9 @@ const reducer = combineReducers({
     attendance: attendanceReducer,
     employee: employeeReducer,
     overtime: overtimeReducer,
-    config: configReducer
+    config: configReducer,
+    department: departmentReducer,
+    position: positionReducer
 })
 
 export default reducer
