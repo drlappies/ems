@@ -63,7 +63,7 @@ function Navbar(props) {
                         <Icon name="users" />HR Management
                     </Menu.Header>
                     <Menu.Menu>
-                        <Menu.Item as={Link} to="/employee">
+                        <Menu.Item as={Link} to="/employee/record">
                             Employee
                         </Menu.Item>
                         <Menu.Item as={Link} to="/employee/position">
