@@ -18,11 +18,6 @@ class EmployeeService {
             .leftJoin('positions', 'employee.post_id', 'positions.id')
             .select(['employee.id', 'employee.post_id', 'employee.dept_id', 'employee.firstname', 'employee.lastname', 'employee.address', 'employee.phone_number', 'employee.emergency_contact_person', 'employee.emergency_contact_number', 'employee.onboard_date', 'employee.status', 'employee.created_at', 'employee.updated_at', 'employee.role', 'employee.start_hour', 'employee.end_hour', 'employee.salary_monthly', 'employee.ot_pay_entitled', 'employee.ot_hourly_salary', 'departments.name', 'positions.post'])
             .modify((queryBuilder) => {
-                if (joinStart) {
-                    queryBuilder.where('employee.onboard_date', '>=', joinStart)
-                }
-            })
-            .modify((queryBuilder) => {
                 if (joinEnd) {
                     queryBuilder.where('employee.onboard_date', '<=', joinEnd)
                 }

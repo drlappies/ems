@@ -1,5 +1,5 @@
 const { hashPassword } = require('../utils/hashPassword');
-const { generateAttendance } = require('../seed/helper')
+const { generateAttendance, generateOvertime } = require('../seed/helper')
 
 exports.seed = async function (knex) {
   await knex('reimbursement').del();
@@ -60,7 +60,9 @@ exports.seed = async function (knex) {
     end_hour: '09:00 PM',
     salary_monthly: 13000.00
   }]).into('employee').returning(['id']);
-  
+
   const attendance = generateAttendance(365, employeeSeed[0].id)
   const attendanceSeed = await knex.insert(attendance).into('attendance')
+  const overtime = generateOvertime(365, employeeSeed[0].id)
+  const overtimeSeed = await knex.insert(overtime).into('overtime')
 };
