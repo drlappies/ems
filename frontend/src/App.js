@@ -13,6 +13,7 @@ import 'semantic-ui-css/semantic.min.css'
 import AttendanceOvertime from './components/AttendanceOvertime';
 import OvertimeHistory from './components/OvertimeHistory';
 import Popup from './components/Popup';
+import Employee from './components/Employee';
 
 function App() {
   const auth = useSelector(state => state.auth)
@@ -32,6 +33,7 @@ function App() {
               <AdminRoute exact path="/attendance/history" component={AttendanceHistory} />
               <PrivateRoute exact path="/attendance/overtime" component={AttendanceOvertime} />
               <AdminRoute exact path="/attendance/history/overtime" component={OvertimeHistory} />
+              <AdminRoute exact path="/employee/record" component={Employee} />
             </Switch>
           </Navbar>
         </React.Fragment>
