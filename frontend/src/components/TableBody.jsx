@@ -6,7 +6,7 @@ function TableBody(props) {
 
     return (
         <Table.Body>
-            {data.map((el, i) =>
+            {data ? data.map((el, i) =>
                 <Table.Row key={i}>
                     {Object.keys(el).map((key, j) =>
                         <React.Fragment key={j}>
@@ -21,7 +21,7 @@ function TableBody(props) {
                         {tertiaryAction ? <Button color={tertiaryActionColor} onClick={() => tertiaryFunc(el)}>{tertiaryAction}</Button> : null}
                     </Table.Cell>
                 </Table.Row>
-            )}
+            ) : null}
         </Table.Body >
     )
 }
