@@ -12,7 +12,9 @@ class DepartmentController {
                 })
             }
             const dept = await this.departmentService.getDepartment(id);
-            return res.status(200).json(dept)
+            return res.status(200).json({
+                dept: dept
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({ error: err })
@@ -21,9 +23,14 @@ class DepartmentController {
 
     getAllDepartment = async (req, res) => {
         try {
-            const dept = await this.departmentService.getAllDepartment();
+            const { page, name, description } = req.query
+            const dept = await this.departmentService.getAllDepartment(page, name, description);
             return res.status(200).json({
-                dept: dept
+                dept: dept.dept,
+                count: dept.count,
+                currentPage: dept.currentPage,
+                currentPageStart: dept.currentPageStart,
+                currentPageEnd: dept.currentPageEnd
             })
         } catch (err) {
             console.log(err)
@@ -53,14 +60,15 @@ class DepartmentController {
         try {
             const { id } = req.params;
             const { name, description } = req.body;
-            if (!id && !name && !description) {
+            if (!id || !name || !description) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
             }
             const dept = await this.departmentService.updateDepartment(id, name, description);
             return res.status(200).json({
-                success: `Successfully updated department: ${dept.name} id: ${dept.id}`
+                success: `Successfully updated department: ${dept.name} id: ${dept.id}`,
+                dept: dept
             })
         } catch (err) {
             console.log(err)
@@ -78,7 +86,8 @@ class DepartmentController {
             }
             const dept = await this.departmentService.deleteDepartment(id);
             return res.status(200).json({
-                success: `Successfully deleted department: ${dept.name} id: ${dept.id}`
+                success: `Successfully deleted department: ${dept.name} id: ${dept.id}`,
+                dept: dept
             })
         } catch (err) {
             console.log(err)
