@@ -7,11 +7,11 @@ function TableHeader(props) {
     return (
         <Table.Header>
             <Table.Row>
-                {header.map((el, i) =>
+                {header ? header.map((el, i) =>
                     <Table.HeaderCell key={i}>
                         {el}
                     </Table.HeaderCell>
-                )}
+                ) : null}
             </Table.Row>
         </Table.Header>
     )
