@@ -4,6 +4,7 @@ import axios from 'axios';
 export const fetchEmployee = (page, firstname, lastname, joinStart, joinEnd) => {
     return async (dispatch) => {
         try {
+            if (!page) page = 0;
             const res = await axios.get('/employee', {
                 params: {
                     employeeFirstname: firstname,
