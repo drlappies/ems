@@ -1,14 +1,84 @@
-import { CONFIRM_EMPLOYEE_UPDATE, FETCH_EMPLOYEE, FETCH_SPECIFIC_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, DELETE_EMPLOYEE } from '../types/employee'
+import { CONFIRM_EMPLOYEE_UPDATE, FETCH_EMPLOYEE, FETCH_SPECIFIC_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, DELETE_EMPLOYEE, RESET_EMPLOYEE } from '../types/employee'
 import axios from 'axios';
 
-export const fetchEmployee = () => {
+export const fetchEmployee = (page, firstname, lastname, joinStart, joinEnd) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/employee');
+            const res = await axios.get('/employee', {
+                params: {
+                    employeeFirstname: firstname,
+                    employeeLastname: lastname,
+                    joinStart: joinStart,
+                    joinEnd: joinEnd,
+                    page: page
+                }
+            });
             dispatch({
                 type: FETCH_EMPLOYEE,
                 payload: {
-                    record: res.data.employee
+                    record: res.data.employee,
+                    currentPage: res.data.currentPage,
+                    currentPageStart: res.data.currentPageStart,
+                    currentPageEnd: res.data.currentPageEnd,
+                    pageCount: res.data.count
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }
+}
+
+export const fetchNextEmployeePage = (page, pageCount, firstname, lastname, joinStart, joinEnd) => {
+    return async (dispatch) => {
+        try {
+            if (page + 15 >= pageCount) return
+            const res = await axios.get('/employee', {
+                params: {
+                    employeeFirstname: firstname,
+                    employeeLastname: lastname,
+                    joinStart: joinStart,
+                    joinEnd: joinEnd,
+                    page: page + 15
+                }
+            });
+            dispatch({
+                type: FETCH_EMPLOYEE,
+                payload: {
+                    record: res.data.employee,
+                    currentPage: res.data.currentPage,
+                    currentPageStart: res.data.currentPageStart,
+                    currentPageEnd: res.data.currentPageEnd,
+                    pageCount: res.data.count
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }
+}
+
+export const fetchPreviousEmployeePage = (page, firstname, lastname, joinStart, joinEnd) => {
+    return async (dispatch) => {
+        try {
+            if (page <= 0) return
+            const res = await axios.get('/employee', {
+                params: {
+                    employeeFirstname: firstname,
+                    employeeLastname: lastname,
+                    joinStart: joinStart,
+                    joinEnd: joinEnd,
+                    page: page - 15
+                }
+            });
+            dispatch({
+                type: FETCH_EMPLOYEE,
+                payload: {
+                    record: res.data.employee,
+                    currentPage: res.data.currentPage,
+                    currentPageStart: res.data.currentPageStart,
+                    currentPageEnd: res.data.currentPageEnd,
+                    pageCount: res.data.count
                 }
             })
         } catch (err) {
@@ -111,6 +181,9 @@ export const confirmEmployeeUpdate = (id, firstname, lastname, position, departm
                     employeeEndHour: res.data.employee.end_hour
                 }
             })
+            dispatch({
+                type: RESET_EMPLOYEE
+            })
         } catch (err) {
             console.log(err)
         }
@@ -128,6 +201,51 @@ export const deleteEmployee = (employeeId) => {
                     employeeId: res.data.employee.id
                 }
             })
+            dispatch({
+                type: RESET_EMPLOYEE
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }
+}
+
+export const resetEmployee = () => {
+    return (dispatch) => {
+        dispatch({
+            type: RESET_EMPLOYEE
+        })
+    }
+}
+
+export const createEmployee = (username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, salary_monthly, start_hour, end_hour, post_id, dept_id, ot_hourly_salary, ot_pay_entitled) => {
+    return async (dispatch) => {
+        try {
+            const body = {
+                username: username,
+                password: password,
+                firstname: firstname,
+                lastname: lastname,
+                post_id: post_id,
+                dept_id: dept_id,
+                address: address,
+                phone_number: phone_number,
+                start_hour: start_hour,
+                end_hour: end_hour,
+                role: role,
+                emergency_contact_number: emergency_contact_number,
+                emergency_contact_person: emergency_contact_person,
+                salary_monthly: salary_monthly,
+                ot_pay_entitled: ot_pay_entitled,
+                ot_hourly_salary: ot_hourly_salary,
+                onboard_date: onboard_date
+            }
+            await axios.post('/employee', body)
+            dispatch(fetchEmployee())
+            dispatch({
+                type: RESET_EMPLOYEE
+            })
+
         } catch (err) {
             console.log(err)
         }

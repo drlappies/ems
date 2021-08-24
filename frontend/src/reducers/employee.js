@@ -1,4 +1,4 @@
-import { FETCH_EMPLOYEE, FETCH_SPECIFIC_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, CONFIRM_EMPLOYEE_UPDATE, DELETE_EMPLOYEE } from '../types/employee'
+import { FETCH_EMPLOYEE, FETCH_SPECIFIC_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, CONFIRM_EMPLOYEE_UPDATE, DELETE_EMPLOYEE, RESET_EMPLOYEE } from '../types/employee'
 
 const initialState = {
     record: [],
@@ -20,7 +20,13 @@ const initialState = {
     employeeOTpay: "",
     employeeStatus: "",
     employeeStartHour: "",
-    employeeEndHour: ""
+    employeeEndHour: "",
+    employeeUsername: "",
+    employeePassword: "",
+    currentPage: 0,
+    currentPageStart: 0,
+    currentPageEnd: 0,
+    pageCount: ""
 }
 
 const employeeReducer = (state = initialState, action) => {
@@ -29,6 +35,10 @@ const employeeReducer = (state = initialState, action) => {
             return {
                 ...state,
                 record: action.payload.record,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageCount: action.payload.pageCount
             }
         case FETCH_SPECIFIC_EMPLOYEE:
             return {
@@ -87,6 +97,29 @@ const employeeReducer = (state = initialState, action) => {
             return {
                 ...state,
                 record: state.record.filter(el => el.id !== action.payload.employeeId)
+            }
+        case RESET_EMPLOYEE:
+            return {
+                ...state,
+                employeeId: "",
+                employeeFirstname: "",
+                employeeLastname: "",
+                employeeAddress: "",
+                employeePosition: "",
+                employeePositionId: "",
+                employeeDepartment: "",
+                employeeDepartmentId: "",
+                employeeNumber: "",
+                employeeContactPerson: "",
+                employeeContactNumber: "",
+                employeeOnboardDate: "",
+                employeeRole: "employee",
+                employeeSalary: "",
+                employeeOT: false,
+                employeeOTpay: "",
+                employeeStatus: "",
+                employeeStartHour: "",
+                employeeEndHour: ""
             }
         default:
             return state

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { fetchEmployee, fetchSpecificEmployee, updateSpecificEmployee, confirmEmployeeUpdate, deleteEmployee } from '../actions/employee'
+import { fetchEmployee, fetchSpecificEmployee, updateSpecificEmployee, confirmEmployeeUpdate, deleteEmployee, resetEmployee, createEmployee, fetchNextEmployeePage, fetchPreviousEmployeePage } from '../actions/employee'
 import { fetchDepartment } from '../actions/department';
 import { fetchPositions } from '../actions/position';
-import { Table, Grid, Menu, Form } from 'semantic-ui-react';
+import { Table, Grid, Menu, Form, Button, Input } from 'semantic-ui-react';
 import TableBody from './TableBody';
 import TableFooter from './TableFooter';
 import TableHeader from './TableHeader';
@@ -19,13 +19,18 @@ function Employee() {
         isViewing: false,
         isUpdating: false,
         isDeleting: false,
+        isCreating: false,
+        firstname: "",
+        lastname: "",
+        joinStart: "",
+        joinEnd: ""
     })
 
     useEffect(() => {
-        dispatch(fetchEmployee())
+        dispatch(fetchEmployee(employee.currentPage))
         dispatch(fetchDepartment())
         dispatch(fetchPositions())
-    }, [dispatch])
+    }, [dispatch, employee.currentPage])
 
     const headers = ['employee ID', 'Firstname', 'Lastname', 'Status', 'Department', 'Position', 'Actions']
 
@@ -70,6 +75,26 @@ function Employee() {
         })
     }
 
+    const toggleCreating = () => {
+        dispatch(resetEmployee())
+        setState(prevState => {
+            return {
+                ...prevState,
+                isCreating: !prevState.isCreating
+            }
+        })
+    }
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setState(prevState => {
+            return {
+                ...prevState,
+                [name]: value
+            }
+        })
+    }
+
     const handleUpdate = () => {
         dispatch(confirmEmployeeUpdate(employee.employeeId, employee.employeeFirstname, employee.employeeLastname, employee.employeePositionId, employee.employeeDepartmentId, employee.employeeAddress, employee.employeeNumber, employee.employeeContactPerson, employee.employeeContactNumber, employee.employeeOnboardDate, employee.employeeStatus, employee.employeeOT, employee.employeeOTpay, employee.employeeStartHour, employee.employeeEndHour))
         toggleUpdating()
@@ -80,8 +105,61 @@ function Employee() {
         toggleDeleting()
     }
 
+    const handleCreate = () => {
+        dispatch(createEmployee(employee.employeeUsername, employee.employeePassword, employee.employeeRole, employee.employeeFirstname, employee.employeeLastname, employee.employeeAddress, employee.employeeNumber, employee.employeeContactPerson, employee.employeeContactNumber, employee.employeeOnboardDate, employee.employeeSalary, employee.employeeStartHour, employee.employeeEndHour, employee.employeePositionId, employee.employeeDepartmentId, employee.employeeOTpay, employee.employeeOT))
+        toggleCreating()
+    }
+
+    const handleSearch = () => {
+        dispatch(fetchEmployee(employee.currentPage, state.firstname, state.lastname, state.joinStart, state.joinEnd))
+    }
+
+    const gotoNextPage = () => {
+        dispatch(fetchNextEmployeePage(employee.currentPage, employee.pageCount, state.firstname, state.lastname, state.joinStart, state.joinEnd))
+    }
+
+    const gotoPreviousPage = () => {
+        dispatch(fetchPreviousEmployeePage(employee.currentPage, state.firstname, state.lastname, state.joinStart, state.joinEnd))
+    }
+
     return (
         <Grid>
+            <Grid.Row centered>
+                <Menu>
+                    <Menu.Item>
+                        <label htmlFor="joinStart">Join Date</label>
+                    </Menu.Item>
+                    <Menu.Item>
+                        <Input id="joinStart" name="joinStart" type="date" onChange={(e) => handleChange(e)} />
+                    </Menu.Item>
+                    <Menu.Item>
+                        <label htmlFor="joinEnd">To</label>
+                    </Menu.Item>
+                    <Menu.Item>
+                        <Input id="joinEnd" name="joinEnd" type="date" onChange={(e) => handleChange(e)} />
+                    </Menu.Item>
+                    <Menu.Item>
+                        <label htmlFor="firstname">Firstname</label>
+                    </Menu.Item>
+                    <Menu.Item>
+                        <Input id="firstname" name="firstname" type="text" onChange={(e) => handleChange(e)} />
+                    </Menu.Item>
+                    <Menu.Item>
+                        <label htmlFor="lastname">Lastname</label>
+                    </Menu.Item>
+                    <Menu.Item>
+                        <Input id="lastname" name="lastname" type="text" onChange={(e) => handleChange(e)} />
+                    </Menu.Item>
+                    <Menu.Item>
+                        <Button onClick={() => handleSearch()}>Search</Button>
+                    </Menu.Item>
+                </Menu>
+            </Grid.Row>
+            <Grid.Row textAlign="right">
+                <Grid.Column>
+                    <Button color="blue" onClick={() => toggleCreating()}>Create Employee</Button>
+                </Grid.Column>
+            </Grid.Row>
             <Grid.Row>
                 <Table celled>
                     <TableHeader header={headers} />
@@ -96,6 +174,14 @@ function Employee() {
                         tertiaryAction={"Delete"}
                         tertiaryFunc={toggleDeleting}
                         tertiaryActionColor={"red"}
+                    />
+                    <TableFooter
+                        colSpan={7}
+                        pageStart={employee.currentPageStart}
+                        pageEnd={employee.currentPageEnd}
+                        pageTotal={employee.pageCount}
+                        onNext={gotoNextPage}
+                        onPrevious={gotoPreviousPage}
                     />
                 </Table>
             </Grid.Row>
@@ -248,7 +334,102 @@ function Employee() {
                         :
                         null}
             />
-        </Grid>
+            <Config
+                isConfigOpen={state.isCreating}
+                configType={"Create Employee"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={toggleCreating}
+                configSecondaryAction={"Create"}
+                configSecondaryColor={"green"}
+                configSecondaryFunc={handleCreate}
+                configContent={
+                    <React.Fragment>
+                        <Form>
+                            <Form.Field>
+                                <label htmlFor="employeeFirstname">Firstname</label>
+                                <input id="employeeFirstname" name="employeeFirstname" value={employee.employeeFirstname} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeLastname">Lastname</label>
+                                <input id="employeeLastname" name="employeeLastname" value={employee.employeeLastname} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeePositionId">Position</label>
+                                <select value={employee.employeePositionId} id="employeePositionId" name="employeePositionId" onChange={(e) => dispatch(updateSpecificEmployee(e))}>
+                                    <option value="">Unassigned</option>
+                                    {position.record.map((el, i) =>
+                                        <option value={el.id} key={i}>{el.post}</option>
+                                    )}
+                                </select>
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeDepartmentId">Department</label>
+                                <select value={employee.employeeDepartmentId} id="employeeDepartmentId" name="employeeDepartmentId" onChange={(e) => dispatch(updateSpecificEmployee(e))}>
+                                    <option value="">Unassigned</option>
+                                    {department.record.map((el, i) =>
+                                        <option value={el.id} key={i}>{el.name}</option>
+                                    )}
+                                </select>
+                            </Form.Field>
+                            <Form.Field>
+                                <label>Working Hour</label>
+                                <label htmlFor="employeeStartHour">Starting</label>
+                                <input value={employee.employeeStartHour} type="time" step="1" id="employeeStartHour" name="employeeStartHour" onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                                <label htmlFor="employeeEndHour">Ending</label>
+                                <input value={employee.employeeEndHour} type="time" step="1" id="employeeEndHour" name="employeeEndHour" onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeRole">Role</label>
+                                <select value={employee.employeeRole} id="employeeRole" name="employeeRole" onChange={(e) => dispatch(updateSpecificEmployee(e))}>
+                                    <option value="employee">Employee</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeOnboardDate">Onboard Date</label>
+                                <input type="date" id="employeeOnboardDate" name="employeeOnboardDate" value={employee.employeeOnboardDate} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeAddress">Address</label>
+                                <input id="employeeAddress" name="employeeAddress" value={employee.employeeAddress} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeNumber">Phone Number</label>
+                                <input id="employeeNumber" name="employeeNumber" value={employee.employeeNumber} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeContactPerson">Emergency Contact Person</label>
+                                <input id="employeeContactPerson" name="employeeContactPerson" value={employee.employeeContactPerson} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeContactNumber">Emergency Contact Number</label>
+                                <input id="employeeContactNumber" name="employeeContactNumber" value={employee.employeeContactNumber} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeSalary">Monthly Salary</label>
+                                <input id="employeeSalary" name="employeeSalary" value={employee.employeeSalary} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeOT">Entitled to Overtime Pay?</label>
+                                <input id="employeeOT" name="employeeOT" type="checkbox" value={employee.employeeOT} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeOTpay">Overtime Hourly Pay </label>
+                                <input id="employeeOTpay" name="employeeOTpay" value={employee.employeeOTpay} onChange={(e) => dispatch(updateSpecificEmployee(e))} disabled={!employee.employeeOT} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeeUsername">Username:</label>
+                                <input id="employeeUsername" name="employeeUsername" value={employee.employeeUsername} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="employeePassword">Password:</label>
+                                <input id="employeePassword" name="employeePassword" value={employee.employeePassword} type="password" onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                            </Form.Field>
+                        </Form>
+                    </React.Fragment>
+                }
+            />
+        </Grid >
     )
 }
 
