@@ -9,7 +9,6 @@ class DepartmentService {
     }
 
     getAllDepartment = async (page, name, description) => {
-        console.log(description)
         let currentPage = parseInt(page)
         let currentPageStart = parseInt(page) + 1
         let currentPageEnd = parseInt(page) + 15
