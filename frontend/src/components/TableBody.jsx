@@ -2,7 +2,7 @@ import React from 'react';
 import { Table, Button } from 'semantic-ui-react';
 
 function TableBody(props) {
-    const { data, primaryFunc, secondaryFunc, primaryAction, secondaryAction, tertiaryAction, tertiaryFunc, primaryActionColor, secondaryActionColor, tertiaryActionColor } = props
+    const { data, primaryFunc, secondaryFunc, primaryAction, secondaryAction, tertiaryAction, tertiaryFunc, primaryActionColor, secondaryActionColor, tertiaryActionColor, cellSize } = props
 
     return (
         <Table.Body>
@@ -10,7 +10,7 @@ function TableBody(props) {
                 <Table.Row key={i}>
                     {Object.keys(el).map((key, j) =>
                         <React.Fragment key={j}>
-                            <Table.Cell>
+                            <Table.Cell width={cellSize ? cellSize[j] : null}>
                                 {el[key]}
                             </Table.Cell>
                         </React.Fragment>
