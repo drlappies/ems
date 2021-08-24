@@ -27,10 +27,10 @@ function Employee() {
     })
 
     useEffect(() => {
-        dispatch(fetchEmployee(employee.currentPage))
+        dispatch(fetchEmployee())
         dispatch(fetchDepartment())
         dispatch(fetchPositions())
-    }, [dispatch, employee.currentPage])
+    }, [dispatch])
 
     const headers = ['employee ID', 'Firstname', 'Lastname', 'Status', 'Department', 'Position', 'Actions']
 
@@ -40,13 +40,14 @@ function Employee() {
             firstname: el.firstname,
             lastname: el.lastname,
             status: el.status,
-            department: el.department || "Not specicifed",
-            position: el.position || "Not specicifed",
+            department: el.name || "Not assigned",
+            position: el.post || "Not assigned",
         }
     })
 
     const toggleViewing = (employee) => {
         if (employee) dispatch(fetchSpecificEmployee(employee.id))
+        if (!employee) dispatch(resetEmployee())
         setState(prevState => {
             return {
                 ...prevState,
@@ -57,6 +58,7 @@ function Employee() {
 
     const toggleUpdating = (employee) => {
         if (employee) dispatch(fetchSpecificEmployee(employee.id))
+        if (!employee) dispatch(resetEmployee())
         setState(prevState => {
             return {
                 ...prevState,
@@ -67,6 +69,7 @@ function Employee() {
 
     const toggleDeleting = (employee) => {
         if (employee) dispatch(fetchSpecificEmployee(employee.id))
+        if (!employee) dispatch(resetEmployee())
         setState(prevState => {
             return {
                 ...prevState,
@@ -98,16 +101,19 @@ function Employee() {
     const handleUpdate = () => {
         dispatch(confirmEmployeeUpdate(employee.employeeId, employee.employeeFirstname, employee.employeeLastname, employee.employeePositionId, employee.employeeDepartmentId, employee.employeeAddress, employee.employeeNumber, employee.employeeContactPerson, employee.employeeContactNumber, employee.employeeOnboardDate, employee.employeeStatus, employee.employeeOT, employee.employeeOTpay, employee.employeeStartHour, employee.employeeEndHour))
         toggleUpdating()
+        dispatch(resetEmployee())
     }
 
     const handleDelete = () => {
         dispatch(deleteEmployee(employee.employeeId))
         toggleDeleting()
+        dispatch(resetEmployee())
     }
 
     const handleCreate = () => {
         dispatch(createEmployee(employee.employeeUsername, employee.employeePassword, employee.employeeRole, employee.employeeFirstname, employee.employeeLastname, employee.employeeAddress, employee.employeeNumber, employee.employeeContactPerson, employee.employeeContactNumber, employee.employeeOnboardDate, employee.employeeSalary, employee.employeeStartHour, employee.employeeEndHour, employee.employeePositionId, employee.employeeDepartmentId, employee.employeeOTpay, employee.employeeOT))
         toggleCreating()
+        dispatch(resetEmployee())
     }
 
     const handleSearch = () => {
@@ -124,36 +130,38 @@ function Employee() {
 
     return (
         <Grid>
-            <Grid.Row centered>
-                <Menu>
-                    <Menu.Item>
-                        <label htmlFor="joinStart">Join Date</label>
-                    </Menu.Item>
-                    <Menu.Item>
-                        <Input id="joinStart" name="joinStart" type="date" onChange={(e) => handleChange(e)} />
-                    </Menu.Item>
-                    <Menu.Item>
-                        <label htmlFor="joinEnd">To</label>
-                    </Menu.Item>
-                    <Menu.Item>
-                        <Input id="joinEnd" name="joinEnd" type="date" onChange={(e) => handleChange(e)} />
-                    </Menu.Item>
-                    <Menu.Item>
-                        <label htmlFor="firstname">Firstname</label>
-                    </Menu.Item>
-                    <Menu.Item>
-                        <Input id="firstname" name="firstname" type="text" onChange={(e) => handleChange(e)} />
-                    </Menu.Item>
-                    <Menu.Item>
-                        <label htmlFor="lastname">Lastname</label>
-                    </Menu.Item>
-                    <Menu.Item>
-                        <Input id="lastname" name="lastname" type="text" onChange={(e) => handleChange(e)} />
-                    </Menu.Item>
-                    <Menu.Item>
-                        <Button onClick={() => handleSearch()}>Search</Button>
-                    </Menu.Item>
-                </Menu>
+            <Grid.Row>
+                <Grid.Column>
+                    <Menu>
+                        <Menu.Item>
+                            <label htmlFor="joinStart">Join Date</label>
+                        </Menu.Item>
+                        <Menu.Item>
+                            <Input id="joinStart" name="joinStart" type="date" onChange={(e) => handleChange(e)} />
+                        </Menu.Item>
+                        <Menu.Item>
+                            <label htmlFor="joinEnd">To</label>
+                        </Menu.Item>
+                        <Menu.Item>
+                            <Input id="joinEnd" name="joinEnd" type="date" onChange={(e) => handleChange(e)} />
+                        </Menu.Item>
+                        <Menu.Item>
+                            <label htmlFor="firstname">Firstname</label>
+                        </Menu.Item>
+                        <Menu.Item>
+                            <Input id="firstname" name="firstname" type="text" onChange={(e) => handleChange(e)} />
+                        </Menu.Item>
+                        <Menu.Item>
+                            <label htmlFor="lastname">Lastname</label>
+                        </Menu.Item>
+                        <Menu.Item>
+                            <Input id="lastname" name="lastname" type="text" onChange={(e) => handleChange(e)} />
+                        </Menu.Item>
+                        <Menu.Item>
+                            <Button onClick={() => handleSearch()}>Search</Button>
+                        </Menu.Item>
+                    </Menu>
+                </Grid.Column>
             </Grid.Row>
             <Grid.Row textAlign="right">
                 <Grid.Column>
@@ -161,29 +169,31 @@ function Employee() {
                 </Grid.Column>
             </Grid.Row>
             <Grid.Row>
-                <Table celled>
-                    <TableHeader header={headers} />
-                    <TableBody
-                        data={data}
-                        primaryAction={"Details"}
-                        primaryFunc={toggleViewing}
-                        primaryActionColor={"blue"}
-                        secondaryAction={"Update"}
-                        secondaryFunc={toggleUpdating}
-                        secondaryActionColor={"teal"}
-                        tertiaryAction={"Delete"}
-                        tertiaryFunc={toggleDeleting}
-                        tertiaryActionColor={"red"}
-                    />
-                    <TableFooter
-                        colSpan={7}
-                        pageStart={employee.currentPageStart}
-                        pageEnd={employee.currentPageEnd}
-                        pageTotal={employee.pageCount}
-                        onNext={gotoNextPage}
-                        onPrevious={gotoPreviousPage}
-                    />
-                </Table>
+                <Grid.Column>
+                    <Table celled>
+                        <TableHeader header={headers} />
+                        <TableBody
+                            data={data}
+                            primaryAction={"Details"}
+                            primaryFunc={toggleViewing}
+                            primaryActionColor={"blue"}
+                            secondaryAction={"Update"}
+                            secondaryFunc={toggleUpdating}
+                            secondaryActionColor={"teal"}
+                            tertiaryAction={"Delete"}
+                            tertiaryFunc={toggleDeleting}
+                            tertiaryActionColor={"red"}
+                        />
+                        <TableFooter
+                            colSpan={7}
+                            pageStart={employee.currentPageStart}
+                            pageEnd={employee.currentPageEnd}
+                            pageTotal={employee.pageCount}
+                            onNext={gotoNextPage}
+                            onPrevious={gotoPreviousPage}
+                        />
+                    </Table>
+                </Grid.Column>
             </Grid.Row>
             <Config
                 isConfigOpen={state.isViewing}

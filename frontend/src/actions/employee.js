@@ -1,4 +1,4 @@
-import { CONFIRM_EMPLOYEE_UPDATE, FETCH_EMPLOYEE, FETCH_SPECIFIC_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, DELETE_EMPLOYEE, RESET_EMPLOYEE } from '../types/employee'
+import { FETCH_EMPLOYEE, FETCH_SPECIFIC_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, DELETE_EMPLOYEE, RESET_EMPLOYEE } from '../types/employee'
 import axios from 'axios';
 
 export const fetchEmployee = (page, firstname, lastname, joinStart, joinEnd) => {
@@ -159,32 +159,9 @@ export const confirmEmployeeUpdate = (id, firstname, lastname, position, departm
                 starting: startHour,
                 ending: endHour
             }
-            const res = await axios.put(`/employee/${id}`, body)
-            dispatch({
-                type: CONFIRM_EMPLOYEE_UPDATE,
-                payload: {
-                    employeeId: res.data.employee.id,
-                    employeeFirstname: res.data.employee.firstname,
-                    employeeLastname: res.data.employee.lastname,
-                    employeeAddress: res.data.employee.address,
-                    employeePosition: res.data.employee.post,
-                    employeeDepartment: res.data.employee.name,
-                    employeeNumber: res.data.employee.phone_number,
-                    employeeContactPerson: res.data.employee.emergency_contact_person,
-                    employeeContactNumber: res.data.employee.emergency_contact_number,
-                    employeeOnboardDate: res.data.employee.onboard_date,
-                    employeeRole: res.data.employee.role,
-                    employeeSalary: res.data.employee.salary_monthly,
-                    employeeOT: res.data.employee.ot_pay_entitled,
-                    employeeOTpay: res.data.employee.ot_hourly_salary,
-                    employeeStatus: res.data.employee.status,
-                    employeeStartHour: res.data.employee.start_hour,
-                    employeeEndHour: res.data.employee.end_hour
-                }
-            })
-            dispatch({
-                type: RESET_EMPLOYEE
-            })
+            await axios.put(`/employee/${id}`, body)
+            dispatch(fetchEmployee())
+            dispatch({ type: RESET_EMPLOYEE })
         } catch (err) {
             console.log(err)
         }

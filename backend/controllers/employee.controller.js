@@ -59,9 +59,9 @@ class EmployeeController {
     updateEmployee = async (req, res) => {
         try {
             const { id } = req.params;
-            const { username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status, ot_entitled, ot_pay, salary, starting, ending } = req.body;
+            const { username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status, ot_entitled, ot_hourly_salary, salary, starting, ending } = req.body;
             // const hashedPassword = await hashPassword(password)
-            const employee = await this.employeeService.updateEmployee(id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status, ot_entitled, ot_pay, salary, starting, ending, role)
+            const employee = await this.employeeService.updateEmployee(id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status, ot_entitled, ot_hourly_salary, salary, starting, ending, role)
             return res.status(200).json({
                 success: `Successfully updated employee: ${employee.lastname} ${employee.firstname} id: ${employee.id}`,
                 employee: employee

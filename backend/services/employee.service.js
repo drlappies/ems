@@ -13,7 +13,6 @@ class EmployeeService {
     }
 
     getAllEmployee = async (employeeFirstName, employeeLastName, joinStart, joinEnd, status, page) => {
-        console.log(page)
         let currentPage = parseInt(page)
         let currnetPageStart = parseInt(page) + 1
         let currentPageEnd = parseInt(page) + 15
@@ -97,23 +96,25 @@ class EmployeeService {
     }
 
     updateEmployee = async (id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, department, position, status, ot_entitled, ot_pay, salary, starting, ending, role) => {
-        const [employee] = await this.knex('employee').where({ id: id }).update({
-            dept_id: department,
-            post_id: position,
-            firstname: firstname,
-            lastname: lastname,
-            address: address,
-            phone_number: phone_number,
-            emergency_contact_person: emergency_contact_person,
-            emergency_contact_number: emergency_contact_number,
-            onboard_date: onboard_date,
-            status: status,
-            ot_pay_entitled: ot_entitled,
-            ot_hourly_salary: ot_pay,
-            salary_monthly: salary,
-            start_hour: starting,
-            end_hour: ending,
-            role: role
+        const employee = await this.knex('employee')
+            .where({ id: id })
+            .update({
+                dept_id: department,
+                post_id: position,
+                firstname: firstname,
+                lastname: lastname,
+                address: address,
+                phone_number: phone_number,
+                emergency_contact_person: emergency_contact_person,
+                emergency_contact_number: emergency_contact_number,
+                onboard_date: onboard_date,
+                status: status,
+                ot_pay_entitled: ot_entitled,
+                ot_hourly_salary: ot_pay,
+                salary_monthly: salary,
+                start_hour: starting,
+                end_hour: ending,
+                role: role
         }, ['id', 'firstname', 'lastname', 'dept_id', 'post_id', 'address', 'phone_number', 'emergency_contact_person', 'emergency_contact_number', 'onboard_date', 'status', 'ot_pay_entitled', 'ot_hourly_salary', 'salary_monthly', 'start_hour', 'end_hour', 'role'])
         return employee
     }

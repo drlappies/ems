@@ -68,31 +68,6 @@ const employeeReducer = (state = initialState, action) => {
                 ...state,
                 [action.payload.name]: action.payload.value
             }
-        case CONFIRM_EMPLOYEE_UPDATE:
-            return {
-                ...state,
-                record: state.record.map(el =>
-                    el.id === action.payload.employeeId ? {
-                        ...el,
-                        firstname: action.payload.employeeFirstname,
-                        lastname: action.payload.employeeLastname,
-                        address: action.payload.employeeAddress,
-                        position: action.payload.employeePosition,
-                        department: action.payload.employeeDepartment,
-                        phone_number: action.payload.employeeNumber,
-                        emergency_contact_person: action.payload.employeeContactPerson,
-                        emergency_contact_number: action.payload.employeeContactNumber,
-                        onboard_date: action.payload.employeeOnboardDate,
-                        role: action.payload.employeeRole,
-                        status: action.payload.employeeStatus,
-                        start_hour: action.payload.employeeStartHour,
-                        end_hour: action.payload.employeeEndHour,
-                        salary_monthly: action.payload.employeeSalary,
-                        ot_pay_entitled: action.payload.employeeOT,
-                        ot_hourly_salary: action.payload.employeeOTpay,
-                    } : el
-                )
-            }
         case DELETE_EMPLOYEE:
             return {
                 ...state,
