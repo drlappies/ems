@@ -15,6 +15,7 @@ import OvertimeHistory from './components/OvertimeHistory';
 import Popup from './components/Popup';
 import Employee from './components/Employee';
 import Department from './components/Department'
+import Position from './components/Position';
 
 function App() {
   const auth = useSelector(state => state.auth)
@@ -36,6 +37,7 @@ function App() {
               <AdminRoute exact path="/attendance/history/overtime" component={OvertimeHistory} />
               <AdminRoute exact path="/employee/record" component={Employee} />
               <AdminRoute exact path="/employee/department" component={Department} />
+              <AdminRoute exact path="/employee/position" component={Position} />
             </Switch>
           </Navbar>
         </React.Fragment>

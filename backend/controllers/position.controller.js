@@ -38,7 +38,8 @@ class PositionController {
 
     getAllPosition = async (req, res) => {
         try {
-            const position = await this.PositionService.getAllPosition()
+            const { page, name } = req.query
+            const position = await this.PositionService.getAllPosition(page, name)
             return res.status(200).json({
                 position: position
             })

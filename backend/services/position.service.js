@@ -19,13 +19,41 @@ class PositionService {
         return position
     }
 
-    getAllPosition = async () => {
-        const position = await this.knex('positions').select()
-        return position
+    getAllPosition = async (page, name) => {
+        let currentPage = parseInt(page)
+        let currentPageStart = parseInt(page) + 1
+        let currentPageEnd = parseInt(page) + 15
+
+        const [count] = await this.knex('positions')
+            .count('id')
+            .modify((queryBuilder) => {
+                if (name) {
+                    queryBuilder.whereRaw(`to_tsvector(post) @@ to_tsquery('${name}')`)
+                }
+            })
+
+        const position = await this.knex('positions')
+            .select()
+            .limit(15)
+            .offset(currentPage)
+            .orderBy('id')
+            .modify((queryBuilder) => {
+                if (name) {
+                    queryBuilder.whereRaw(`to_tsvector(post) @@ to_tsquery('${name}')`)
+                }
+            })
+
+        if (currentPageEnd >= count.count) {
+            currentPageEnd = parseInt(count.count)
+        }
+
+        return { position: position, currentPage: currentPage, currentPageStart: currentPageStart, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, count: count.count }
     }
 
     getPosition = async (id) => {
-        const [position] = await this.knex('positions').select().where('id', id)
+        const [position] = await this.knex('positions')
+            .select()
+            .where('id', id)
         return position
     }
 
