@@ -6,14 +6,14 @@ class ReimbursementController {
     createReimbursement = async (req, res) => {
         try {
             const { employeeId, date, amount, reason } = req.body;
-            if (!employeeId && !date && !amount && !reason) {
+            if (!employeeId || !date || !amount || !reason) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
             }
             const reimbursement = await this.ReimbursementService.createReimbursement(employeeId, date, amount, reason);
             return res.status(200).json({
-                success: `Successfully created reimbursement. Date: ${reimbursement.date} Reason: ${reimbursement.reason} Amount: ${reimbursement.amount} `
+                success: `Successfully created reimbursement. Date: ${new Date(reimbursement.date).getFullYear()} - ${new Date(reimbursement.date).getMonth() + 1} - ${new Date(reimbursement.date).getDate()} Reason: ${reimbursement.reason} Amount: ${reimbursement.amount} `
             })
         } catch (err) {
             console.log(err)
@@ -23,7 +23,7 @@ class ReimbursementController {
         }
     }
 
-    approveReimbursement = async (req, res) => {
+    updateReimbursement = async (req, res) => {
         try {
             const { id } = req.params;
             const { status } = req.body;
@@ -32,7 +32,7 @@ class ReimbursementController {
                     error: 'Missing required fields.'
                 })
             }
-            const reimbursement = await this.ReimbursementService.approveReimbursement(id, status);
+            const reimbursement = await this.ReimbursementService.updateReimbursement(id, status);
             return res.status(200).json({
                 success: `Successfully ${reimbursement.status} reimbursement ${reimbursement.id}`
             })
@@ -46,9 +46,15 @@ class ReimbursementController {
 
     getAllReimbursement = async (req, res) => {
         try {
-            const { status } = req.body
-            const reimbursement = await this.ReimbursementService.getAllReimbursement(status);
-            return res.status(200).json(reimbursement)
+            const { page, text, from, to, status } = req.query
+            const reimbursement = await this.ReimbursementService.getAllReimbursement(page, text, from, to, status);
+            return res.status(200).json({
+                reimbursement: reimbursement.reimbursement,
+                currentPage: reimbursement.currentPage,
+                currentPageStart: reimbursement.currentPageStart,
+                currentPageEnd: reimbursement.currentPageEnd,
+                pageLength: reimbursement.pageLength
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -66,7 +72,9 @@ class ReimbursementController {
                 })
             }
             const reimbursement = await this.ReimbursementService.getReimbursement(id)
-            return res.status(200).json(reimbursement)
+            return res.status(200).json({
+                reimbursement: reimbursement
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({

@@ -92,11 +92,18 @@ function Navbar(props) {
                         <Menu.Item as={Link} to="/reimbursement/apply">
                             Reimbursement Application
                         </Menu.Item>
-                        <Menu.Item as={Link} to="/reimbursement/approve">
-                            Reimbursement Approval
+                        <Menu.Item as={Link} to="/reimbursement/management">
+                            Reimbursement Management
                         </Menu.Item>
-                        <Menu.Item as={Link} to="reimbursement/history">
-                            Reimbursement History
+                    </Menu.Menu>
+                </Menu.Item>
+                <Menu.Item>
+                    <Menu.Header>
+                        <Icon name="gift" />Bonus Management
+                    </Menu.Header>
+                    <Menu.Menu>
+                        <Menu.Item>
+                            Bonus Management
                         </Menu.Item>
                     </Menu.Menu>
                 </Menu.Item>

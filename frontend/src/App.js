@@ -16,7 +16,9 @@ import Employee from './components/Employee';
 import Department from './components/Department'
 import Position from './components/Position';
 import Allowance from './components/Allowance';
+import Reimbursement from './components/Reimbursement';
 import 'semantic-ui-css/semantic.min.css'
+import ReimbursementManagement from './components/ReimbursementManagement';
 
 function App() {
   const auth = useSelector(state => state.auth)
@@ -40,6 +42,8 @@ function App() {
               <AdminRoute exact path="/employee/department" component={Department} />
               <AdminRoute exact path="/employee/position" component={Position} />
               <AdminRoute exact path="/allowance" component={Allowance} />
+              <AdminRoute exact path="/reimbursement/apply" component={Reimbursement} />
+              <AdminRoute exact path="/reimbursement/management" component={ReimbursementManagement} />
             </Switch>
           </Navbar>
         </React.Fragment>
