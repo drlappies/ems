@@ -80,13 +80,7 @@ function Navbar(props) {
                     </Menu.Header>
                     <Menu.Menu>
                         <Menu.Item as={Link} to="/allowance">
-                            View Allowance
-                        </Menu.Item>
-                        <Menu.Item as={Link} to="/allowance/create">
-                            Create Allowance
-                        </Menu.Item>
-                        <Menu.Item as={Link} to="/allowance/employee">
-                            Employee - Allowance Management
+                            Allowance Management
                         </Menu.Item>
                     </Menu.Menu>
                 </Menu.Item>

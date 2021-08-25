@@ -6,7 +6,7 @@ class AllowanceController {
     createAllowance = async (req, res) => {
         try {
             const { name, description, amount } = req.body;
-            if (!name && !description && !amount) {
+            if (!name || !description || !amount) {
                 return res.status(400).json({
                     error: 'Missing required fields'
                 })
@@ -47,7 +47,7 @@ class AllowanceController {
         try {
             const { id } = req.params
             const { name, description, amount, status } = req.body;
-            if (!id && !name && !description && !amount && !status) {
+            if (!id || !name || !description || !amount || !status) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
@@ -66,8 +66,11 @@ class AllowanceController {
 
     getAllAllowance = async (req, res) => {
         try {
-            const allowance = await this.AllowanceService.getAllAllowance()
-            return res.status(200).json(allowance)
+            const { page, amountFrom, amountTo, status, query } = req.query
+            const allowance = await this.AllowanceService.getAllAllowance(page, amountFrom, amountTo, status, query)
+            return res.status(200).json({
+                allowance: allowance
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -85,7 +88,11 @@ class AllowanceController {
                 })
             }
             const allowance = await this.AllowanceService.getAllowance(id)
-            return res.status(200).json(allowance)
+            return res.status(200).json({
+                allowance: allowance.allowance,
+                allowance_employee: allowance.allowance_employee,
+                employee: allowance.employee
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -96,19 +103,20 @@ class AllowanceController {
 
     addEmployeeToAllowance = async (req, res) => {
         try {
-            const { employeeId, allowanceId } = req.body
-            if (!employeeId && !allowanceId) {
+            const { id } = req.params
+            const { employeeId } = req.body
+            if (!employeeId || !id) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
             }
-            const allowance_employee = await this.AllowanceService.isEmployeeInAllowance(employeeId, allowanceId);
+            const allowance_employee = await this.AllowanceService.isEmployeeInAllowance(employeeId, id);
             if (allowance_employee.length >= 1) {
                 return res.status(400).json({
                     error: 'The employee is already entitled to this allowance.'
                 })
             }
-            const employee = await this.AllowanceService.addEmployeeToAllowance(employeeId, allowanceId)
+            const employee = await this.AllowanceService.addEmployeeToAllowance(employeeId, id)
             return res.status(200).json({
                 success: `Sucessfully added employee to the allowance`
             })
@@ -122,7 +130,7 @@ class AllowanceController {
 
     removeEmployeeFromAllowance = async (req, res) => {
         try {
-            const { employeeId, allowanceId } = req.body;
+            const { allowanceId, employeeId } = req.params
             const employee = await this.AllowanceService.removeEmployeeFromAllowance(employeeId, allowanceId)
             return res.status(200).json({
                 success: `Successfully removed employee from the allowance`

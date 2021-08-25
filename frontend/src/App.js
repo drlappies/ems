@@ -9,13 +9,14 @@ import AttendanceHistory from './components/AttendanceHistory';
 import AdminRoute from './components/routes/Admin';
 import PrivateRoute from './components/routes/Private';
 import Head from './components/Head'
-import 'semantic-ui-css/semantic.min.css'
 import AttendanceOvertime from './components/AttendanceOvertime';
 import OvertimeHistory from './components/OvertimeHistory';
 import Popup from './components/Popup';
 import Employee from './components/Employee';
 import Department from './components/Department'
 import Position from './components/Position';
+import Allowance from './components/Allowance';
+import 'semantic-ui-css/semantic.min.css'
 
 function App() {
   const auth = useSelector(state => state.auth)
@@ -38,6 +39,7 @@ function App() {
               <AdminRoute exact path="/employee/record" component={Employee} />
               <AdminRoute exact path="/employee/department" component={Department} />
               <AdminRoute exact path="/employee/position" component={Position} />
+              <AdminRoute exact path="/allowance" component={Allowance} />
             </Switch>
           </Navbar>
         </React.Fragment>

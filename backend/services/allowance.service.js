@@ -27,18 +27,72 @@ class AllowanceService {
         return allowance
     }
 
-    getAllAllowance = async () => {
-        const allowance = await this.knex('allowance').select()
-        return allowance
+    getAllAllowance = async (page, amountFrom, amountTo, status, query) => {
+        let currentPage = parseInt(page)
+        let currentPageStart = parseInt(page) + 1
+        let currentPageEnd = parseInt(page) + 15
+
+        const [count] = await this.knex('allowance')
+            .count('id')
+            .modify((queryBuilder) => {
+                if (amountFrom) {
+                    queryBuilder.where('amount', '>=', amountFrom)
+                }
+                if (amountTo) {
+                    queryBuilder.where('amount', '<=', amountTo)
+                }
+                if (status) {
+                    queryBuilder.where('status', status)
+                }
+                if (query) {
+                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description) @@ to_tsquery('${query}')`)
+                }
+            })
+
+        const allowance = await this.knex('allowance')
+            .select()
+            .limit(15)
+            .offset(currentPage)
+            .orderBy('id')
+            .modify((queryBuilder) => {
+                if (amountFrom) {
+                    queryBuilder.where('amount', '>=', amountFrom)
+                }
+                if (amountTo) {
+                    queryBuilder.where('amount', '<=', amountTo)
+                }
+                if (status) {
+                    queryBuilder.where('status', status)
+                }
+                if (query) {
+                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description) @@ to_tsquery('${query}')`)
+                }
+            })
+
+        if (currentPageEnd >= count.count) {
+            currentPageEnd = parseInt(count.count)
+        }
+        return { allowance: allowance, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count }
     }
 
     getAllowance = async (id) => {
-        const allowance = await this.knex('allowance_employee')
+        const [allowance] = await this.knex('allowance')
+            .select()
+            .where('id', id)
+
+        const allowance_employee = await this.knex('allowance_employee')
             .join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
             .join('employee', 'allowance_employee.employee_id', 'employee.id')
-            .select(['allowance_id', 'employee_id', 'allowance.name', 'allowance.description', 'allowance.amount', 'allowance.status', 'employee.firstname', 'employee.lastname'])
+            .select(['employee.id', 'employee.firstname', 'employee.lastname'])
             .where('allowance_employee.allowance_id', id)
-        return allowance
+
+        const employeeId = allowance_employee.map(el => el.id)
+
+        const employee = await this.knex('employee')
+            .select(['id', 'firstname', 'lastname'])
+            .whereNotIn('id', employeeId)
+
+        return { allowance_employee: allowance_employee, allowance: allowance, employee: employee }
     }
 
     addEmployeeToAllowance = async (employeeId, allowanceId) => {
