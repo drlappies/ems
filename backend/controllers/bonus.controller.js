@@ -6,7 +6,7 @@ class BonusController {
     createBonus = async (req, res) => {
         try {
             const { employeeId, reason, amount, date } = req.body;
-            if (!employeeId && !reason && !amount && !date) {
+            if (!employeeId || !reason || !amount || !date) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
@@ -54,7 +54,8 @@ class BonusController {
             }
             const bonus = await this.BonusService.editBonus(id, employeeId, reason, amount, date);
             return res.status(200).json({
-                success: `Successfully edited bouns ${bonus.id}`
+                success: `Successfully edited bouns ${bonus.id}`,
+                bonus: bonus
             })
         } catch (err) {
             console.log(err)
@@ -66,8 +67,16 @@ class BonusController {
 
     getAllBonus = async (req, res) => {
         try {
-            const bonus = await this.BonusService.getAllBonus();
-            return res.status(200).json(bonus)
+            const { page, dateFrom, dateTo, amountFrom, amountTo, text } = req.query
+            const bonus = await this.BonusService.getAllBonus(page, dateFrom, dateTo, amountFrom, amountTo, text);
+            return res.status(200).json({
+                bonus: bonus.bonus,
+                employee: bonus.employee,
+                currentPage: bonus.currentPage,
+                currentPageStart: bonus.currentPageStart,
+                currentPageEnd: bonus.currentPageEnd,
+                pageLength: bonus.pageLength
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -85,7 +94,9 @@ class BonusController {
                 })
             }
             const bonus = await this.BonusService.getBonus(id);
-            return res.status(200).json(bonus)
+            return res.status(200).json({
+                bonus: bonus,
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({

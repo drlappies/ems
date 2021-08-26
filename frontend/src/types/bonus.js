@@ -1,0 +1,5 @@
+export const FETCH_BONUS = "FETCH_BONUS"
+export const FETCH_SPECIFIC_BONUS = "FETCH_SPECIFIC_BONUS"
+export const UPDATE_BONUS = "UPDATE_BONUS"
+export const RESET_BONUS = "RESET_BONUS"
+export const CREATE_BONUS = "CREATE_BONUS"
