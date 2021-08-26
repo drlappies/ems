@@ -48,9 +48,10 @@ export const fetchSpecificAllowance = (id) => {
     }
 }
 
-export const updateAllowance = (e, result) => {
+export const updateAllowance = (e) => {
     return (dispatch) => {
-        let { name, value } = e.target
+        const name = e.target.name
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
         dispatch({
             type: UPDATE_ALLOWANCE,
             payload: {
@@ -184,13 +185,16 @@ export const gotoPreviousAllowancePage = (page) => {
     }
 }
 
-export const createAllowance = (name, desc, amount) => {
+export const createAllowance = (name, desc, amount, interval, rma, rate) => {
     return async (dispatch) => {
         try {
             const body = {
                 name: name,
                 description: desc,
-                amount: amount
+                amount: amount,
+                interval: interval,
+                rma: rma,
+                rate: rate
             }
             await axios.post('/allowance', body)
             dispatch(fetchAllowance())

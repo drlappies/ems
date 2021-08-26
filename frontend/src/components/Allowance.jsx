@@ -10,12 +10,11 @@ import Config from './Config';
 function Allowance() {
     const dispatch = useDispatch()
     const allowance = useSelector(state => state.allowance)
-    const header = ['id', 'Allowance Name', 'Description', 'Amount', 'Status', 'Actions']
     const [state, setState] = useState({
         isUpdating: false,
         isDeleting: false,
         isManaging: false,
-        isCreating: false
+        isCreating: false,
     })
 
     const toggleUpdating = (allowance) => {
@@ -81,7 +80,7 @@ function Allowance() {
     }
 
     const handleCreate = () => {
-        dispatch(createAllowance(allowance.createAllowanceName, allowance.createAllowanceDescription, allowance.createAllowanceAmount))
+        dispatch(createAllowance(allowance.createAllowanceName, allowance.createAllowanceDescription, allowance.createAllowanceAmount, allowance.interval, allowance.rma, allowance.rate))
         toggleCreating()
     }
 
@@ -142,7 +141,7 @@ function Allowance() {
             <Grid.Row>
                 <Grid.Column>
                     <Table celled>
-                        <TableHeader header={header} />
+                        <TableHeader header={['id', 'Allowance Name', 'Description', 'Amount', 'Status', 'Interval', 'Actions']} />
                         <TableBody
                             data={allowance.record}
                             primaryAction={"Update"}
@@ -156,7 +155,7 @@ function Allowance() {
                             tertiaryActionColor={'teal'}
                         />
                         <TableFooter
-                            colSpan={6}
+                            colSpan={7}
                             pageTotal={allowance.pageLength}
                             pageStart={allowance.currentPageStart}
                             pageEnd={allowance.currentPageEnd}
@@ -290,6 +289,22 @@ function Allowance() {
                         <Form.Field>
                             <label htmlFor="createAllowanceAmount">Amount</label>
                             <input type="number" id="createAllowanceAmount" name="createAllowanceAmount" value={allowance.createAllowanceAmount} onChange={(e) => dispatch(updateAllowance(e))} />
+                        </Form.Field>
+                        <Form.Field>
+                            <label htmlFor="interval">Interval</label>
+                            <select id="interval" name="interval" value={allowance.interval} onChange={(e) => dispatch(updateAllowance(e))}>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </Form.Field>
+                        <Form.Field>
+                            <label htmlFor="rma">Require minimum attendance?</label>
+                            <input type="checkbox" id="rma" name="rma" value={allowance.rma} onChange={(e) => dispatch(updateAllowance(e))} />
+                        </Form.Field>
+                        <Form.Field>
+                            <label htmlFor="rate">Required minimum attendance rate:</label>
+                            <input type="range" id="rate" name="rate" onChange={(e) => dispatch(updateAllowance(e))} disabled={!allowance.rma} />
                         </Form.Field>
                     </Form>
                 }

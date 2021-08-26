@@ -3,11 +3,14 @@ class AllowanceService {
         this.knex = knex
     }
 
-    createAllowance = async (name, description, amount) => {
+    createAllowance = async (name, description, amount, interval, rma, rate) => {
         const [allowance] = await this.knex('allowance').insert({
             name: name,
             description: description,
-            amount: amount
+            amount: amount,
+            interval: interval,
+            minimum_attendance_required: rma,
+            required_attendance_rate: rate
         }).returning(['id', 'name', 'description', 'amount'])
         return allowance
     }
@@ -50,7 +53,7 @@ class AllowanceService {
             })
 
         const allowance = await this.knex('allowance')
-            .select()
+            .select(['id', 'name', 'description', 'amount', 'status', 'interval'])
             .limit(15)
             .offset(currentPage)
             .orderBy('id')

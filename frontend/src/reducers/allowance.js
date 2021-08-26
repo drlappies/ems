@@ -19,7 +19,10 @@ const initialState = {
     amountFrom: "",
     amountTo: "",
     status: "",
-    search: ""
+    search: "",
+    interval: "monthly",
+    rma: false,
+    rate: "0"
 }
 
 const allowanceReducer = (state = initialState, action) => {

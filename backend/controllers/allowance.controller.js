@@ -5,13 +5,13 @@ class AllowanceController {
 
     createAllowance = async (req, res) => {
         try {
-            const { name, description, amount } = req.body;
-            if (!name || !description || !amount) {
+            const { name, description, amount, interval, rma, rate } = req.body;
+            if (!name || !description || !amount || !interval || !rma || !rate) {
                 return res.status(400).json({
                     error: 'Missing required fields'
                 })
             }
-            const allowance = await this.AllowanceService.createAllowance(name, description, amount);
+            const allowance = await this.AllowanceService.createAllowance(name, description, amount, interval, rma, rate);
             return res.status(200).json({
                 success: `Successfully created allowance ${allowance.name}`
             })
