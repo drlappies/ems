@@ -141,7 +141,6 @@ function Bonus() {
                                 secondaryAction={"Delete"}
                                 secondaryActionColor={"red"}
                                 secondaryFunc={toggleDeleting}
-                                cellSize={['1', '1', '1', '1', '3', '6', '1', '1']}
                             />
                             <TableFooter
                                 colSpan={8}
