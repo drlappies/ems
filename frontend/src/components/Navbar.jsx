@@ -51,11 +51,8 @@ function Navbar(props) {
                         <Icon name="money" />Payroll Management
                     </Menu.Header>
                     <Menu.Menu>
-                        <Menu.Item as={Link} to="/payroll/create">
-                            Generate Payroll
-                        </Menu.Item>
-                        <Menu.Item as={Link} to="/payroll/history">
-                            Payroll History
+                        <Menu.Item as={Link} to="/payroll/management">
+                            Payroll Management
                         </Menu.Item>
                     </Menu.Menu>
                 </Menu.Item>
@@ -105,6 +102,17 @@ function Navbar(props) {
                     <Menu.Menu>
                         <Menu.Item as={Link} to="/bonus/management">
                             Bonus Management
+                        </Menu.Item>
+                    </Menu.Menu>
+                </Menu.Item>
+                <Menu.Item>
+                    <Menu.Header>
+                        <Icon name="money bill" />
+                        Deduction Management
+                    </Menu.Header>
+                    <Menu.Menu>
+                        <Menu.Item as={Link} to="/deduction/management">
+                            Deduction Management
                         </Menu.Item>
                     </Menu.Menu>
                 </Menu.Item>

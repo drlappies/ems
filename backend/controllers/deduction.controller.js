@@ -6,7 +6,7 @@ class DeductionController {
     createDeduction = async (req, res) => {
         try {
             const { employeeId, reason, amount, date } = req.body
-            if (!employeeId && !reason && !amount && !date) {
+            if (!employeeId || !reason || !amount || !date) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
@@ -47,7 +47,7 @@ class DeductionController {
         try {
             const { id } = req.params;
             const { employeeId, reason, amount, date } = req.body;
-            if (!id && !employeeId && !reason && !amount && !date) {
+            if (!id || !employeeId || !reason || !amount || !date) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
@@ -66,8 +66,16 @@ class DeductionController {
 
     getAllDeduction = async (req, res) => {
         try {
-            const deduction = await this.DeductionService.getAllDeduction()
-            return res.status(200).json(deduction)
+            const { page, dateFrom, dateTo, amountFrom, amountTo, text } = req.query
+            const deduction = await this.DeductionService.getAllDeduction(page, dateFrom, dateTo, amountFrom, amountTo, text)
+            return res.status(200).json({
+                deduction: deduction.deduction,
+                employee: deduction.employee,
+                currentPage: deduction.currentPage,
+                currentPageStart: deduction.currentPageStart,
+                currentPageEnd: deduction.currentPageEnd,
+                pageLength: deduction.pageLength
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -85,7 +93,9 @@ class DeductionController {
                 })
             }
             const deduction = await this.DeductionService.getDeduction(id)
-            return res.status(200).json(deduction)
+            return res.status(200).json({
+                deduction: deduction
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({

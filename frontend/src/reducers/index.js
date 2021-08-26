@@ -11,6 +11,7 @@ import positionReducer from "./position";
 import allowanceReducer from "./allowance";
 import reimbursementReducer from "./reimbursement";
 import bonusReducer from "./bonus";
+import deductionReducer from "./deduction";
 
 const reducer = combineReducers({
     auth: authReducer,
@@ -24,7 +25,8 @@ const reducer = combineReducers({
     position: positionReducer,
     allowance: allowanceReducer,
     reimbursement: reimbursementReducer,
-    bonus: bonusReducer
+    bonus: bonusReducer,
+    deduction: deductionReducer
 })
 
 export default reducer
