@@ -1,7 +1,8 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { Icon, Menu, Sidebar, Container } from 'semantic-ui-react'
+import { Icon, Menu, Sidebar } from 'semantic-ui-react'
+import Container from './Container';
 
 function Navbar(props) {
     const ui = useSelector(state => state.ui)
@@ -102,7 +103,7 @@ function Navbar(props) {
                         <Icon name="gift" />Bonus Management
                     </Menu.Header>
                     <Menu.Menu>
-                        <Menu.Item>
+                        <Menu.Item as={Link} to="/bonus/management">
                             Bonus Management
                         </Menu.Item>
                     </Menu.Menu>
