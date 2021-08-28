@@ -53,7 +53,7 @@ class AllowanceService {
             })
 
         const allowance = await this.knex('allowance')
-            .select(['id', 'name', 'description', 'amount', 'status', 'interval'])
+            .select(['id', 'name', 'description', 'amount', 'status'])
             .limit(15)
             .offset(currentPage)
             .orderBy('id')

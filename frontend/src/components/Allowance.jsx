@@ -133,15 +133,18 @@ function Allowance() {
                     </Menu>
                 </Grid.Column>
             </Grid.Row>
-            <Grid.Row textAlign="right">
+            <Grid.Row columns="2">
                 <Grid.Column>
+                    <Header>Employee Allowance Management</Header>
+                </Grid.Column>
+                <Grid.Column textAlign="right">
                     <Button color="blue" onClick={() => toggleCreating()}>Create Allowance</Button>
                 </Grid.Column>
             </Grid.Row>
             <Grid.Row>
                 <Grid.Column>
                     <Table celled>
-                        <TableHeader header={['id', 'Allowance Name', 'Description', 'Amount', 'Status', 'Interval', 'Actions']} />
+                        <TableHeader header={['id', 'Allowance Name', 'Description', 'Amount', 'Status', 'Actions']} />
                         <TableBody
                             data={allowance.record}
                             primaryAction={"Update"}
@@ -155,7 +158,7 @@ function Allowance() {
                             tertiaryActionColor={'teal'}
                         />
                         <TableFooter
-                            colSpan={7}
+                            colSpan={6}
                             pageTotal={allowance.pageLength}
                             pageStart={allowance.currentPageStart}
                             pageEnd={allowance.currentPageEnd}
@@ -289,14 +292,6 @@ function Allowance() {
                         <Form.Field>
                             <label htmlFor="createAllowanceAmount">Amount</label>
                             <input type="number" id="createAllowanceAmount" name="createAllowanceAmount" value={allowance.createAllowanceAmount} onChange={(e) => dispatch(updateAllowance(e))} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="interval">Interval</label>
-                            <select id="interval" name="interval" value={allowance.interval} onChange={(e) => dispatch(updateAllowance(e))}>
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="yearly">Yearly</option>
-                            </select>
                         </Form.Field>
                         <Form.Field>
                             <label htmlFor="rma">Require minimum attendance?</label>
