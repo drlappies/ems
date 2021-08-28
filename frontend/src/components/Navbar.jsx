@@ -107,7 +107,7 @@ function Navbar(props) {
                 </Menu.Item>
                 <Menu.Item>
                     <Menu.Header>
-                        <Icon name="money bill" />
+                        <Icon name="money" />
                         Deduction Management
                     </Menu.Header>
                     <Menu.Menu>
