@@ -2,7 +2,6 @@
 exports.up = function (knex) {
     const first = () => {
         return knex.schema.table('allowance', table => {
-            table.enu('interval', ['weekly', 'monthly', 'yearly']).defaultTo('monthly')
             table.boolean('minimum_attendance_required').defaultTo('false')
             table.decimal('required_attendance_rate', 5, 2)
         })
@@ -35,7 +34,6 @@ exports.down = function (knex) {
 
     const next = () => {
         return knex.schema.alterTable('allowance', table => {
-            table.dropColumn('interval')
             table.dropColumn('minimum_attendance_required')
             table.dropColumn('required_attendance_rate')
         })
