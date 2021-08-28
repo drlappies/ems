@@ -5,8 +5,8 @@ class PayrollController {
 
     createPayroll = async (req, res) => {
         try {
-            const { employee_id, starting_date, ending_date } = req.body;
-            if (!employee_id && !starting_date && !ending_date) {
+            const { employee_id, starting_date, ending_date, isDeductCaled, isBonusCaled, isAllowanceCaled, isOTcaled, isReimbursementCaled, isLeaveCaled } = req.body;
+            if (!employee_id || !starting_date || !ending_date) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
@@ -17,7 +17,7 @@ class PayrollController {
                     error: 'Payroll period overlapped.'
                 })
             }
-            const payroll = await this.PayrollService.createPayroll(employee_id, starting_date, ending_date);
+            const payroll = await this.PayrollService.createPayroll(employee_id, starting_date, ending_date, isDeductCaled, isBonusCaled, isAllowanceCaled, isOTcaled, isReimbursementCaled, isLeaveCaled);
             return res.status(200).json({
                 success: `Successfully created payroll: ${new Date(payroll.from).getFullYear()}-${new Date(payroll.from).getMonth() + 1}-${new Date(payroll.from).getDate()} to ${new Date(payroll.to).getFullYear()}-${new Date(payroll.to).getMonth() + 1}-${new Date(payroll.to).getDate()} for employee ${payroll.employee_id}. Amount: ${payroll.amount}`
             })
@@ -69,8 +69,16 @@ class PayrollController {
 
     getAllPayroll = async (req, res) => {
         try {
-            const payroll = await this.PayrollService.getAllPayroll();
-            return res.status(200).json(payroll)
+            const { page, from, to, name } = req.query
+            const payroll = await this.PayrollService.getAllPayroll(page, from, to, name);
+            return res.status(200).json({
+                payroll: payroll.payroll,
+                employee: payroll.employee,
+                currentPage: payroll.currentPage,
+                currentPageStart: payroll.currentPageStart,
+                currentPageEnd: payroll.currentPageEnd,
+                pageLength: payroll.pageLength
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({

@@ -11,7 +11,10 @@ function TableBody(props) {
                     {Object.keys(el).map((key, j) =>
                         <React.Fragment key={j}>
                             <Table.Cell width={cellSize ? cellSize[j] : null}>
-                                {el[key]}
+                                {/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(el[key]) ?
+                                    `${new Date(el[key]).getFullYear()} - ${(new Date(el[key]).getMonth() + 1)} - ${new Date(el[key]).getDate()}`
+                                    : el[key]
+                                }
                             </Table.Cell>
                         </React.Fragment>
                     )}
