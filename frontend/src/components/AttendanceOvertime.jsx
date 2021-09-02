@@ -1,17 +1,12 @@
 import React from 'react';
-import Popup from './Popup';
-import { Container, Grid } from 'semantic-ui-react'
 import Overtime from './Overtime';
+import '../css/main.css'
 
 function AttendanceOvertime() {
     return (
-        <Container>
-            <Grid centered>
-                <Grid.Row>
-                    <Overtime />
-                </Grid.Row>
-            </Grid>
-        </Container>
+        <div className="container">
+            <Overtime />
+        </div>
     )
 }
 
