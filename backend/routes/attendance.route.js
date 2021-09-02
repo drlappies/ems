@@ -3,14 +3,13 @@ const express = require('express');
 module.exports.AttendanceRoute = (AttendanceController) => {
     const router = express.Router();
     router.post('/', AttendanceController.createAttendance)
-    router.post('/time-in', AttendanceController.createTimeIn);
-    router.post('/time-out', AttendanceController.createTimeOut);
-    router.post('/re-time-in', AttendanceController.createSpecificTimeIn);
-    router.post('/re-time-out', AttendanceController.createSpecificTimeOut);
+    router.post('/checkin', AttendanceController.createTimeIn);
+    router.post('/checkout', AttendanceController.createTimeOut);
     router.get('/', AttendanceController.getAllAttendance)
-    router.get('/rate', AttendanceController.getOnTimeRate)
-    router.get('/:employeeId', AttendanceController.getTodayAttendanceByEmployee)
-    router.delete('/:id', AttendanceController.deleteAttendance)
-    router.put('/:id', AttendanceController.updateAttendance)
+    router.get('/status/:employeeId', AttendanceController.getTodayAttendanceByEmployee)
+    router.get('/metric', AttendanceController.getOnTimeRate)
+    router.get('/:id', AttendanceController.getAttendance)
+    router.delete('/', AttendanceController.deleteAttendance)
+    router.put('/', AttendanceController.updateAttendance)
     return router
 }

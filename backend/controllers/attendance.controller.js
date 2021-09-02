@@ -9,15 +9,18 @@ class AttendanceController {
             if (!employeeId) {
                 return res.status(400).json({ error: 'Missing required Employee id' })
             }
+
             const attendance = await this.AttendanceService.checkIfAlreadyTimedIn(employeeId);
-            if (attendance.length >= 1) {
+            if (attendance.length > 0) {
                 return res.status(400).json({ error: 'Already timed in today!' })
             }
+
             const timeIn = await this.AttendanceService.createTimeIn(employeeId);
             return res.status(200).json({
-                success: `Successfully timed in at ${timeIn.check_in} on ${timeIn.date}`,
+                success: `Successfully checked in at ${timeIn.check_in} on ${new Date(timeIn.date).getFullYear()}-${new Date(timeIn.date).getMonth()}-${new Date(timeIn.date).getDate()}`,
                 timeIn: timeIn
             })
+
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -37,78 +40,13 @@ class AttendanceController {
                 return res.status(400).json({ error: `Haven't timed in yet!` })
             }
             const isTimedOut = await this.AttendanceService.checkIfAlreadyTimedOut(employeeId);
-            if (isTimedOut.length >= 1) {
+            if (isTimedOut.length > 0) {
                 return res.status(400).json({ error: 'Already timed out today!' });
             }
             const timeOut = await this.AttendanceService.createTimeOut(employeeId);
             return res.status(200).json({
-                success: `Successfully time out at ${timeOut.check_out} on ${timeOut.date}`,
+                success: `Successfully checked out at ${timeOut.check_out} on ${new Date(timeOut.date).getFullYear()}-${new Date(timeOut.date).getMonth() + 1}-${new Date(timeOut.date).getDate()}`,
                 timeout: timeOut.check_out
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    createSpecificTimeIn = async (req, res) => {
-        try {
-            const { employeeId, checkInTime, checkOutTime, checkInDate } = req.body
-            if (!employeeId && !checkInTime && !checkOutTime && !checkInDate) {
-                return res.status(400).json({
-                    error: 'Missing required fields!'
-                })
-            }
-            const currentDate = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`;
-            if (checkInDate >= currentDate) {
-                return res.status(400).json({
-                    error: 'Cannot create specific time-in on future dates'
-                })
-            }
-            const attendance = await this.AttendanceService.checkIfSpecificAlreadyTimedIn(employeeId, checkInDate);
-            if (attendance.length >= 1) {
-                return res.status(400).json({
-                    error: 'Already timed in/ out on such specific date.'
-                })
-            }
-            const timeIn = await this.AttendanceService.createSpecificTimeIn(employeeId, checkInTime, checkOutTime, checkInDate);
-            return res.status(200).json({
-                success: `Successfully re-timed in at ${timeIn.check_in} on ${timeIn.date}`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    createSpecificTimeOut = async (req, res) => {
-        try {
-            const { employeeId, checkOutTime, checkInDate } = req.body;
-            if (!employeeId && !checkOutTime && !checkInDate) {
-                return res.status(400).json({
-                    error: 'Missing required fields'
-                })
-            }
-            const currentTime = new Date();
-            const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
-            if (date === checkInDate) {
-                return res.status(400).json({
-                    error: 'Cannot create specific time out on that specific date. Please use the usual time out feature.'
-                })
-            }
-            const attendance = await this.AttendanceService.checkIfAlreadyTimedOut(employeeId, checkInDate);
-            if (attendance.length >= 1) {
-                return res.status(400).json({
-                    error: 'Alread timed out on such specific date'
-                })
-            }
-            const timeOut = await this.AttendanceService.createSpecificTimeOut(employeeId, checkOutTime, checkInDate);
-            return res.status(200).json({
-                success: `Successfully re-timed out at ${timeOut.check_out} on ${timeOut.date}`
             })
         } catch (err) {
             console.log(err)
@@ -133,9 +71,18 @@ class AttendanceController {
 
     getAllAttendance = async (req, res) => {
         try {
-            const { starting, ending, employee_id, page } = req.query
-            const attendance = await this.AttendanceService.getAllAttendance(starting, ending, page, employee_id);
-            return res.status(200).json(attendance)
+            const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit } = req.query
+            const query = await this.AttendanceService.getAllAttendance(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit);
+            
+            return res.status(200).json({
+                attendance: query.attendance,
+                employeeList: query.employeeList,
+                count: query.count,
+                currentPage: query.currentPage,
+                pageStart: query.pageStart,
+                pageEnd: query.pageEnd,
+                currentLimit: query.currentLimit
+            })
         } catch (err) {
             console.log(err)
             res.status(500).json({
@@ -146,8 +93,11 @@ class AttendanceController {
 
     getOnTimeRate = async (req, res) => {
         try {
-            const rate = await this.AttendanceService.getOnTimeRate();
-            return res.status(200).json({ rate: rate })
+            const { startingDate, endingDate } = req.query
+            const metric = await this.AttendanceService.getOnTimeRate(startingDate, endingDate);
+            return res.status(200).json({
+                rate: metric.rate,
+            })
         } catch (err) {
             console.log(err)
             res.status(500).json({
@@ -158,9 +108,11 @@ class AttendanceController {
 
     deleteAttendance = async (req, res) => {
         try {
-            const { id } = req.params
-            const attendance = await this.AttendanceService.deleteAttendance(id)
-            return res.status(200).json(attendance)
+            const { ids } = req.query
+            const attendance = await this.AttendanceService.deleteAttendance(ids)
+            return res.status(200).json({
+                success: `Successfully deleted attendance record`
+            })
         } catch (err) {
             console.log(err)
             res.status(500).json({
@@ -171,10 +123,11 @@ class AttendanceController {
 
     updateAttendance = async (req, res) => {
         try {
-            const { id } = req.params
-            const { check_in, check_out } = req.body
-            const attendance = await this.AttendanceService.updateAttendance(id, check_in, check_out)
-            return res.status(200).json(attendance)
+            const { ids, check_in, check_out, status } = req.body
+            const attendance = await this.AttendanceService.updateAttendance(ids, check_in, check_out, status)
+            return res.status(200).json({
+                success: `Successfully updated attendance record ID: ${attendance.map(el => `${el.id}`)}`
+            })
         } catch (err) {
             console.log(err)
             res.status(500).json({
@@ -186,14 +139,44 @@ class AttendanceController {
     createAttendance = async (req, res) => {
         try {
             const { employee_id, date, check_in, check_out, status } = req.body
+
+            const overlaps = await this.AttendanceService.checkForConflicts(employee_id, date)
+            if (overlaps.length > 0) {
+                const overlappedRecords = overlaps.map(el => {
+                    return {
+                        id: el.id,
+                        check_in: el.check_in,
+                        check_out: el.check_out,
+                        date: `${new Date(el.date).getFullYear()}-${new Date(el.date).getMonth() + 1}-${new Date(el.date).getDate()}`,
+                        employee_id: el.employee_id
+                    }
+                })
+                return res.status(400).json({
+                    error: `Overlapped Attendance: ${overlappedRecords.map(el => `ID: ${el.id} Date: ${el.date} Employee ID: ${el.employee_id}`)}`
+                })
+            }
             const attendance = await this.AttendanceService.createAttendance(employee_id, date, check_in, check_out, status)
             return res.status(200).json({
-                success: `Successfully created attendance record at ${attendance[0].date}`,
-                attendance: attendance
+                success: `Successfully created attendance record ${attendance.id} for Employee ${attendance.employee_id}`,
             })
         } catch (err) {
             console.log(err)
             res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    getAttendance = async (req, res) => {
+        try {
+            const { id } = req.params;
+            const attendance = await this.AttendanceService.getAttendance(id);
+            return res.status(200).json({
+                attendance: attendance
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
                 error: err
             })
         }
