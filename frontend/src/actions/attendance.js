@@ -1,4 +1,4 @@
-import { FETCH_ATTENDANCE, UPDATE_ATTENDANCE, RESET_ATTENDANCE, ADD_SELECTED, REMOVE_SELECTED, RESET_SELECTED, RESET_QUERY, ADD_ALL_SELECTED, TOGGLE_UPDATING, TOGGLE_CREATING, TOGGLE_FILTERING, TOGGLE_BATCH_UPDATING, TOGGLE_BATCH_DELETING, TOGGLE_DELETING, UPDATE_ROW } from '../types/attendance'
+import { FETCH_ATTENDANCE, UPDATE_ATTENDANCE, ADD_SELECTED, REMOVE_SELECTED, RESET_SELECTED, RESET_QUERY, ADD_ALL_SELECTED, TOGGLE_UPDATING, TOGGLE_CREATING, TOGGLE_FILTERING, TOGGLE_BATCH_UPDATING, TOGGLE_BATCH_DELETING, TOGGLE_DELETING, UPDATE_ROW } from '../types/attendance'
 import { popErrorMessage, popSuccessMessage } from './ui'
 import axios from 'axios'
 
@@ -269,12 +269,38 @@ export const fetchPrevious = (page, limit, queryText, queryStatus, queryDateFrom
 export const deleteAttendance = (ids) => {
     return async (dispatch) => {
         try {
-            if (!Array.isArray(ids)) ids = [ids]
+            const res = await axios.delete(`/attendance/?ids=${ids}`)
+            dispatch({
+                type: TOGGLE_DELETING,
+                payload: {
+                    attendanceId: "",
+                    employeeId: "",
+                    employeeFirstname: "",
+                    employeeLastname: "",
+                    attendanceCheckin: "",
+                    attendanceCheckout: "",
+                    attendanceStatus: "",
+                    attendanceDate: ""
+                }
+            })
+            dispatch(fetchAttendance())
+            dispatch(popSuccessMessage(res.data.success))
+            window.history.replaceState(null, "", '/attendance')
+        } catch (err) {
+            dispatch(popErrorMessage(err.response.data.error))
+        }
+    }
+}
+
+export const batchDeleteAttendance = (ids) => {
+    return async (dispatch) => {
+        try {
             const res = await axios.delete(`/attendance/${ids.map((el, i) => i === 0 ? `?ids=${el}&` : `ids=${el}&`).join("")}`)
             dispatch(fetchAttendance())
             dispatch({ type: RESET_SELECTED })
             dispatch({ type: TOGGLE_BATCH_DELETING })
             dispatch(popSuccessMessage(res.data.success))
+            window.history.replaceState(null, "", '/attendance')
         } catch (err) {
             dispatch(popErrorMessage(err.response.data.error))
         }
@@ -403,14 +429,6 @@ export const toggleSelectAll = (e, entries) => {
         } else {
             dispatch({ type: RESET_SELECTED })
         }
-    }
-}
-
-export const resetAttendance = () => {
-    return (dispatch) => {
-        dispatch({
-            type: RESET_ATTENDANCE
-        })
     }
 }
 

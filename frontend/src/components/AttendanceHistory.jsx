@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { fetchAttendance, fetchNext, fetchPrevious, deleteAttendance, updateAttendance, createAttendance, handleUpdateAttendance, resetQuery, toggleUpdating, toggleCreating, toggleFiltering, toggleBatchUpdating, toggleBatchDeleting, toggleDeleting, updateRow, fetchAttendanceByQuery, toggleSelect, toggleSelectAll, updateBatchAttendance } from '../actions/attendance';
+import { fetchAttendance, fetchNext, fetchPrevious, deleteAttendance, updateAttendance, createAttendance, handleUpdateAttendance, resetQuery, toggleUpdating, toggleCreating, toggleFiltering, toggleBatchUpdating, toggleBatchDeleting, toggleDeleting, updateRow, fetchAttendanceByQuery, toggleSelect, toggleSelectAll, updateBatchAttendance, batchDeleteAttendance } from '../actions/attendance';
 import { useSelector, useDispatch } from 'react-redux';
 import { Table, Grid, Form, Button, Header } from 'semantic-ui-react'
 import TableHeader from './TableHeader';
@@ -46,10 +46,10 @@ function AttendanceHistory() {
                             data={attendance.record}
                             primaryAction={"Update"}
                             primaryActionColor={"blue"}
-                            primaryFunc={toggleUpdating}
+                            primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
                             secondaryAction={"Delete"}
                             secondaryActionColor={"red"}
-                            secondaryFunc={toggleDeleting}
+                            secondaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
                             checkFunc={(e) => dispatch(toggleSelect(e))}
                             checkedRows={attendance.selectedRecord}
                         />
@@ -74,19 +74,18 @@ function AttendanceHistory() {
                 configPrimaryFunc={() => dispatch(toggleDeleting())}
                 configSecondaryAction={"Delete"}
                 configSecondaryFunc={() => dispatch(deleteAttendance(attendance.attendanceId))}
-                configContent={
-                    <React.Fragment>
-                        <p><strong>Are you sure to delete the following attendance record?</strong></p>
-                        <p><strong>Attendance record ID: </strong>{attendance.attendanceId}</p>
-                        <p><strong>Employee ID: </strong>{attendance.employeeId}</p>
-                        <p><strong>Employee: </strong>{attendance.employeeFirstname} {attendance.employeeLastname}</p>
-                        <p><strong>Date: </strong>{new Date(attendance.attendanceDate).getFullYear()} - {new Date(attendance.attendanceDate).getMonth() + 1} - {new Date(attendance.attendanceDate).getDate()}</p>
-                        <p><strong>Check in: </strong>{attendance.attendanceCheckin}</p>
-                        <p><strong>Check out: </strong>{attendance.attendanceCheckout ? attendance.attendanceCheckout : "Employee did not check out."}</p>
-                        <p><strong>Status: </strong>{attendance.attendanceStatus}</p>
-                    </React.Fragment>
-                }
-            />
+            >
+                <React.Fragment>
+                    <p><strong>Are you sure to delete the following attendance record?</strong></p>
+                    <p><strong>Attendance record ID: </strong>{attendance.attendanceId}</p>
+                    <p><strong>Employee ID: </strong>{attendance.employeeId}</p>
+                    <p><strong>Employee: </strong>{attendance.employeeFirstname} {attendance.employeeLastname}</p>
+                    <p><strong>Date: </strong>{new Date(attendance.attendanceDate).getFullYear()} - {new Date(attendance.attendanceDate).getMonth() + 1} - {new Date(attendance.attendanceDate).getDate()}</p>
+                    <p><strong>Check in: </strong>{attendance.attendanceCheckin}</p>
+                    <p><strong>Check out: </strong>{attendance.attendanceCheckout ? attendance.attendanceCheckout : "Employee did not check out."}</p>
+                    <p><strong>Status: </strong>{attendance.attendanceStatus}</p>
+                </React.Fragment>
+            </Config>
             <Config
                 isConfigOpen={attendance.isUpdating}
                 configType={"Update Attendance Record"}
@@ -95,45 +94,42 @@ function AttendanceHistory() {
                 configSecondaryAction={"Update"}
                 configSecondaryFunc={() => dispatch(updateAttendance(attendance.attendanceId, attendance.attendanceCheckin, attendance.attendanceCheckout, attendance.attendanceStatus))}
                 configSecondaryColor={"green"}
-                configContent={
-                    <React.Fragment>
-                        <p><strong>Attendance Record ID: </strong>{attendance.attendanceId}</p>
-                        <p><strong>Employee ID: </strong>{attendance.employeeId}</p>
-                        <p><strong>Employee: </strong>{attendance.employeeFirstname} {attendance.employeeLastname}</p>
-                        <p><strong>Date: </strong>{new Date(attendance.attendanceDate).getFullYear()} - {new Date(attendance.attendanceDate).getMonth() + 1} - {new Date(attendance.attendanceDate).getDate()}</p>
-                        <Form>
-                            <Grid>
-                                <Grid.Row columns="2">
-                                    <Grid.Column>
-                                        <Form.Field>
-                                            <label htmlFor="attendanceCheckin">Check in</label>
-                                            <input id="attendanceCheckin" name="attendanceCheckin" type="time" step="1" value={attendance.attendanceCheckin} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                                        </Form.Field>
-                                    </Grid.Column>
-                                    <Grid.Column>
-                                        <Form.Field>
-                                            <label htmlFor="attendanceCheckout">Check out</label>
-                                            <input id="attendanceCheckout" name="attendanceCheckout" type="time" step="1" value={attendance.attendanceCheckout} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                                        </Form.Field>
-                                    </Grid.Column>
-                                </Grid.Row>
-                                <Grid.Row>
-                                    <Grid.Column>
-                                        <Form.Field>
-                                            <label htmlFor="attendanceStatus">Status</label>
-                                            <select id="attendanceStatus" name="attendanceStatus" value={attendance.attendanceStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
-                                                <option value="" hidden>Status</option>
-                                                <option value="on_time">On Time</option>
-                                                <option value="late">Late</option>
-                                            </select>
-                                        </Form.Field>
-                                    </Grid.Column>
-                                </Grid.Row>
-                            </Grid>
-                        </Form>
-                    </React.Fragment>
-                }
-            />
+            >
+                <p><strong>Attendance Record ID: </strong>{attendance.attendanceId}</p>
+                <p><strong>Employee ID: </strong>{attendance.employeeId}</p>
+                <p><strong>Employee: </strong>{attendance.employeeFirstname} {attendance.employeeLastname}</p>
+                <p><strong>Date: </strong>{new Date(attendance.attendanceDate).getFullYear()} - {new Date(attendance.attendanceDate).getMonth() + 1} - {new Date(attendance.attendanceDate).getDate()}</p>
+                <Form>
+                    <Grid>
+                        <Grid.Row columns="2">
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="attendanceCheckin">Check in</label>
+                                    <input id="attendanceCheckin" name="attendanceCheckin" type="time" step="1" value={attendance.attendanceCheckin} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="attendanceCheckout">Check out</label>
+                                    <input id="attendanceCheckout" name="attendanceCheckout" type="time" step="1" value={attendance.attendanceCheckout} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="attendanceStatus">Status</label>
+                                    <select id="attendanceStatus" name="attendanceStatus" value={attendance.attendanceStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
+                                        <option value="" hidden>Status</option>
+                                        <option value="on_time">On Time</option>
+                                        <option value="late">Late</option>
+                                    </select>
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                    </Grid>
+                </Form>
+            </Config>
             <Config
                 isConfigOpen={attendance.isCreating}
                 configType={"Create Attendance Record"}
@@ -142,40 +138,39 @@ function AttendanceHistory() {
                 configSecondaryAction={"Create"}
                 configSecondaryFunc={() => dispatch(createAttendance(attendance.employeeId, attendance.attendanceDate, attendance.attendanceCheckout, attendance.attendanceCheckin, attendance.attendanceStatus))}
                 configSecondaryColor={"green"}
-                configContent={
-                    <Form>
-                        <Form.Field>
-                            <label htmlFor="attendanceDate">Date</label>
-                            <input id="attendanceDate" name="attendanceDate" type="date" value={attendance.attendanceDate} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="attendanceCheckin">Check In Time</label>
-                            <input id="attendanceCheckin" name="attendanceCheckin" type="time" step="1" value={attendance.attendanceCheckin} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="attendanceCheckout">Check Out Time</label>
-                            <input id="attendanceCheckout" name="attendanceCheckout" type="time" step="1" value={attendance.attendanceCheckout} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="employeeId">Employee</label>
-                            <select id="employeeId" name="employeeId" plaecholder="Employee" value={attendance.employeeId} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
-                                <option value="" hidden>Employee</option>
-                                {attendance.employeeList.map((el, i) =>
-                                    <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                                )}
-                            </select>
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="attendanceStatus">Status</label>
-                            <select id="attendanceStatus" name="attendanceStatus" placeholder="Status" value={attendance.attendanceStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
-                                <option value="" hidden>Status</option>
-                                <option value="on_time">On time</option>
-                                <option value="late">Late</option>
-                            </select>
-                        </Form.Field>
-                    </Form>
-                }
-            />
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="attendanceDate">Date</label>
+                        <input id="attendanceDate" name="attendanceDate" type="date" value={attendance.attendanceDate} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="attendanceCheckin">Check In Time</label>
+                        <input id="attendanceCheckin" name="attendanceCheckin" type="time" step="1" value={attendance.attendanceCheckin} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="attendanceCheckout">Check Out Time</label>
+                        <input id="attendanceCheckout" name="attendanceCheckout" type="time" step="1" value={attendance.attendanceCheckout} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="employeeId">Employee</label>
+                        <select id="employeeId" name="employeeId" plaecholder="Employee" value={attendance.employeeId} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
+                            <option value="" hidden>Employee</option>
+                            {attendance.employeeList.map((el, i) =>
+                                <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
+                            )}
+                        </select>
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="attendanceStatus">Status</label>
+                        <select id="attendanceStatus" name="attendanceStatus" placeholder="Status" value={attendance.attendanceStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
+                            <option value="" hidden>Status</option>
+                            <option value="on_time">On time</option>
+                            <option value="late">Late</option>
+                        </select>
+                    </Form.Field>
+                </Form>
+            </Config>
             <Config
                 isConfigOpen={attendance.isFiltering}
                 configType={"Search and Filter"}
@@ -187,84 +182,80 @@ function AttendanceHistory() {
                 configTertiaryAction={"Search"}
                 configTertiaryColor={"green"}
                 configTertiaryFunc={() => dispatch(fetchAttendanceByQuery(attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo, attendance.currentPage, attendance.currentLimit))}
-                configContent={
-                    <Form>
-                        <Form.Field>
-                            <label htmlFor="queryText">Contains:</label>
-                            <input id="queryText" name="queryText" placeholder="Employee Name" value={attendance.queryText} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="queryStatus">Status:</label>
-                            <select id="queryStatus" name="queryStatus" value={attendance.queryStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
-                                <option value="" hidden>Status</option>
-                                <option value="on_time">On Time</option>
-                                <option value="late">Late</option>
-                            </select>
-                        </Form.Field>
-                        <Grid>
-                            <Grid.Row columns="2">
-                                <Grid.Column>
-                                    <Form.Field>
-                                        <label htmlFor="queryDateFrom">Date From:</label>
-                                        <input type="date" id="queryDateFrom" name="queryDateFrom" value={attendance.queryDateFrom} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                                    </Form.Field>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Form.Field>
-                                        <label htmlFor="queryDateTo">Date To:</label>
-                                        <input type="date" id="queryDateTo" name="queryDateTo" value={attendance.queryDateTo} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                                    </Form.Field>
-                                </Grid.Column>
-                            </Grid.Row>
-                            <Grid.Row columns="2">
-                                <Grid.Column>
-                                    <Form.Field>
-                                        <label htmlFor="queryCheckinFrom">Check In From:</label>
-                                        <input type="time" step="1" id="queryCheckinFrom" name="queryCheckinFrom" value={attendance.queryCheckinFrom} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                                    </Form.Field>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Form.Field>
-                                        <label htmlFor="queryCheckinTo">Check In To:</label>
-                                        <input type="time" step="1" id="queryCheckinTo" name="queryCheckinTo" value={attendance.queryCheckinTo} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                                    </Form.Field>
-                                </Grid.Column>
-                            </Grid.Row>
-                            <Grid.Row columns="2">
-                                <Grid.Column>
-                                    <Form.Field>
-                                        <label htmlFor="queryCheckoutFrom">Check Out From:</label>
-                                        <input type="time" step="1" id="queryCheckoutFrom" name="queryCheckoutFrom" value={attendance.queryCheckoutFrom} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                                    </Form.Field>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Form.Field>
-                                        <label htmlFor="queryCheckoutTo">Check Out To:</label>
-                                        <input type="time" step="1" id="queryCheckoutTo" name="queryCheckoutTo" value={attendance.queryCheckoutTo} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                                    </Form.Field>
-                                </Grid.Column>
-                            </Grid.Row>
-                        </Grid>
-                    </Form>
-                }
-            />
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="queryText">Contains:</label>
+                        <input id="queryText" name="queryText" placeholder="Employee Name" value={attendance.queryText} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="queryStatus">Status:</label>
+                        <select id="queryStatus" name="queryStatus" value={attendance.queryStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
+                            <option value="" hidden>Status</option>
+                            <option value="on_time">On Time</option>
+                            <option value="late">Late</option>
+                        </select>
+                    </Form.Field>
+                    <Grid>
+                        <Grid.Row columns="2">
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryDateFrom">Date From:</label>
+                                    <input type="date" id="queryDateFrom" name="queryDateFrom" value={attendance.queryDateFrom} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryDateTo">Date To:</label>
+                                    <input type="date" id="queryDateTo" name="queryDateTo" value={attendance.queryDateTo} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row columns="2">
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryCheckinFrom">Check In From:</label>
+                                    <input type="time" step="1" id="queryCheckinFrom" name="queryCheckinFrom" value={attendance.queryCheckinFrom} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryCheckinTo">Check In To:</label>
+                                    <input type="time" step="1" id="queryCheckinTo" name="queryCheckinTo" value={attendance.queryCheckinTo} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row columns="2">
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryCheckoutFrom">Check Out From:</label>
+                                    <input type="time" step="1" id="queryCheckoutFrom" name="queryCheckoutFrom" value={attendance.queryCheckoutFrom} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryCheckoutTo">Check Out To:</label>
+                                    <input type="time" step="1" id="queryCheckoutTo" name="queryCheckoutTo" value={attendance.queryCheckoutTo} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                    </Grid>
+                </Form>
+            </Config>
             <Config
                 isConfigOpen={attendance.isBatchDeleting}
                 configType={"Batch Delete"}
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleBatchDeleting(attendance.isBatchDeleting))}
                 configSecondaryAction={"Batch Delete"}
-                configSecondaryFunc={() => dispatch(deleteAttendance((attendance.selectedRecord)))}
+                configSecondaryFunc={() => dispatch(batchDeleteAttendance((attendance.selectedRecord)))}
                 configSecondaryColor={"red"}
-                configContent={
-                    <React.Fragment>
-                        <p><strong>Are you sure to delete the following attendance records?</strong></p>
-                        {attendance.selectedRecord.map((el, i) =>
-                            <p key={i}><strong>ID:</strong> {el}</p>
-                        )}
-                    </React.Fragment>
-                }
-            />
+            >
+                <p><strong>Are you sure to delete the following attendance records?</strong></p>
+                {attendance.selectedRecord.map((el, i) =>
+                    <p key={i}><strong>ID:</strong> {el}</p>
+                )}
+            </Config>
             <Config
                 isConfigOpen={attendance.isBatchUpdating}
                 configType={"Batch Update"}
@@ -273,28 +264,27 @@ function AttendanceHistory() {
                 configSecondaryAction={"Batch Update"}
                 configSecondaryFunc={() => dispatch(updateBatchAttendance(attendance.selectedRecord, attendance.updateAttendanceCheckin, attendance.updateAttendanceCheckout, attendance.updateAttendanceStatus))}
                 configSecondaryColor={"green"}
-                configContent={
-                    <Form>
-                        <Form.Field>
-                            <label htmlFor="updateAttendanceCheckin">Check In Time:</label>
-                            <input type="time" step="1" id="updateAttendanceCheckin" name="updateAttendanceCheckin" value={attendance.updateAttendanceCheckin} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="updateAttendanceCheckout">Check Out Time:</label>
-                            <input type="time" step="1" id="updateAttendanceCheckout" name="updateAttendanceCheckout" value={attendance.updateAttendanceCheckout} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="updateAttendanceStatus">Status: </label>
-                            <select id="updateAttendanceStatus" name="updateAttendanceStatus" value={attendance.updateAttendanceStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
-                                <option value="" hidden>Status</option>
-                                <option value="on_time">On Time</option>
-                                <option value="late">Late</option>
-                            </select>
-                        </Form.Field>
-                    </Form>
-                }
-            />
-        </div >
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="updateAttendanceCheckin">Check In Time:</label>
+                        <input type="time" step="1" id="updateAttendanceCheckin" name="updateAttendanceCheckin" value={attendance.updateAttendanceCheckin} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="updateAttendanceCheckout">Check Out Time:</label>
+                        <input type="time" step="1" id="updateAttendanceCheckout" name="updateAttendanceCheckout" value={attendance.updateAttendanceCheckout} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="updateAttendanceStatus">Status: </label>
+                        <select id="updateAttendanceStatus" name="updateAttendanceStatus" value={attendance.updateAttendanceStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
+                            <option value="" hidden>Status</option>
+                            <option value="on_time">On Time</option>
+                            <option value="late">Late</option>
+                        </select>
+                    </Form.Field>
+                </Form>
+            </Config>
+        </div>
     )
 }
 
