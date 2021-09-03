@@ -1,263 +1,281 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchOvertimeRecord, updateOvertimeRecord, fetchNextOvertimeRecord, fetchPreviousOvertimeRecord, fetchByQuery, createOvertimeRecord } from '../actions/overtime';
-import { fetchEmployee } from '../actions/employee'
-import { Menu, Table, Grid, Dropdown, Form, Button, Checkbox } from 'semantic-ui-react'
+import { fetchOvertimeRecord, updateOvertimeRecord, createOvertimeRecord, deleteOvertime, updateOvertime, toggleUpdating, toggleCreating, toggleDeleting, toggleFiltering, toggleBatchUpdating, toggleBatchDeleting, fetchNextOvertimeRecord, fetchPreviousOvertimeRecord, fetchOvertimeRecordByEntries, fetchOvertimeRecordByQuery, resetOvertimeQuery, handleSelect, updateBatchOvertimeRecord, toggleSelectAll, batchDeleteOvertime } from '../actions/overtime';
+import { Table, Grid, Form, Button, Header } from 'semantic-ui-react'
 import TableBody from './TableBody';
 import TableHeader from './TableHeader';
 import TableFooter from './TableFooter';
 import Config from './Config';
+import '../css/main.css'
 
 function OvertimeHistory() {
-    const date = new Date().toISOString().slice(0, 10)
     const dispatch = useDispatch()
     const overtime = useSelector(state => state.overtime)
-    const employee = useSelector(state => state.employee)
-    const [state, setState] = useState({
-        starting: date,
-        ending: date,
-        employee_id: "",
-        isUpdating: false,
-        isCreating: false,
-        update: null,
-        status: "",
-        createStarting: "",
-        createEnding: "",
-        createDate: "",
-        createEmployee: "",
-        createIsApproved: false,
-    })
-
-    const options = employee.record.map((el, i) => {
-        return {
-            key: i,
-            text: `ID: ${el.id} ${el.firstname} ${el.lastname}`,
-            value: el.id
-        }
-    })
-
-    const status = [
-        { key: 0, text: "Pending", value: "pending" },
-        { key: 1, text: "Approved", value: "approved" },
-        { key: 2, text: "Rejected", value: "rejected" }
-    ]
 
     useEffect(() => {
-        dispatch(fetchOvertimeRecord(state.starting, state.ending, state.employee_id, overtime.currentPage))
-        dispatch(fetchEmployee())
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        dispatch(fetchOvertimeRecord())
     }, [dispatch])
 
-    const header = ['id', 'Employee id', 'Firstname', 'Lastname', 'Time in', 'Time out', 'Date', 'status', 'Actions']
-
-    const flipToNextOvertimeRecord = () => {
-        if (overtime.currentPageEnd >= overtime.pageLength) return
-
-        dispatch(fetchNextOvertimeRecord(state.starting, state.ending, state.employee_id, overtime.currentPage))
-    }
-
-    const flipToPreviousOvertimeRecord = () => {
-        if (overtime.currentPage <= 0) return;
-        dispatch(fetchPreviousOvertimeRecord(state.starting, state.ending, state.employee_id, overtime.currentPage))
-    }
-
-    const handleChange = (e, result) => {
-        let { name, value } = result || e.target
-        if (result) {
-            if (result.type === "checkbox") {
-                value = result.checked
-            }
-        }
-        setState(prevState => {
-            return {
-                ...prevState,
-                [name]: value
-            }
-        })
-    }
-
-    const handleUpdateChange = (e) => {
-        const { name, value } = e.target
-        setState(prevState => {
-            return {
-                ...prevState,
-                update: {
-                    ...prevState.update,
-                    [name]: value
-                }
-            }
-        })
-    }
-
-    const toggleUpdate = (overtime) => {
-        setState(prevState => {
-            return {
-                ...prevState,
-                isUpdating: !prevState.isUpdating,
-                update: overtime
-            }
-        })
-    }
-
-    const toggleCreate = () => {
-        setState(prevState => {
-            return {
-                ...prevState,
-                isCreating: !prevState.isCreating
-            }
-        })
-    }
-
-    const handleApprove = () => {
-        dispatch(updateOvertimeRecord(state.update.id, state.update.from, state.update.to, 'approved'))
-        toggleUpdate()
-    }
-
-    const handleReject = () => {
-        dispatch(updateOvertimeRecord(state.update.id, state.update.from, state.update.to, 'rejected'))
-        toggleUpdate()
-    }
-
-    const handleCreate = () => {
-        dispatch(createOvertimeRecord(state.createEmployee, state.createStarting, state.createEnding, state.createDate, state.createIsApproved))
-        toggleCreate()
-    }
-
     return (
-        <Grid>
-            <Grid.Row centered>
-                <Menu>
-                    <Menu.Item>
-                        <label htmlFor="starting">Starting date</label>
-                    </Menu.Item>
-                    <Menu.Item>
-                        <input id="starting" type="date" name="starting" value={state.starting} onChange={(e) => handleChange(e)} />
-                    </Menu.Item>
-                    <Menu.Item>
-                        <label htmlFor="ending">Ending date</label>
-                    </Menu.Item>
-                    <Menu.Item>
-                        <input id="ending" type="date" name="ending" value={state.ending} onChange={(e) => handleChange(e)} />
-                    </Menu.Item>
-                    <Menu.Item>
-                        <Dropdown
-                            placeholder={'Employee'}
-                            selection
-                            name="employee_id"
-                            options={options}
-                            onChange={handleChange}
+        <div className="record">
+            <Grid>
+                <Grid.Row>
+                    <Header>Employee Overtime Management</Header>
+                </Grid.Row>
+                <Grid.Row columns="2">
+                    <Grid.Column>
+                        <Button size="tiny" color="blue" disabled={!overtime.selectedRecord.length} onClick={() => dispatch(toggleBatchUpdating(overtime.isBatchUpdating))}>Batch Update</Button>
+                        <Button size="tiny" color="red" disabled={!overtime.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(overtime.isBatchDeleting))}>Batch Delete</Button>
+                    </Grid.Column>
+                    <Grid.Column textAlign="right">
+                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(overtime.isFiltering))}>Filter</Button>
+                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(overtime.isCreating))}>Create record</Button>
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row>
+                    <Table celled size="small">
+                        <TableHeader
+                            header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Time in', 'Time out', 'Date', 'Status', 'Actions']}
+                            checkName={"selectAll"}
+                            checkValue={overtime.isAllSelected}
+                            checkFunc={(e) => dispatch(toggleSelectAll(e, overtime.overtimeRecord))}
                         />
-                    </Menu.Item>
-                    <Menu.Item>
-                        <Dropdown
-                            placeholder={"Status"}
-                            selection
-                            name="status"
-                            options={status}
-                            onChange={handleChange}
+                        <TableBody
+                            data={overtime.overtimeRecord}
+                            primaryAction={"Update"}
+                            primaryActionColor={"blue"}
+                            primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
+                            secondaryAction={"Delete"}
+                            secondaryActionColor={"red"}
+                            secondaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
+                            checkedRows={overtime.selectedRecord}
+                            checkFunc={(e) => dispatch(handleSelect(e))}
                         />
-                    </Menu.Item>
-                    <Menu.Item onClick={() => dispatch(fetchByQuery(state.starting, state.ending, state.employee_id, state.status))}>
-                        Search
-                    </Menu.Item>
-                </Menu>
-            </Grid.Row>
-            <Grid.Row textAlign="right">
-                <Grid.Column>
-                    <Button color="blue" onClick={() => toggleCreate()}>Create record</Button>
-                </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-                <Table celled>
-                    <TableHeader header={header} />
-                    <TableBody
-                        data={overtime.overtimeRecord}
-                        primaryAction={"Update"}
-                        primaryActionColor={"blue"}
-                        primaryFunc={toggleUpdate}
-                    />
-                    <TableFooter
-                        colSpan={9}
-                        pageStart={overtime.currentPageStart}
-                        pageEnd={overtime.currentPageEnd}
-                        pageTotal={overtime.pageLength}
-                        onNext={flipToNextOvertimeRecord}
-                        onPrevious={flipToPreviousOvertimeRecord}
-                    />
-                </Table>
-            </Grid.Row>
+                        <TableFooter
+                            colSpan={11}
+                            pageStart={overtime.currentPageStart}
+                            pageEnd={overtime.currentPageEnd}
+                            pageTotal={overtime.pageLength}
+                            entriesName={"currentLimit"}
+                            entriesNum={overtime.currentLimit}
+                            entriesFunc={(e, result) => dispatch(fetchOvertimeRecordByEntries(result.value, overtime.currentPage, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
+                            onNext={() => dispatch(fetchNextOvertimeRecord(overtime.currentPage, overtime.pageLength, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
+                            onPrevious={() => dispatch(fetchPreviousOvertimeRecord(overtime.currentPage, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
+                        />
+                    </Table>
+                </Grid.Row>
+            </Grid>
             <Config
-                isConfigOpen={state.isUpdating}
-                configSize={"tiny"}
+                isConfigOpen={overtime.isUpdating}
                 configType={"Update Overtime Record"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleUpdate}
+                configPrimaryFunc={() => dispatch(toggleUpdating())}
                 configSecondaryAction={"Approve"}
-                configSecondaryFunc={handleApprove}
+                configSecondaryFunc={() => dispatch(updateOvertimeRecord(overtime.overtimeId, overtime.overtimeFrom, overtime.overtimeTo, 'approved'))}
                 configSecondaryColor={"green"}
                 configTertiaryAction={"Reject"}
-                configTertiaryFunc={handleReject}
+                configTertiaryFunc={() => dispatch(updateOvertimeRecord(overtime.overtimeId, overtime.overtimeFrom, overtime.overtimeTo, 'rejected'))}
                 configTertiaryColor={"red"}
-                configContent={
-                    <React.Fragment>
-                        {state.update ?
-                            <React.Fragment>
-                                <p>Overtime Record id: {state.update.id}</p>
-                                <p>Employee id: {state.update.employee_id}</p>
-                                <p>Employee fullname: {state.update.firstname} {state.update.lastname}</p>
-                                <p>Date: {state.update.date}</p>
-                                <p>Status: {state.update.status}</p>
-                                <Form>
-                                    <Form.Field>
-                                        <label htmlFor="from">Check in</label>
-                                        <input id="from" name="from" type="time" step="1" value={state.update.from} onChange={(e) => handleUpdateChange(e)} />
-                                    </Form.Field>
-                                    <Form.Field>
-                                        <label htmlFor="to">Check out</label>
-                                        <input id="to" name="to" type="time" step="1" value={state.update.to} onChange={(e) => handleUpdateChange(e)} />
-                                    </Form.Field>
-                                </Form>
-                            </React.Fragment>
-                            : null}
-                    </React.Fragment>
-                }
-            />
+            >
+                <p><strong>Overtime Record id: </strong>{overtime.overtimeId}</p>
+                <p><strong>Employee id: </strong>{overtime.overtimeEmployeeId}</p>
+                <p><strong>Employee fullname:</strong> {overtime.overtimeEmployeeFirstname} {overtime.overtimeEmployeeLastname}</p>
+                <p><strong>Date: </strong>{overtime.overtimeDate}</p>
+                <p><strong>Status: </strong>{overtime.overtimeStatus}</p>
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="overtimeFrom">Check in</label>
+                        <input id="overtimeFrom" name="overtimeFrom" type="time" step="1" value={overtime.overtimeFrom} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="to">Check out</label>
+                        <input id="overtimeTo" name="overtimeTo" type="time" step="1" value={overtime.overtimeTo} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                </Form>
+            </Config>
             <Config
-                isConfigOpen={state.isCreating}
-                configSize={"tiny"}
-                configType={"Insert Overtime Record"}
+                isConfigOpen={overtime.isCreating}
+                configType={"Create Overtime Record"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleCreate}
-                configSecondaryAction={"Insert"}
-                configSecondaryFunc={handleCreate}
+                configPrimaryFunc={() => dispatch(toggleCreating(overtime.isCreating))}
+                configSecondaryAction={"Create"}
+                configSecondaryFunc={() => dispatch(createOvertimeRecord(overtime.createEmployeeId, overtime.createStarting, overtime.createEnding, overtime.createDate, overtime.createIsApproved))}
                 configSecondaryColor={"green"}
-                configContent={
-                    <React.Fragment>
-                        <Form>
-                            <Form.Field>
-                                <label htmlFor="starting">Check In Time</label>
-                                <input type="time" step="1" id="starting" name="createStarting" value={state.createStarting} onChange={(e) => handleChange(e)} />
-                            </Form.Field>
-                            <Form.Field>
-                                <label htmlFor="ending">Check Out Time</label>
-                                <input type="time" step="1" id="ending" name="createEnding" value={state.createEnding} onChange={(e) => handleChange(e)} />
-                            </Form.Field>
-                            <Form.Field>
-                                <label htmlFor="date">Date</label>
-                                <input type="date" id="date" name="createDate" value={state.createDate} onChange={(e) => handleChange(e)} />
-                            </Form.Field>
-                            <Form.Field>
-                                <label htmlFor="employee">Employee</label>
-                                <Form.Select id="employee" name="createEmployee" options={options} onChange={handleChange} />
-                            </Form.Field>
-                            <Form.Field>
-                                <Checkbox label="Approve upon insert" name="createIsApproved" checked={state.createIsApproved} onChange={handleChange} />
-                            </Form.Field>
-                        </Form>
-                    </React.Fragment>
-                }
-            />
-        </Grid>
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="starting">Check In Time</label>
+                        <input type="time" step="1" id="starting" name="createStarting" value={overtime.createStarting} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="ending">Check Out Time</label>
+                        <input type="time" step="1" id="ending" name="createEnding" value={overtime.createEnding} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="date">Date</label>
+                        <input type="date" id="date" name="createDate" value={overtime.createDate} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="createEmployeeId">Employee</label>
+                        <select id="createEmployeeId" name="createEmployeeId" value={overtime.createEmployeeId} onChange={(e) => dispatch(updateOvertime(e))}>
+                            <option value="" hidden>Employee</option>
+                            {overtime.employeeList.map((el, i) =>
+                                <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
+                            )}
+                        </select>
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="createIsApproved">Approve upon creation?</label>
+                        <input type="checkbox" id="createIsApproved" name="createIsApproved" value={overtime.createIsApproved} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                </Form>
+            </Config>
+            <Config
+                isConfigOpen={overtime.isDeleting}
+                configType={"Delete Overtime Record"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={() => dispatch(toggleDeleting())}
+                configSecondaryAction={"Delete"}
+                configSecondaryFunc={() => dispatch(deleteOvertime(overtime.overtimeId))}
+                configSecondaryColor={"red"}
+            >
+                <p><strong>Are you sure to delete the following overtime record?</strong></p>
+                <p><strong>Overtime Record ID:</strong> {overtime.overtimeId}</p>
+                <p><strong>Employee ID:</strong> {overtime.overtimeEmployeeId}</p>
+                <p><strong>Employee Firstname:</strong> {overtime.overtimeEmployeeFirstname}</p>
+                <p><strong>Employee Lastname:</strong> {overtime.overtimeEmployeeLastname}</p>
+                <p><strong>Overtime Check In Time:</strong> {overtime.overtimeFrom}</p>
+                <p><strong>Overtime Check Out Time:</strong> {overtime.overtimeTo}</p>
+                <p><strong>Overtime Status: </strong> {overtime.overtimeStatus}</p>
+            </Config>
+            <Config
+                isConfigOpen={overtime.isFiltering}
+                configType={"Search and Filter"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={() => dispatch(toggleFiltering(overtime.isFiltering))}
+                configTertiaryAction={"Search"}
+                configTertiaryColor={"green"}
+                configTertiaryFunc={() => dispatch(fetchOvertimeRecordByQuery(overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
+                configSecondaryAction={"Reset"}
+                configSecondaryColor={"grey"}
+                configSecondaryFunc={() => dispatch(resetOvertimeQuery())}
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="queryText">Contains:</label>
+                        <input id="queryText" name="queryText" placeholder="ID, Employee Name, Employee ID ..." value={overtime.queryText} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="queryStatus">Status:</label>
+                        <select id="queryStatus" name="queryStatus" value={overtime.queryStatus} onChange={(e) => dispatch(updateOvertime(e))}>
+                            <option value="" hidden>Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </Form.Field>
+                    <Grid>
+                        <Grid.Row columns="2">
+                            <Grid.Column width="8">
+                                <Form.Field>
+                                    <label htmlFor="queryDateFrom">Date from:</label>
+                                    <input
+                                        type="date"
+                                        id="queryDateFrom"
+                                        name="queryDateFrom"
+                                        value={overtime.queryDateFrom}
+                                        onChange={(e, result) => dispatch(updateOvertime(e, result))}
+                                    />
+                                </Form.Field>
+                            </Grid.Column>
+                            <Grid.Column width="8">
+                                <Form.Field>
+                                    <label htmlFor="queryDateTo">Date to:</label>
+                                    <input
+                                        type="date"
+                                        id="queryDateTo"
+                                        name="queryDateTo"
+                                        value={overtime.queryDateTo}
+                                        onChange={(e, result) => dispatch(updateOvertime(e, result))}
+                                    />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row columns="2">
+                            <Grid.Column width="8">
+                                <Form.Field>
+                                    <label htmlFor="queryCheckinFrom">Check In From:</label>
+                                    <input type="time" step="1" id="queryCheckinFrom" name="queryCheckinFrom" value={overtime.queryCheckinFrom} onChange={(e) => dispatch(updateOvertime(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                            <Grid.Column width="8">
+                                <Form.Field>
+                                    <label htmlFor="queryCheckinTo">Check In To:</label>
+                                    <input type="time" step="1" id="queryCheckinTo" name="queryCheckinTo" value={overtime.queryCheckinTo} onChange={(e) => dispatch(updateOvertime(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row columns="2">
+                            <Grid.Column width="8">
+                                <Form.Field>
+                                    <label htmlFor="queryCheckoutFrom">Check Out From:</label>
+                                    <input type="time" step="1" id="queryCheckoutFrom" name="queryCheckoutFrom" value={overtime.queryCheckoutFrom} onChange={(e) => dispatch(updateOvertime(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                            <Grid.Column width="8">
+                                <Form.Field>
+                                    <label htmlFor="queryCheckoutTo">Check Out To:</label>
+                                    <input type="time" step="1" id="queryCheckoutTo" name="queryCheckoutTo" value={overtime.queryCheckoutTo} onChange={(e) => dispatch(updateOvertime(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                    </Grid>
+                </Form>
+            </Config>
+            <Config
+                isConfigOpen={overtime.isBatchUpdating}
+                configType={"Batch Update Overtime Record"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={() => dispatch(toggleBatchUpdating())}
+                configSecondaryAction={"Batch Update"}
+                configSecondaryColor={"green"}
+                configSecondaryFunc={() => dispatch(updateBatchOvertimeRecord(overtime.selectedRecord, overtime.updateOvertimeTimein, overtime.updateOvertimeTimeout, overtime.updateOvertimeStatus))}
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="updateOvertimeTimein">Check in time:</label>
+                        <input type="time" step="1" id="updateOvertimeTimein" name="updateOvertimeTimein" value={overtime.updateOvertimeTimein} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="updateOvertimeTimeout">Check out time:</label>
+                        <input type="time" step="1" id="updateOvertimeTimeout" name="updateOvertimeTimeout" value={overtime.updateOvertimeTimeout} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="updateOvertimeStatus">Status:</label>
+                        <select id="updateOvertimeStatus" name="updateOvertimeStatus" value={overtime.updateOvertimeStatus} onChange={(e) => dispatch(updateOvertime(e))}>
+                            <option value="" hidden>Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </Form.Field>
+                </Form>
+            </Config>
+            <Config
+                isConfigOpen={overtime.isBatchDeleting}
+                configType={"Batch Delete Overtime Record"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={() => dispatch(toggleBatchDeleting(overtime.isBatchDeleting))}
+                configSecondaryAction={"Delete"}
+                configSecondaryColor={"red"}
+                configSecondaryFunc={() => dispatch(batchDeleteOvertime(overtime.selectedRecord))}
+            >
+                <p><strong>Are you sure to batch delete the following records?</strong></p>
+                {overtime.selectedRecord.map((el, i) =>
+                    <p key={i}><strong>ID:</strong> {el}</p>
+                )}
+            </Config>
+        </div>
     )
 }
 
