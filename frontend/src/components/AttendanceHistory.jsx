@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import { fetchAttendance, fetchNext, fetchPrevious, deleteAttendance, updateAttendance, createAttendance, handleUpdateAttendance, fetchSpecificAttendance, resetAttendance, addToSelected, removeFromSelected, resetSelected, resetQuery, addAllToSelected } from '../actions/attendance';
+import React, { useEffect } from 'react';
+import { fetchAttendance, fetchNext, fetchPrevious, deleteAttendance, updateAttendance, createAttendance, handleUpdateAttendance, resetQuery, toggleUpdating, toggleCreating, toggleFiltering, toggleBatchUpdating, toggleBatchDeleting, toggleDeleting, updateRow, fetchAttendanceByQuery, toggleSelect, toggleSelectAll, updateBatchAttendance } from '../actions/attendance';
 import { useSelector, useDispatch } from 'react-redux';
 import { Table, Grid, Form, Button, Header } from 'semantic-ui-react'
 import TableHeader from './TableHeader';
@@ -11,172 +10,11 @@ import '../css/main.css'
 
 function AttendanceHistory() {
     const dispatch = useDispatch()
-    const history = useHistory()
     const attendance = useSelector(state => state.attendance)
-    const [state, setState] = useState({
-        isUpdating: false,
-        isCreating: false,
-        isFiltering: false,
-        isBatchDeleting: false,
-        isBatchUpdating: false,
-        isDeleting: false,
-    })
 
     useEffect(() => {
         dispatch(fetchAttendance())
     }, [dispatch])
-
-    const toggleBatchUpdate = () => {
-        if (!state.isBatchUpdating) {
-            window.history.replaceState(null, "", '/attendance/updatebatch')
-            dispatch(resetAttendance())
-        } else {
-            history.push('/attendance')
-        }
-
-        return setState(prevState => {
-            return {
-                ...prevState,
-                isBatchUpdating: !prevState.isBatchUpdating
-            }
-        })
-    }
-
-    const toggleDelete = (attendance) => {
-        if (attendance) {
-            window.history.replaceState(null, "", `/attendance/${attendance.id}/delete`)
-            dispatch(fetchSpecificAttendance(attendance.id))
-        } else {
-            history.push('/attendance')
-            dispatch(resetAttendance())
-        }
-
-        return setState(prevState => {
-            return {
-                ...prevState,
-                isDeleting: !prevState.isDeleting,
-            }
-        })
-    }
-
-    const toggleUpdate = (attendance) => {
-        if (attendance) {
-            window.history.replaceState(null, "", `/attendance/${attendance.id}/update`)
-            dispatch(fetchSpecificAttendance(attendance.id))
-        } else {
-            history.push('/attendance')
-            dispatch(resetAttendance())
-        }
-
-        return setState(prevState => {
-            return {
-                ...prevState,
-                isUpdating: !prevState.isUpdating
-            }
-        })
-    }
-
-    const toggleFilter = () => {
-        if (!state.isFiltering) {
-            window.history.replaceState(null, "", "/attendance/filter")
-        } else {
-            history.push('/attendance')
-        }
-
-        setState(prevState => {
-            return {
-                ...prevState,
-                isFiltering: !prevState.isFiltering
-            }
-        })
-    }
-
-    const toggleCreate = () => {
-        if (!state.isCreating) {
-            window.history.replaceState(null, "", `/attendance/create`)
-        } else {
-            history.push('/attendance')
-        }
-        dispatch(resetAttendance())
-        return setState(prevState => {
-            return {
-                ...prevState,
-                isCreating: !prevState.isCreating
-            }
-        })
-    }
-
-    const toggleBatchDelete = () => {
-        if (!state.isBatchDeleting) {
-            window.history.replaceState(null, "", '/attendance/deletebatch')
-        } else {
-            history.push('/attendance')
-        }
-
-        return setState(prevState => {
-            return {
-                ...prevState,
-                isBatchDeleting: !prevState.isBatchDeleting
-            }
-        })
-    }
-
-    const handleEntriesChange = (e, result) => {
-        dispatch(fetchAttendance(attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo, attendance.currentPage, result.value))
-        return dispatch(handleUpdateAttendance(e, result))
-    }
-
-    const handleSearch = () => {
-        dispatch(fetchAttendance(attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo, attendance.currentPage, attendance.currentLimit))
-        return toggleFilter()
-    }
-
-    const handleSelect = (e) => {
-        if (e.target.checked) {
-            dispatch(addToSelected(e.target.name))
-        } else {
-            dispatch(removeFromSelected(e.target.name))
-        }
-    }
-
-    const handleBatchDelete = () => {
-        dispatch(deleteAttendance((attendance.selectedRecord)))
-        return toggleBatchDelete()
-    }
-
-    const handleDelete = () => {
-        dispatch(deleteAttendance(attendance.attendanceId))
-        return toggleDelete()
-    }
-
-    const handleReset = () => {
-        dispatch(resetQuery())
-        dispatch(fetchAttendance())
-        return toggleFilter()
-    }
-
-    const handleUpdate = () => {
-        dispatch(updateAttendance(attendance.attendanceId, attendance.attendanceCheckin, attendance.attendanceCheckout, attendance.attendanceStatus))
-        return toggleUpdate()
-    }
-
-    const handleBatchUpdate = () => {
-        dispatch(updateAttendance(attendance.selectedRecord, attendance.updateAttendanceCheckin, attendance.updateAttendanceCheckout, attendance.updateAttendanceStatus))
-        return toggleBatchUpdate()
-    }
-
-    const handleCreate = () => {
-        dispatch(createAttendance(attendance.employeeId, attendance.attendanceDate, attendance.attendanceCheckout, attendance.attendanceCheckin, attendance.attendanceStatus))
-        return toggleCreate()
-    }
-
-    const handleSelectAll = (e) => {
-        if (e.target.checked) {
-            dispatch(addAllToSelected(attendance.record))
-        } else {
-            dispatch(resetSelected())
-        }
-    }
 
     return (
         <div className="record">
@@ -188,12 +26,12 @@ function AttendanceHistory() {
                 </Grid.Row>
                 <Grid.Row columns="2">
                     <Grid.Column>
-                        <Button size="mini" color="blue" disabled={!attendance.selectedRecord.length} onClick={() => toggleBatchUpdate()}>Batch Update</Button>
-                        <Button size="mini" color="red" disabled={!attendance.selectedRecord.length} onClick={() => toggleBatchDelete()}>Batch Delete</Button>
+                        <Button size="mini" color="blue" disabled={!attendance.selectedRecord.length} onClick={() => dispatch(toggleBatchUpdating())}>Batch Update</Button>
+                        <Button size="mini" color="red" disabled={!attendance.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting())}>Batch Delete</Button>
                     </Grid.Column>
                     <Grid.Column textAlign="right">
-                        <Button size="mini" primary onClick={() => toggleFilter()} color="grey">Filter</Button>
-                        <Button size="mini" secondary onClick={() => toggleCreate()}>Create record</Button>
+                        <Button size="mini" primary onClick={() => dispatch(toggleFiltering(attendance.isFiltering))} color="grey">Filter</Button>
+                        <Button size="mini" secondary onClick={() => dispatch(toggleCreating())}>Create record</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
@@ -202,40 +40,40 @@ function AttendanceHistory() {
                             header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Date', 'Time in', 'Time out', 'Status', 'Actions']}
                             checkName={"isAllSelected"}
                             checkValue={attendance.isAllSelected}
-                            checkFunc={handleSelectAll}
+                            checkFunc={(e) => dispatch(toggleSelectAll(e, attendance.record))}
                         />
                         <TableBody
                             data={attendance.record}
                             primaryAction={"Update"}
                             primaryActionColor={"blue"}
-                            primaryFunc={toggleUpdate}
+                            primaryFunc={toggleUpdating}
                             secondaryAction={"Delete"}
                             secondaryActionColor={"red"}
-                            secondaryFunc={toggleDelete}
-                            checkFunc={handleSelect}
+                            secondaryFunc={toggleDeleting}
+                            checkFunc={(e) => dispatch(toggleSelect(e))}
                             checkedRows={attendance.selectedRecord}
                         />
                         <TableFooter
                             colSpan={10}
-                            onPrevious={() => dispatch(fetchPrevious(attendance.currentPage, attendance.currentLimit))}
-                            onNext={() => dispatch(fetchNext(attendance.currentPage, attendance.pageLength, attendance.currentLimit, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryText, attendance.queryStatus))}
+                            onPrevious={() => dispatch(fetchPrevious(attendance.currentPage, attendance.currentLimit, attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo))}
+                            onNext={() => dispatch(fetchNext(attendance.currentPage, attendance.pageLength, attendance.currentLimit, attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo))}
                             pageTotal={attendance.pageLength}
                             pageStart={attendance.currentPageStart}
                             pageEnd={attendance.currentPageEnd}
                             entriesName={"currentLimit"}
                             entriesNum={attendance.currentLimit}
-                            entriesFunc={handleEntriesChange}
+                            entriesFunc={(e, newLimit) => dispatch(updateRow(attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo, attendance.currentPage, newLimit.value))}
                         />
                     </Table>
                 </Grid.Row>
             </Grid>
             <Config
-                isConfigOpen={state.isDeleting}
+                isConfigOpen={attendance.isDeleting}
                 configType={"Delete Attendance Record"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleDelete}
+                configPrimaryFunc={() => dispatch(toggleDeleting())}
                 configSecondaryAction={"Delete"}
-                configSecondaryFunc={handleDelete}
+                configSecondaryFunc={() => dispatch(deleteAttendance(attendance.attendanceId))}
                 configContent={
                     <React.Fragment>
                         <p><strong>Are you sure to delete the following attendance record?</strong></p>
@@ -250,12 +88,12 @@ function AttendanceHistory() {
                 }
             />
             <Config
-                isConfigOpen={state.isUpdating}
+                isConfigOpen={attendance.isUpdating}
                 configType={"Update Attendance Record"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleUpdate}
+                configPrimaryFunc={() => dispatch(toggleUpdating())}
                 configSecondaryAction={"Update"}
-                configSecondaryFunc={handleUpdate}
+                configSecondaryFunc={() => dispatch(updateAttendance(attendance.attendanceId, attendance.attendanceCheckin, attendance.attendanceCheckout, attendance.attendanceStatus))}
                 configSecondaryColor={"green"}
                 configContent={
                     <React.Fragment>
@@ -297,12 +135,12 @@ function AttendanceHistory() {
                 }
             />
             <Config
-                isConfigOpen={state.isCreating}
+                isConfigOpen={attendance.isCreating}
                 configType={"Create Attendance Record"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleCreate}
+                configPrimaryFunc={() => dispatch(toggleCreating(attendance.isCreating))}
                 configSecondaryAction={"Create"}
-                configSecondaryFunc={handleCreate}
+                configSecondaryFunc={() => dispatch(createAttendance(attendance.employeeId, attendance.attendanceDate, attendance.attendanceCheckout, attendance.attendanceCheckin, attendance.attendanceStatus))}
                 configSecondaryColor={"green"}
                 configContent={
                     <Form>
@@ -339,16 +177,16 @@ function AttendanceHistory() {
                 }
             />
             <Config
-                isConfigOpen={state.isFiltering}
+                isConfigOpen={attendance.isFiltering}
                 configType={"Search and Filter"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleFilter}
+                configPrimaryFunc={() => dispatch(toggleFiltering(attendance.isFiltering))}
                 configSecondaryAction={"Reset"}
                 configSecondaryColor={"grey"}
-                configSecondaryFunc={handleReset}
+                configSecondaryFunc={() => dispatch(resetQuery(attendance.currentPage, attendance.currentLimit))}
                 configTertiaryAction={"Search"}
                 configTertiaryColor={"green"}
-                configTertiaryFunc={handleSearch}
+                configTertiaryFunc={() => dispatch(fetchAttendanceByQuery(attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo, attendance.currentPage, attendance.currentLimit))}
                 configContent={
                     <Form>
                         <Form.Field>
@@ -411,12 +249,12 @@ function AttendanceHistory() {
                 }
             />
             <Config
-                isConfigOpen={state.isBatchDeleting}
+                isConfigOpen={attendance.isBatchDeleting}
                 configType={"Batch Delete"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleBatchDelete}
+                configPrimaryFunc={() => dispatch(toggleBatchDeleting())}
                 configSecondaryAction={"Batch Delete"}
-                configSecondaryFunc={handleBatchDelete}
+                configSecondaryFunc={() => dispatch(deleteAttendance((attendance.selectedRecord)))}
                 configSecondaryColor={"red"}
                 configContent={
                     <React.Fragment>
@@ -428,12 +266,12 @@ function AttendanceHistory() {
                 }
             />
             <Config
-                isConfigOpen={state.isBatchUpdating}
+                isConfigOpen={attendance.isBatchUpdating}
                 configType={"Batch Update"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleBatchUpdate}
+                configPrimaryFunc={() => dispatch(toggleBatchUpdating(attendance.isBatchUpdating))}
                 configSecondaryAction={"Batch Update"}
-                configSecondaryFunc={handleBatchUpdate}
+                configSecondaryFunc={() => dispatch(updateBatchAttendance(attendance.selectedRecord, attendance.updateAttendanceCheckin, attendance.updateAttendanceCheckout, attendance.updateAttendanceStatus))}
                 configSecondaryColor={"green"}
                 configContent={
                     <Form>
