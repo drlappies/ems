@@ -14,12 +14,12 @@ class OvertimeController {
             const isTimedin = await this.OvertimeService.checkIfTimedin(employee_id)
             if (isTimedin.length >= 1) {
                 return res.status(400).json({
-                    error: 'Already timed in for overtime today.'
+                    error: 'Already checked in for overtime today.'
                 })
             }
             const timein = await this.OvertimeService.createOvertimeTimein(employee_id, 'now');
             return res.status(200).json({
-                success: `Successfully timed in for overtime at ${timein.from} on ${timein.date.getFullYear()}-${timein.date.getMonth() + 1}-${timein.date.getDate()}`,
+                success: `Successfully checked in (OT) at ${timein.from} on ${timein.date.getFullYear()}-${timein.date.getMonth() + 1}-${timein.date.getDate()}`,
                 timein: timein.from
             })
         } catch (err) {
@@ -46,7 +46,7 @@ class OvertimeController {
             }
             const timeout = await this.OvertimeService.createOvertimeTimeout(employee_id);
             return res.status(200).json({
-                success: `Successfully timed out for overtime at ${timeout.to} on ${timeout.date.getFullYear()}-${timeout.date.getMonth() + 1}-${timeout.date.getDate()}`,
+                success: `Successfully checked out (OT) at ${timeout.to} on ${timeout.date.getFullYear()}-${timeout.date.getMonth() + 1}-${timeout.date.getDate()}`,
                 timeout: timeout.to
             })
         } catch (err) {
@@ -91,17 +91,11 @@ class OvertimeController {
 
     updateOvertime = async (req, res) => {
         try {
-            const { id } = req.params;
-            const { from, to, status } = req.body;
-            if (!id || !from || !to) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const overtime = await this.OvertimeService.updateOvertime(id, from, to, status);
+            const { from, to, status, ids } = req.body;
+            const overtime = await this.OvertimeService.updateOvertime(from, to, status, ids);
+            console.log(overtime)
             return res.status(200).json({
-                success: `Successfully updated overtime record id: ${overtime.id}`,
-                update: overtime
+                success: `Successfully updated overtime record ID: ${overtime.map(el => `${el.id}`)}`,
             })
         } catch (err) {
             console.log(err)
@@ -113,13 +107,9 @@ class OvertimeController {
 
     deleteOvertime = async (req, res) => {
         try {
-            const { id } = req.params;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const overtime = await this.OvertimeService.deleteOvertime(id);
+            const { ids } = req.query;
+            console.log(ids)
+            const overtime = await this.OvertimeService.deleteOvertime(ids);
             return res.status(200).json({
                 success: `Successfully deleted overtime record ${overtime.id}`
             })
@@ -133,9 +123,18 @@ class OvertimeController {
 
     getAllOvertime = async (req, res) => {
         try {
-            const { starting, ending, employee_id, page, status } = req.query
-            const overtime = await this.OvertimeService.getAllOvertime(starting, ending, employee_id, page, status);
-            return res.status(200).json(overtime)
+            const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit } = req.query
+            console.log(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit)
+            const query = await this.OvertimeService.getAllOvertime(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit);
+            return res.status(200).json({
+                overtimeRecord: query.overtime,
+                employeeList: query.employeeList,
+                currentPage: query.currentPage,
+                pageEnd: query.pageEnd,
+                pageStart: query.pageStart,
+                pageCount: query.count,
+                currentLimit: query.currentLimit
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -146,14 +145,29 @@ class OvertimeController {
 
     getOvertime = async (req, res) => {
         try {
-            const { id } = req.params;
-            if (!id) {
+            const { id } = req.params
+            const overtime = await this.OvertimeService.getOvertime(id)
+            return res.status(200).json({
+                overtime: overtime
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    getEmployeeOvertimeStatus = async (req, res) => {
+        try {
+            const { employeeId } = req.params;
+            if (!employeeId) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
             }
-            const overtime = await this.OvertimeService.getOvertime(id);
-            return res.status(200).json(overtime)
+            const overtimeStatus = await this.OvertimeService.getEmployeeOvertimeStatus(employeeId);
+            return res.status(200).json(overtimeStatus)
         } catch (err) {
             console.log(err)
             return res.status(500).json({
