@@ -26,8 +26,8 @@ function AttendanceHistory() {
                 </Grid.Row>
                 <Grid.Row columns="2">
                     <Grid.Column>
-                        <Button size="mini" color="blue" disabled={!attendance.selectedRecord.length} onClick={() => dispatch(toggleBatchUpdating())}>Batch Update</Button>
-                        <Button size="mini" color="red" disabled={!attendance.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting())}>Batch Delete</Button>
+                        <Button size="mini" color="blue" disabled={!attendance.selectedRecord.length} onClick={() => dispatch(toggleBatchUpdating(attendance.isBatchUpdating))}>Batch Update</Button>
+                        <Button size="mini" color="red" disabled={!attendance.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(attendance.isBatchDeleting))}>Batch Delete</Button>
                     </Grid.Column>
                     <Grid.Column textAlign="right">
                         <Button size="mini" primary onClick={() => dispatch(toggleFiltering(attendance.isFiltering))} color="grey">Filter</Button>
@@ -252,7 +252,7 @@ function AttendanceHistory() {
                 isConfigOpen={attendance.isBatchDeleting}
                 configType={"Batch Delete"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchDeleting())}
+                configPrimaryFunc={() => dispatch(toggleBatchDeleting(attendance.isBatchDeleting))}
                 configSecondaryAction={"Batch Delete"}
                 configSecondaryFunc={() => dispatch(deleteAttendance((attendance.selectedRecord)))}
                 configSecondaryColor={"red"}
