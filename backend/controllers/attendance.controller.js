@@ -73,7 +73,7 @@ class AttendanceController {
         try {
             const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit } = req.query
             const query = await this.AttendanceService.getAllAttendance(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit);
-            
+
             return res.status(200).json({
                 attendance: query.attendance,
                 employeeList: query.employeeList,
@@ -126,7 +126,7 @@ class AttendanceController {
             const { ids, check_in, check_out, status } = req.body
             const attendance = await this.AttendanceService.updateAttendance(ids, check_in, check_out, status)
             return res.status(200).json({
-                success: `Successfully updated attendance record ID: ${attendance.map(el => `${el.id}`)}`
+                success: 'Successfully updated attendance record'
             })
         } catch (err) {
             console.log(err)
@@ -139,6 +139,12 @@ class AttendanceController {
     createAttendance = async (req, res) => {
         try {
             const { employee_id, date, check_in, check_out, status } = req.body
+
+            if (!employee_id || !date || !check_in || !check_out || !status) {
+                return res.status(400).json({
+                    error: 'Missing required fields!'
+                })
+            }
 
             const overlaps = await this.AttendanceService.checkForConflicts(employee_id, date)
             if (overlaps.length > 0) {

@@ -118,7 +118,7 @@ class AttendanceService extends EmployeeService {
     }
 
     getAllAttendance = async (text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit) => {
-        if (!page) page = 0;
+        if (!page || page < 0) page = 0;
         if (!limit) limit = 10;
         let pageStart = parseInt(page) + 1;
         let pageEnd = parseInt(page) + parseInt(limit);
