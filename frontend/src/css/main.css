@@ -1,0 +1,53 @@
+.container {
+    display: flex;
+    height: 80vh;
+    justify-content: center;
+    align-items: center;
+}
+
+.leave-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 100px;
+}
+
+.leave-form {
+    width: 40%;
+}
+
+.login-segment {
+    width: 60%
+}
+
+.popup {
+    position: fixed;
+    width: 30%;
+    margin-top: 2%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999999;
+}
+
+.punch {
+    text-align: center;
+}
+
+.punch-status {
+    text-align: left;
+}
+
+.punch-action {
+    text-align: justify;
+}
+
+.record {
+    margin: 5% 2.5% 5% 2.5%
+}
+
+.head {
+    position: absolute;
+    width: 100%;
+    z-index: 999
+}
