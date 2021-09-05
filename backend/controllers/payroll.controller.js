@@ -19,7 +19,7 @@ class PayrollController {
             }
             const payroll = await this.PayrollService.createPayroll(employee_id, starting_date, ending_date, isDeductCaled, isBonusCaled, isAllowanceCaled, isOTcaled, isReimbursementCaled, isLeaveCaled);
             return res.status(200).json({
-                success: `Successfully created payroll: ${new Date(payroll.from).getFullYear()}-${new Date(payroll.from).getMonth() + 1}-${new Date(payroll.from).getDate()} to ${new Date(payroll.to).getFullYear()}-${new Date(payroll.to).getMonth() + 1}-${new Date(payroll.to).getDate()} for employee ${payroll.employee_id}. Amount: ${payroll.amount}`
+                success: 'Successfully created payroll.'
             })
         } catch (err) {
             console.log(err)
@@ -31,15 +31,10 @@ class PayrollController {
 
     deletePayroll = async (req, res) => {
         try {
-            const { id } = req.params;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
+            const { id } = req.query;
             const payroll = await this.PayrollService.deletePayroll(id);
             return res.status(200).json({
-                success: `Successfully deleted payroll ${new Date(payroll.from).getFullYear()}-${new Date(payroll.from).getMonth() + 1}-${new Date(payroll.from).getDate()} to ${new Date(payroll.to).getFullYear()}-${new Date(payroll.to).getMonth() + 1}-${new Date(payroll.to).getDate()} of employee ${payroll.employee_id}.`
+                success: 'Successfully deleted payroll'
             })
         } catch (err) {
             console.log(err)
@@ -69,15 +64,16 @@ class PayrollController {
 
     getAllPayroll = async (req, res) => {
         try {
-            const { page, from, to, name } = req.query
-            const payroll = await this.PayrollService.getAllPayroll(page, from, to, name);
+            const { page, from, to, text, status, limit, amountFrom, amountTo, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled } = req.query
+            const payroll = await this.PayrollService.getAllPayroll(page, limit, from, to, text, status, amountFrom, amountTo, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled);
             return res.status(200).json({
                 payroll: payroll.payroll,
                 employee: payroll.employee,
                 currentPage: payroll.currentPage,
                 currentPageStart: payroll.currentPageStart,
                 currentPageEnd: payroll.currentPageEnd,
-                pageLength: payroll.pageLength
+                pageLength: payroll.pageLength,
+                currentLimit: payroll.currentLimit
             })
         } catch (err) {
             console.log(err)
@@ -87,23 +83,19 @@ class PayrollController {
         }
     }
 
-    confirmPayroll = async (req, res) => {
+    updatePayroll = async (req, res) => {
         try {
-            const { id } = req.params;
-            const { status } = req.body;
-            if (!id && !status) {
-                return res.status(400).json({
+            const { id, status } = req.body
+
+            if (!id || !status) {
+                return res.status(401).json({
                     error: 'Missing required fields.'
                 })
             }
-            if (status !== 'confirmed' || status !== 'pending') {
-                return res.status(400).json({
-                    error: 'Invalid status for payroll.'
-                })
-            }
-            const payroll = await this.PayrollService.confirmPayroll(id, status);
+
+            const payroll = await this.PayrollService.updatePayroll(id, status);
             return res.status(200).json({
-                success: `Successfully updated payroll id: ${payroll.id} status to ${payroll.status}. Period: ${new Date(payroll.from).getFullYear()}-${new Date(payroll.from).getMonth() + 1}-${new Date(payroll.from).getDate()} to ${new Date(payroll.to).getFullYear()}-${new Date(payroll.to).getMonth() + 1}-${new Date(payroll.to).getDate()}`
+                success: 'Successfully updated payroll.'
             })
         } catch (err) {
             console.log(err)
