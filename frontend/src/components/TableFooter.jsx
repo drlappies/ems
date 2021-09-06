@@ -15,7 +15,7 @@ function TableFooter(props) {
                                 compact
                                 name={entriesName}
                                 value={entriesNum}
-                                onChange={(e, result) => entriesFunc(e, result)}
+                                onChange={entriesFunc}
                                 options={[
                                     { key: "10", value: 10, text: "10" },
                                     { key: "25", value: 25, text: "25" },

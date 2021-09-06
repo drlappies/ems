@@ -14,7 +14,7 @@ function TableBody(props) {
                                 type="checkbox"
                                 name={arr[i].id}
                                 checked={checkedRows.includes(arr[i].id.toString())}
-                                onChange={(e) => checkFunc(e)}
+                                onChange={checkFunc}
                             />
                             : null
                         }
@@ -28,9 +28,9 @@ function TableBody(props) {
                         </Table.Cell>
                     )}
                     <Table.Cell textAlign="left">
-                        {primaryAction ? <Button size="mini" color={primaryActionColor} onClick={() => primaryFunc(el)}>{primaryAction}</Button> : null}
-                        {secondaryAction ? <Button size="mini" color={secondaryActionColor} onClick={() => secondaryFunc(el)}>{secondaryAction}</Button> : null}
-                        {tertiaryAction ? <Button size="mini" color={tertiaryActionColor} onClick={() => tertiaryFunc(el)}>{tertiaryAction}</Button> : null}
+                        {primaryAction ? <Button size="mini" color={primaryActionColor} value={el.id} onClick={primaryFunc}>{primaryAction}</Button> : null}
+                        {secondaryAction ? <Button size="mini" color={secondaryActionColor} value={el.id} onClick={secondaryFunc}>{secondaryAction}</Button> : null}
+                        {tertiaryAction ? <Button size="mini" color={tertiaryActionColor} value={el.id} onClick={tertiaryFunc}>{tertiaryAction}</Button> : null}
                     </Table.Cell>
                 </Table.Row>
             ) : null}

@@ -8,7 +8,7 @@ function TableHeader(props) {
         <Table.Header>
             <Table.Row>
                 <Table.HeaderCell>
-                    <input type="checkbox" name={checkName} value={checkValue} onChange={(e) => checkFunc(e)} />
+                    <input type="checkbox" name={checkName} value={checkValue} onChange={checkFunc} />
                 </Table.HeaderCell>
                 {header ? header.map((el, i) =>
                     <Table.HeaderCell key={i}>
