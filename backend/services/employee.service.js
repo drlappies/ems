@@ -107,7 +107,7 @@ class EmployeeService {
         return employee
     }
 
-    updateEmployee = async (id, dept_id, post_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, username, password, role, start_hour, end_hour, salary_monthly, ot_pay_entitled, ot_hourly_salary, annual_leave_count) => {
+    updateEmployee = async (id, post_id, dept_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, username, password, role, start_hour, end_hour, salary_monthly, ot_pay_entitled, ot_hourly_salary, annual_leave_count) => {
         let update = {
             dept_id: dept_id,
             post_id: post_id,

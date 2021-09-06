@@ -1,19 +1,11 @@
-import { FETCH_EMPLOYEE, FETCH_SPECIFIC_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, DELETE_EMPLOYEE, RESET_EMPLOYEE } from '../types/employee'
+import { TOGGLE_EMPLOYEE_BATCH_DELETING, FETCH_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, TOGGLE_EMPLOYEE_CREATING, TOGGLE_EMPLOYEE_VIEWING, TOGGLE_EMPLOYEE_UPDATING, TOGGLE_EMPLOYEE_DELETING, TOGGLE_EMPLOYEE_FILTERING, ADD_TO_EMPLOYEE_SELECTED, REMOVE_FROM_EMPLOYEE_SELECTED, ADD_ALL_EMPLOYEE_SELECTED, REMOVE_ALL_EMPLOYEE_SELECTED, TOGGLE_EMPLOYEE_BATCH_UPDATING } from '../types/employee'
 import axios from 'axios';
+import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 
-export const fetchEmployee = (page, firstname, lastname, joinStart, joinEnd) => {
+export const fetchEmployee = () => {
     return async (dispatch) => {
         try {
-            if (!page) page = 0;
-            const res = await axios.get('/employee', {
-                params: {
-                    employeeFirstname: firstname,
-                    employeeLastname: lastname,
-                    joinStart: joinStart,
-                    joinEnd: joinEnd,
-                    page: page
-                }
-            });
+            const res = await axios.get('/employee');
             dispatch({
                 type: FETCH_EMPLOYEE,
                 payload: {
@@ -21,7 +13,10 @@ export const fetchEmployee = (page, firstname, lastname, joinStart, joinEnd) => 
                     currentPage: res.data.currentPage,
                     currentPageStart: res.data.currentPageStart,
                     currentPageEnd: res.data.currentPageEnd,
-                    pageCount: res.data.count
+                    currentLimit: res.data.currentLimit,
+                    pageCount: res.data.count,
+                    positions: res.data.positions,
+                    departments: res.data.departments
                 }
             })
         } catch (err) {
@@ -30,19 +25,23 @@ export const fetchEmployee = (page, firstname, lastname, joinStart, joinEnd) => 
     }
 }
 
-export const fetchNextEmployeePage = (page, pageCount, firstname, lastname, joinStart, joinEnd) => {
+export const fetchNextEmployeePage = (page, limit, pageCount, queryText, queryPosition, queryDepartment, queryJoinFrom, queryJoinTo, queryStatus) => {
     return async (dispatch) => {
         try {
-            if (page + 15 >= pageCount) return
+            if (page + limit >= pageCount) return;
             const res = await axios.get('/employee', {
                 params: {
-                    employeeFirstname: firstname,
-                    employeeLastname: lastname,
-                    joinStart: joinStart,
-                    joinEnd: joinEnd,
-                    page: page + 15
+                    page: page + limit,
+                    limit: limit,
+                    text: queryText,
+                    position: queryPosition,
+                    department: queryDepartment,
+                    joinFrom: queryJoinFrom,
+                    joinTo: queryJoinTo,
+                    status: queryStatus
                 }
             });
+
             dispatch({
                 type: FETCH_EMPLOYEE,
                 payload: {
@@ -50,7 +49,10 @@ export const fetchNextEmployeePage = (page, pageCount, firstname, lastname, join
                     currentPage: res.data.currentPage,
                     currentPageStart: res.data.currentPageStart,
                     currentPageEnd: res.data.currentPageEnd,
-                    pageCount: res.data.count
+                    pageCount: res.data.count,
+                    currentLimit: res.data.currentLimit,
+                    positions: res.data.positions,
+                    departments: res.data.departments
                 }
             })
         } catch (err) {
@@ -59,19 +61,23 @@ export const fetchNextEmployeePage = (page, pageCount, firstname, lastname, join
     }
 }
 
-export const fetchPreviousEmployeePage = (page, firstname, lastname, joinStart, joinEnd) => {
+export const fetchPreviousEmployeePage = (page, limit, queryText, queryPosition, queryDepartment, queryJoinFrom, queryJoinTo, queryStatus) => {
     return async (dispatch) => {
         try {
-            if (page <= 0) return
+            if (page <= 0) return;
             const res = await axios.get('/employee', {
                 params: {
-                    employeeFirstname: firstname,
-                    employeeLastname: lastname,
-                    joinStart: joinStart,
-                    joinEnd: joinEnd,
-                    page: page - 15
+                    page: page - limit,
+                    limit: limit,
+                    text: queryText,
+                    position: queryPosition,
+                    department: queryDepartment,
+                    joinFrom: queryJoinFrom,
+                    joinTo: queryJoinTo,
+                    status: queryStatus
                 }
             });
+
             dispatch({
                 type: FETCH_EMPLOYEE,
                 payload: {
@@ -79,7 +85,10 @@ export const fetchPreviousEmployeePage = (page, firstname, lastname, joinStart, 
                     currentPage: res.data.currentPage,
                     currentPageStart: res.data.currentPageStart,
                     currentPageEnd: res.data.currentPageEnd,
-                    pageCount: res.data.count
+                    pageCount: res.data.count,
+                    currentLimit: res.data.currentLimit,
+                    positions: res.data.positions,
+                    departments: res.data.departments
                 }
             })
         } catch (err) {
@@ -88,32 +97,33 @@ export const fetchPreviousEmployeePage = (page, firstname, lastname, joinStart, 
     }
 }
 
-export const fetchSpecificEmployee = (id) => {
+export const fetchEmployeeByEntries = (page, limit, queryText, queryPosition, queryDepartment, queryJoinFrom, queryJoinTo, queryStatus) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get(`/employee/${id}`)
+            const res = await axios.get('/employee', {
+                params: {
+                    page: page,
+                    limit: limit,
+                    text: queryText,
+                    position: queryPosition,
+                    department: queryDepartment,
+                    joinFrom: queryJoinFrom,
+                    joinTo: queryJoinTo,
+                    status: queryStatus
+                }
+            });
+
             dispatch({
-                type: FETCH_SPECIFIC_EMPLOYEE,
+                type: FETCH_EMPLOYEE,
                 payload: {
-                    employeeId: res.data.employee.id,
-                    employeeFirstname: res.data.employee.firstname,
-                    employeeLastname: res.data.employee.lastname,
-                    employeeAddress: res.data.employee.address,
-                    employeePosition: res.data.employee.post,
-                    employeePositionId: res.data.employee.post_id,
-                    employeeDepartment: res.data.employee.name,
-                    employeeDepartmentId: res.data.employee.dept_id,
-                    employeeNumber: res.data.employee.phone_number,
-                    employeeContactPerson: res.data.employee.emergency_contact_person,
-                    employeeContactNumber: res.data.employee.emergency_contact_number,
-                    employeeOnboardDate: res.data.employee.onboard_date,
-                    employeeRole: res.data.employee.role,
-                    employeeSalary: res.data.employee.salary_monthly,
-                    employeeOT: res.data.employee.ot_pay_entitled,
-                    employeeOTpay: res.data.employee.ot_hourly_salary,
-                    employeeStatus: res.data.employee.status,
-                    employeeStartHour: res.data.employee.start_hour,
-                    employeeEndHour: res.data.employee.end_hour
+                    record: res.data.employee,
+                    currentPage: res.data.currentPage,
+                    currentPageStart: res.data.currentPageStart,
+                    currentPageEnd: res.data.currentPageEnd,
+                    pageCount: res.data.count,
+                    currentLimit: res.data.currentLimit,
+                    positions: res.data.positions,
+                    departments: res.data.departments
                 }
             })
         } catch (err) {
@@ -122,11 +132,11 @@ export const fetchSpecificEmployee = (id) => {
     }
 }
 
-export const updateSpecificEmployee = (e) => {
+export const updateSpecificEmployee = (e, result) => {
     return (dispatch) => {
         try {
-            const name = e.target.name
-            const value = e.target.type === "checkbox" ? e.target.checked : e.target.value
+            let { name, value } = result || e.target
+            if (e.target.type === 'checkbox') value = e.target.checked
             dispatch({
                 type: UPDATE_SPECIFIC_EMPLOYEE,
                 payload: {
@@ -140,30 +150,63 @@ export const updateSpecificEmployee = (e) => {
     }
 }
 
-export const confirmEmployeeUpdate = (id, firstname, lastname, position, department, address, phoneNumber, contactPerson, contactNumber, onboardDate, status, isOtEntitled, otPay, startHour, endHour) => {
+export const confirmEmployeeUpdate = (id, dept_id, post_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, ot_pay_entitled, ot_hourly_salary, salary_monthly, start_hour, end_hour, role, username, password, annual_leave_count) => {
     return async (dispatch) => {
         try {
+            console.log(id, dept_id, post_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, ot_pay_entitled, ot_hourly_salary, salary_monthly, start_hour, end_hour, role, username, password, annual_leave_count)
             const body = {
-                department: department,
-                position: position,
+                dept_id: dept_id,
+                post_id: post_id,
                 firstname: firstname,
                 lastname: lastname,
                 address: address,
-                phone_number: phoneNumber,
-                emergency_contact_number: contactNumber,
-                emergency_contact_person: contactPerson,
-                onboard_date: onboardDate,
+                phone_number: phone_number,
+                emergency_contact_person: emergency_contact_person,
+                emergency_contact_number: emergency_contact_number,
+                onboard_date: onboard_date,
                 status: status,
-                ot_pay_entitled: isOtEntitled,
-                ot_hourly_salary: otPay,
-                starting: startHour,
-                ending: endHour
+                ot_pay_entitled: ot_pay_entitled,
+                ot_hourly_salary: ot_hourly_salary,
+                salary_monthly: salary_monthly,
+                start_hour: start_hour,
+                end_hour: end_hour,
+                role: role,
+                username: username,
+                password: password,
+                annual_leave_count: annual_leave_count
             }
-            await axios.put(`/employee/${id}`, body)
+            const res = await axios.put(`/employee/${id}`, body)
+            console.log(res.data)
+            dispatch(popSuccessMessage(res.data.success))
             dispatch(fetchEmployee())
-            dispatch({ type: RESET_EMPLOYEE })
+            dispatch({
+                type: TOGGLE_EMPLOYEE_UPDATING,
+                payload: {
+                    isUpdating: false,
+                    employeeId: "",
+                    employeeFirstname: "",
+                    employeeLastname: "",
+                    employeeAddress: "",
+                    employeePosition: "",
+                    employeePositionId: "",
+                    employeeDepartment: "",
+                    employeeDepartmentId: "",
+                    employeeNumber: "",
+                    employeeContactPerson: "",
+                    employeeContactNumber: "",
+                    employeeOnboardDate: "",
+                    employeeRole: "",
+                    employeeSalary: "",
+                    employeeOT: false,
+                    employeeOTpay: "",
+                    employeeStatus: "",
+                    employeeStartHour: "",
+                    employeeEndHour: "",
+                    employeeAl: ""
+                }
+            })
         } catch (err) {
-            console.log(err)
+            dispatch(popSuccessMessage(err.response.data.error))
         }
     }
 }
@@ -172,27 +215,24 @@ export const deleteEmployee = (employeeId) => {
     return async (dispatch) => {
         try {
             const res = await axios.delete(`/employee/${employeeId}`)
-            console.log(res.data)
+            dispatch(popSuccessMessage(res.data.success))
+            dispatch(fetchEmployee())
             dispatch({
-                type: DELETE_EMPLOYEE,
+                type: TOGGLE_EMPLOYEE_DELETING,
                 payload: {
-                    employeeId: res.data.employee.id
+                    isDeleting: false,
+                    employeeId: "",
+                    employeeFirstname: "",
+                    employeeLastname: "",
+                    employeePosition: "",
+                    employeePositionId: "",
+                    employeeDepartment: "",
+                    employeeDepartmentId: "",
                 }
-            })
-            dispatch({
-                type: RESET_EMPLOYEE
             })
         } catch (err) {
             console.log(err)
         }
-    }
-}
-
-export const resetEmployee = () => {
-    return (dispatch) => {
-        dispatch({
-            type: RESET_EMPLOYEE
-        })
     }
 }
 
@@ -218,14 +258,286 @@ export const createEmployee = (username, password, role, firstname, lastname, ad
                 ot_hourly_salary: ot_hourly_salary,
                 onboard_date: onboard_date
             }
-            await axios.post('/employee', body)
-            dispatch(fetchEmployee())
+            const res = await axios.post('/employee', body)
+            dispatch(popSuccessMessage(res.data.success))
             dispatch({
-                type: RESET_EMPLOYEE
+                type: TOGGLE_EMPLOYEE_CREATING,
+                payload: {
+                    isCreating: false
+                }
             })
+            dispatch(fetchEmployee())
+        } catch (err) {
+            dispatch(popErrorMessage(err.response.data.error))
+        }
+    }
+}
 
+export const toggleCreating = (isCreating) => {
+    return (dispatch) => {
+        dispatch({
+            type: TOGGLE_EMPLOYEE_CREATING,
+            payload: {
+                isCreating: !isCreating
+            }
+        })
+    }
+}
+
+export const toggleViewing = (id) => {
+    return async (dispatch) => {
+        try {
+            let res;
+            if (id) res = await axios.get(`/employee/${id}`)
+            dispatch({
+                type: TOGGLE_EMPLOYEE_VIEWING,
+                payload: {
+                    isViewing: id ? true : false,
+                    employeeId: id ? res.data.employee.id : "",
+                    employeeFirstname: id ? res.data.employee.firstname : "",
+                    employeeLastname: id ? res.data.employee.lastname : "",
+                    employeeAddress: id ? res.data.employee.address : "",
+                    employeePosition: id ? res.data.employee.post : "",
+                    employeePositionId: id ? res.data.employee.post_id : "",
+                    employeeDepartment: id ? res.data.employee.name : "",
+                    employeeDepartmentId: id ? res.data.employee.dept_id : "",
+                    employeeNumber: id ? res.data.employee.phone_number : "",
+                    employeeContactPerson: id ? res.data.employee.emergency_contact_person : "",
+                    employeeContactNumber: id ? res.data.employee.emerygency_contact_number : "",
+                    employeeOnboardDate: id ? res.data.employee.onboard_date : "",
+                    employeeRole: id ? res.data.employee.role : "",
+                    employeeSalary: id ? res.data.employee.salary_monthly : "",
+                    employeeOT: id ? res.data.employee.ot_pay_entitled : false,
+                    employeeOTpay: id ? res.data.employee.ot_hourly_salary : "",
+                    employeeStatus: id ? res.data.employee.status : "",
+                    employeeStartHour: id ? res.data.employee.start_hour : "",
+                    employeeEndHour: id ? res.data.employee.end_hour : "",
+                    employeeAL: id ? res.data.employee.annual_leave_count : ""
+                }
+            })
         } catch (err) {
             console.log(err)
         }
     }
 }
+
+export const toggleUpdating = (id) => {
+    return async (dispatch) => {
+        let res;
+        if (id) res = await axios.get(`/employee/${id}`)
+        dispatch({
+            type: TOGGLE_EMPLOYEE_UPDATING,
+            payload: {
+                isUpdating: id ? true : false,
+                employeeId: id ? res.data.employee.id : "",
+                employeeFirstname: id ? res.data.employee.firstname : "",
+                employeeLastname: id ? res.data.employee.lastname : "",
+                employeeAddress: id ? res.data.employee.address : "",
+                employeePosition: id ? res.data.employee.post : "",
+                employeePositionId: id ? res.data.employee.post_id : "",
+                employeeDepartment: id ? res.data.employee.name : "",
+                employeeDepartmentId: id ? res.data.employee.dept_id : "",
+                employeeNumber: id ? res.data.employee.phone_number : "",
+                employeeContactPerson: id ? res.data.employee.emergency_contact_person : "",
+                employeeContactNumber: id ? res.data.employee.emerygency_contact_number : "",
+                employeeOnboardDate: id ? res.data.employee.onboard_date : "",
+                employeeRole: id ? res.data.employee.role : "",
+                employeeSalary: id ? res.data.employee.salary_monthly : "",
+                employeeOT: id ? res.data.employee.ot_pay_entitled : false,
+                employeeOTpay: id ? res.data.employee.ot_hourly_salary : "",
+                employeeStatus: id ? res.data.employee.status : "",
+                employeeStartHour: id ? res.data.employee.start_hour : "",
+                employeeEndHour: id ? res.data.employee.end_hour : "",
+                employeeAL: id ? res.data.employee.annual_leave_count : "",
+                employeeUsername: id ? res.data.employee.username : "",
+                employeePassword: ""
+            }
+        })
+    }
+}
+
+export const toggleDeleting = (id) => {
+    return async (dispatch) => {
+        try {
+            let res;
+            if (id) res = await axios.get(`/employee/${id}`)
+            dispatch({
+                type: TOGGLE_EMPLOYEE_DELETING,
+                payload: {
+                    isDeleting: id ? true : false,
+                    employeeId: id ? res.data.employee.id : "",
+                    employeeFirstname: id ? res.data.employee.firstname : "",
+                    employeeLastname: id ? res.data.employee.lastname : "",
+                    employeePosition: id ? res.data.employee.post : "",
+                    employeePositionId: id ? res.data.employee.post_id : "",
+                    employeeDepartment: id ? res.data.employee.name : "",
+                    employeeDepartmentId: id ? res.data.employee.dept_id : "",
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }
+}
+
+export const toggleFiltering = (isFiltering) => {
+    return (dispatch) => {
+        dispatch({
+            type: TOGGLE_EMPLOYEE_FILTERING,
+            payload: {
+                isFiltering: !isFiltering
+            }
+        })
+    }
+}
+
+export const fetchEmployeeByQuery = (queryText, queryPosition, queryDepartment, queryJoinFrom, queryJoinTo, queryStatus) => {
+    return async (dispatch) => {
+        try {
+            const res = await axios.get('/employee', {
+                params: {
+                    text: queryText,
+                    position: queryPosition,
+                    department: queryDepartment,
+                    joinFrom: queryJoinFrom,
+                    joinTo: queryJoinTo,
+                    status: queryStatus
+                }
+            })
+            dispatch({
+                type: FETCH_EMPLOYEE,
+                payload: {
+                    record: res.data.employee,
+                    currentPage: res.data.currentPage,
+                    currentPageStart: res.data.currentPageStart,
+                    currentPageEnd: res.data.currentPageEnd,
+                    currentLimit: res.data.currentLimit,
+                    positions: res.data.positions,
+                    departments: res.data.departments
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }
+}
+
+export const resetEmployeeQuery = (page, limit) => {
+    return async (dispatch) => {
+        try {
+            const res = await axios.get('/employee', {
+                params: {
+                    page: page,
+                    limit: limit
+                }
+            })
+            dispatch({
+                type: FETCH_EMPLOYEE,
+                payload: {
+                    record: res.data.employee,
+                    currentPage: res.data.currentPage,
+                    currentPageStart: res.data.currentPageStart,
+                    currentPageEnd: res.data.currentPageEnd,
+                    currentLimit: res.data.currentLimit,
+                    positions: res.data.positions,
+                    departments: res.data.departments
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }
+}
+
+export const selectEmployee = (e) => {
+    return (dispatch) => {
+        dispatch({
+            type: e.target.checked ? ADD_TO_EMPLOYEE_SELECTED : REMOVE_FROM_EMPLOYEE_SELECTED,
+            payload: {
+                id: e.target.name
+            }
+        })
+    }
+}
+
+export const selectAllEmployee = (e, rows) => {
+    return (dispatch) => {
+        rows = rows.map(el => el.id.toString())
+        dispatch({
+            type: e.target.checked ? ADD_ALL_EMPLOYEE_SELECTED : REMOVE_ALL_EMPLOYEE_SELECTED,
+            payload: {
+                id: e.target.checked ? rows : []
+            }
+        })
+    }
+}
+
+export const toggleBatchUpdating = (isBatchUpdating) => {
+    return (dispatch) => {
+        dispatch({
+            type: TOGGLE_EMPLOYEE_BATCH_UPDATING,
+            payload: {
+                isBatchUpdating: !isBatchUpdating
+            }
+        })
+    }
+}
+
+export const batchUpdateEmployee = (id, start_hour, end_hour, status, role, ot_pay_entitled, ot_hourly_salary, salary_monthly) => {
+    return async (dispatch) => {
+        try {
+            const update = {
+                id: id,
+                start_hour: start_hour,
+                end_hour: end_hour,
+                status: status,
+                role: role,
+                ot_pay_entitled: ot_pay_entitled,
+                ot_hourly_salary: ot_hourly_salary,
+                salary_monthly: salary_monthly
+            }
+            const res = await axios.put('/employee', update)
+
+            dispatch(popSuccessMessage(res.data.success))
+            dispatch({
+                type: TOGGLE_EMPLOYEE_BATCH_UPDATING,
+                payload: {
+                    isBatchUpdating: false
+                }
+            })
+            dispatch(fetchEmployee())
+        } catch (err) {
+            dispatch(popErrorMessage(err.response.data.error))
+        }
+    }
+}
+
+export const batchDeleteEmployee = (id) => {
+    return async (dispatch) => {
+        try {
+            const res = await axios.delete(`/employee/${id.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            dispatch(popSuccessMessage(res.data.success))
+            dispatch({
+                type: TOGGLE_EMPLOYEE_BATCH_DELETING,
+                payload: {
+                    isBatchDeleting: false
+                }
+            })
+            dispatch(fetchEmployee())
+        } catch (err) {
+            dispatch(popErrorMessage(err.response.data.error))
+        }
+    }
+}
+
+export const toggleBatchDeleting = (isBatchDeleting) => {
+    return (dispatch) => {
+        dispatch({
+            type: TOGGLE_EMPLOYEE_BATCH_DELETING,
+            payload: {
+                isBatchDeleting: !isBatchDeleting
+            }
+        })
+    }
+}
+
