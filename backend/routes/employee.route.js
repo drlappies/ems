@@ -1,11 +1,14 @@
 const express = require('express');
 
-module.exports.EmployeeRoute = (employeeService) => {
+module.exports.EmployeeRoute = (employeeController) => {
     const router = express.Router();
-    router.get('/', employeeService.getAllEmployee)
-    router.get('/:id', employeeService.getEmployee);
-    router.post('/', employeeService.createEmployee);
-    router.put('/:id', employeeService.updateEmployee);
-    router.delete('/:id', employeeService.deleteEmployee);
+    router.get('/', employeeController.getAllEmployee)
+    router.get('/metric', employeeController.getEmployeeCount)
+    router.get('/:id', employeeController.getEmployee);
+    router.post('/', employeeController.createEmployee);
+    router.put('/:id', employeeController.updateEmployee);
+    router.put('/', employeeController.batchUpdateEmployee);
+    router.delete('/:id', employeeController.deleteEmployee);
+    router.delete('/', employeeController.batchDeleteEmployee);
     return router
 }
