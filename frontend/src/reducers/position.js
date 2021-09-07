@@ -1,4 +1,4 @@
-import { FETCH_POSITION, FETCH_SPECIFIC_POSITION, RESET_POSITION, UPDATE_POSITION, DELETE_POSITION } from "../types/position"
+import { FETCH_POSITION, FETCH_SPECIFIC_POSITION, RESET_POSITION, UPDATE_POSITION, DELETE_POSITION, TOGGLE_POSITION_CREATING, ADD_TO_POSITION_SELECTED, REMOVE_FROM_POSITION_SELECTED, ADD_ALL_TO_POSITION_SELECTED, REMOVE_ALL_FROM_POSITION_SELECTED, TOGGLE_POSITION_BATCH_DELETING, TOGGLE_POSITION_UPDATING, TOGGLE_POSITION_DELETING, TOGGLE_POSITION_FILTERING, RESET_POSITION_QUERY, FETCH_POSITION_BY_QUERY } from "../types/position"
 
 const initialState = {
     record: [],
@@ -8,7 +8,14 @@ const initialState = {
     currentPage: 0,
     currentPageStart: 0,
     currentPageEnd: 0,
-    pageLength: ""
+    currentLimit: 10,
+    pageLength: "",
+    isCreating: false,
+    selectedRecord: [],
+    isBatchDeleting: false,
+    isDeleting: false,
+    queryText: "",
+    isFiltering: false
 }
 
 const positionReducer = (state = initialState, action) => {
@@ -20,7 +27,8 @@ const positionReducer = (state = initialState, action) => {
                 currentPage: action.payload.currentPage,
                 currentPageStart: action.payload.currentPageStart,
                 currentPageEnd: action.payload.currentPageEnd,
-                pageLength: action.payload.pageLength
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit
             }
         case FETCH_SPECIFIC_POSITION:
             return {
@@ -43,6 +51,78 @@ const positionReducer = (state = initialState, action) => {
             return {
                 ...state,
                 record: state.record.filter(el => el.id !== action.payload.positionId)
+            }
+        case TOGGLE_POSITION_CREATING:
+            return {
+                ...state,
+                isCreating: action.payload.isCreating,
+                createPositionName: ""
+            }
+        case ADD_TO_POSITION_SELECTED:
+            return {
+                ...state,
+                selectedRecord: [...state.selectedRecord, action.payload.id]
+            }
+        case REMOVE_FROM_POSITION_SELECTED:
+            return {
+                ...state,
+                selectedRecord: state.selectedRecord.filter(el => el !== action.payload.id)
+            }
+        case ADD_ALL_TO_POSITION_SELECTED:
+            return {
+                ...state,
+                selectedRecord: action.payload.id
+            }
+        case REMOVE_ALL_FROM_POSITION_SELECTED:
+            return {
+                ...state,
+                selectedRecord: action.payload.id
+            }
+        case TOGGLE_POSITION_BATCH_DELETING:
+            return {
+                ...state,
+                isBatchDeleting: action.payload.isBatchDeleting
+            }
+        case TOGGLE_POSITION_UPDATING:
+            return {
+                ...state,
+                isUpdating: action.payload.isUpdating,
+                positionName: action.payload.positionName,
+                positionId: action.payload.positionId
+            }
+        case TOGGLE_POSITION_DELETING:
+            return {
+                ...state,
+                isDeleting: action.payload.isDeleting,
+                positionName: action.payload.positionName,
+                positionId: action.payload.positionId
+            }
+        case TOGGLE_POSITION_FILTERING:
+            return {
+                ...state,
+                isFiltering: action.payload.isFiltering
+            }
+        case RESET_POSITION_QUERY:
+            return {
+                ...state,
+                isFiltering: action.payload.isFiltering,
+                record: action.payload.record,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit
+            }
+        case FETCH_POSITION_BY_QUERY:
+            return {
+                ...state,
+                isFiltering: false,
+                record: action.payload.record,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit
             }
         default:
             return state

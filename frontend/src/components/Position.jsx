@@ -1,87 +1,19 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { fetchPositions, fetchSpecificPosition, resetPosition, updatePosition, confirmPositionUpdate, confirmPositionDelete, gotoNextPositionPage, gotoPreviousPositionPage, fetchPositionByQuery, createPosition } from '../actions/position'
-import { Table, Grid, Form, Menu, Input, Button } from 'semantic-ui-react';
+import { fetchPositions, updatePosition, confirmPositionUpdate, confirmPositionDelete, gotoNextPositionPage, gotoPreviousPositionPage, fetchPositionByQuery, createPosition, toggleCreating, handleSelect, handleSelectAll, toggleBatchDeleting, batchDeletePosition, toggleUpdating, toggleDeleting, fetchByEntries, toggleFiltering, resetPositionQuery } from '../actions/position'
+import { Table, Grid, Form, Header, Button } from 'semantic-ui-react';
 import TableBody from './TableBody';
 import TableFooter from './TableFooter'
 import TableHeader from './TableHeader'
 import Config from './Config'
-
-const headers = ['id', 'Position', 'Actions']
+import '../css/main.css'
 
 function Position() {
     const dispatch = useDispatch()
     const position = useSelector(state => state.position)
-    const [state, setState] = useState({
-        isUpdating: false,
-        isDeleting: false,
-        isCreating: false
-    })
-
-    const toggleUpdating = (position) => {
-        if (position) {
-            dispatch(fetchSpecificPosition(position.id))
-        } else {
-            dispatch(resetPosition())
-        }
-
-        setState(prevState => {
-            return {
-                ...prevState,
-                isUpdating: !prevState.isUpdating
-            }
-        })
-    }
-
-    const toggleDeleting = (position) => {
-        if (position) {
-            dispatch(fetchSpecificPosition(position.id))
-        } else {
-            dispatch(resetPosition())
-        }
-
-        setState(prevState => {
-            return {
-                ...prevState,
-                isDeleting: !prevState.isDeleting
-            }
-        })
-    }
-
-    const toggleCreating = () => {
-        setState(prevState => {
-            return {
-                ...prevState,
-                isCreating: !prevState.isCreating
-            }
-        })
-    }
-
-    const handleUpdate = () => {
-        dispatch(confirmPositionUpdate(position.positionId, position.positionName))
-        toggleUpdating()
-    }
-
-    const handleDelete = () => {
-        dispatch(confirmPositionDelete(position.positionId))
-        toggleDeleting()
-    }
 
     const handleSearch = () => {
         dispatch(fetchPositionByQuery(position.positionName))
-    }
-
-    const handleCreate = () => {
-        dispatch(createPosition(position.createPositionName))
-        toggleCreating()
-    }
-
-    const gotoNextPage = () => {
-        dispatch(gotoNextPositionPage(position.currentPage, position.pageLength))
-    }
-
-    const gotoPreviousPage = () => {
-        dispatch(gotoPreviousPositionPage(position.currentPage))
     }
 
     useEffect(() => {
@@ -89,108 +21,143 @@ function Position() {
     }, [dispatch])
 
     return (
-        <Grid>
-            <Grid.Row>
-                <Grid.Column>
-                    <Menu>
-                        <Menu.Item>
-                            <label htmlFor="name">Position Name:</label>
-                        </Menu.Item>
-                        <Menu.Item>
-                            <Input id="name" name="positionName" value={position.positionName} onChange={(e) => dispatch(updatePosition(e))} />
-                        </Menu.Item>
-                        <Menu.Menu position="right">
-                            <Menu.Item>
-                                <Button onClick={() => handleSearch()}>Search</Button>
-                            </Menu.Item>
-                        </Menu.Menu>
-                    </Menu>
-                </Grid.Column>
-            </Grid.Row>
-            <Grid.Row textAlign="right">
-                <Grid.Column>
-                    <Button color="blue" onClick={() => toggleCreating()}>Create Position</Button>
-                </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-                <Grid.Column>
-                    <Table celled>
-                        <TableHeader header={headers} />
-                        <TableBody
-                            data={position.record}
-                            primaryAction={"Update"}
-                            primaryFunc={toggleUpdating}
-                            primaryActionColor={"blue"}
-                            secondaryAction={"Delete"}
-                            secondaryFunc={toggleDeleting}
-                            secondaryActionColor={"red"}
-                        />
-                        <TableFooter
-                            colSpan={3}
-                            pageStart={position.currentPageStart}
-                            pageEnd={position.currentPageEnd}
-                            pageTotal={position.pageLength}
-                            onNext={gotoNextPage}
-                            onPrevious={gotoPreviousPage}
-                        />
-                    </Table>
-                </Grid.Column>
-            </Grid.Row>
+        <div className="record">
+            <Grid>
+                <Grid.Row>
+                    <Grid.Column>
+                        <Header>Position Management</Header>
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row columns="2">
+                    <Grid.Column>
+                        <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(position.isBatchDeleting))}>Batch Delete</Button>
+                    </Grid.Column>
+                    <Grid.Column textAlign="right">
+                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(position.isFiltering))}>Filter</Button>
+                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(position.isCreating))}>Create Position</Button>
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row>
+                    <Grid.Column>
+                        <Table celled size="small">
+                            <TableHeader
+                                header={['id', 'Position', 'Actions']}
+                                checkFunc={(e) => dispatch(handleSelectAll(e, position.record))}
+                            />
+                            <TableBody
+                                data={position.record}
+                                primaryAction={"Update"}
+                                primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
+                                primaryActionColor={"blue"}
+                                secondaryAction={"Delete"}
+                                secondaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
+                                secondaryActionColor={"red"}
+                                checkedRows={position.selectedRecord}
+                                checkFunc={(e) => dispatch(handleSelect(e))}
+                            />
+                            <TableFooter
+                                colSpan={4}
+                                pageStart={position.currentPageStart}
+                                pageEnd={position.currentPageEnd}
+                                pageTotal={position.pageLength}
+                                onNext={() => dispatch(gotoNextPositionPage(position.currentPage, position.pageLength, position.currentLimit, position.queryText))}
+                                onPrevious={() => dispatch(gotoPreviousPositionPage(position.currentPage, position.currentLimit, position.queryText))}
+                                entriesFunc={(e, result) => dispatch(fetchByEntries(result.value, position.currentPage, position.pageLength, position.queryText))}
+                                entriesNum={position.currentLimit}
+                            />
+                        </Table>
+                    </Grid.Column>
+                </Grid.Row>
+            </Grid>
             <Config
-                isConfigOpen={state.isUpdating}
+                isConfigOpen={position.isUpdating}
                 configType={"Update Position"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleUpdating}
+                configPrimaryFunc={() => dispatch(toggleUpdating())}
                 configSecondaryAction={"Update"}
-                configSecondaryFunc={handleUpdate}
+                configSecondaryFunc={() => dispatch(confirmPositionUpdate(position.positionId, position.positionName))}
                 configSecondaryColor={"green"}
-                configContent={
-                    <Form>
-                        <Form.Field>
-                            <label htmlFor="positionId">ID:</label>
-                            <input id="positionId" name="positionId" value={position.positionId} disabled />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="positionName">Position Name:</label>
-                            <input id="positionName" name="positionName" value={position.positionName} onChange={(e) => dispatch(updatePosition(e))} />
-                        </Form.Field>
-                    </Form>
-                }
-            />
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="positionId">ID:</label>
+                        <input id="positionId" name="positionId" value={position.positionId} disabled />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="positionName">Position Name:</label>
+                        <input id="positionName" name="positionName" value={position.positionName} onChange={(e) => dispatch(updatePosition(e))} />
+                    </Form.Field>
+                </Form>
+            </Config>
             <Config
-                isConfigOpen={state.isDeleting}
+                isConfigOpen={position.isDeleting}
                 configType={"Delete Position"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleDeleting}
+                configPrimaryFunc={() => dispatch(toggleDeleting())}
                 configSecondaryAction={"Delete"}
                 configSecondaryColor={"red"}
-                configSecondaryFunc={handleDelete}
-                configContent={
-                    <React.Fragment>
-                        <p><strong>Are you sure to delete the following position record?</strong></p>
-                        <p><strong>ID:</strong> {position.positionId}</p>
-                        <p><strong>Name:</strong> {position.positionName}</p>
-                    </React.Fragment>
-                }
-            />
+                configSecondaryFunc={() => dispatch(confirmPositionDelete(position.positionId))}
+            >
+                <p><strong>Are you sure to delete the following position record?</strong></p>
+                <p><strong>ID:</strong> {position.positionId}</p>
+                <p><strong>Name:</strong> {position.positionName}</p>
+            </Config>
             <Config
-                isConfigOpen={state.isCreating}
+                isConfigOpen={position.isCreating}
                 configType={"Create Position"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleCreating}
+                configPrimaryFunc={() => dispatch(toggleCreating(position.isCreating))}
                 configSecondaryAction={"Create"}
-                configSecondaryFunc={handleCreate}
+                configSecondaryFunc={() => dispatch(createPosition(position.createPositionName))}
                 configSecondaryColor={"green"}
-                configContent={
-                    <Form>
-                        <Form.Field>
-                            <label htmlFor="createPositionNamee">Position Name:</label>
-                            <input id="createPositionName" name="createPositionName" value={position.createPositionName} onChange={(e) => dispatch(updatePosition(e))} />
-                        </Form.Field>
-                    </Form>
-                }
-            />
-        </Grid>
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="createPositionNamee">Position Name:</label>
+                        <input id="createPositionName" name="createPositionName" value={position.createPositionName} onChange={(e) => dispatch(updatePosition(e))} />
+                    </Form.Field>
+                </Form>
+            </Config>
+            <Config
+                isConfigOpen={position.isBatchDeleting}
+                configType={"Batch Delete Position"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={() => dispatch(toggleBatchDeleting(position.isBatchDeleting))}
+                configSecondaryAction={"Batch Delete"}
+                configSecondaryColor={"red"}
+                configSecondaryFunc={() => dispatch(batchDeletePosition(position.selectedRecord))}
+            >
+                <p><strong>Are you sure to delete the following records?</strong></p>
+                {position.selectedRecord.map((el, i) =>
+                    <p key={i}><strong>ID:</strong> {el}</p>
+                )}
+            </Config>
+            <Config
+                isConfigOpen={position.isFiltering}
+                configType={"Search and Filter"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={() => dispatch(toggleFiltering(position.isFiltering))}
+                configTertiaryAction={"Search"}
+                configTertiaryColor={"green"}
+                configTertiaryFunc={() => dispatch(fetchPositionByQuery(position.currentPage, position.currentLimit, position.queryText))}
+                configSecondaryAction={"Reset"}
+                configSecondaryColor={"grey"}
+                configSecondaryFunc={() => dispatch(resetPositionQuery(position.currentPage, position.currentLimit))}
+            >
+                <Form>
+                    <Grid>
+                        <Grid.Row>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryText">Contains</label>
+                                    <input id="queryText" name="queryText" placeholder="Position" value={position.queryText} onChange={(e) => dispatch(updatePosition(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                    </Grid>
+                </Form>
+            </Config>
+        </div>
     )
 }
 
