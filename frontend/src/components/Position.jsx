@@ -12,10 +12,6 @@ function Position() {
     const dispatch = useDispatch()
     const position = useSelector(state => state.position)
 
-    const handleSearch = () => {
-        dispatch(fetchPositionByQuery(position.positionName))
-    }
-
     useEffect(() => {
         dispatch(fetchPositions())
     }, [dispatch])
