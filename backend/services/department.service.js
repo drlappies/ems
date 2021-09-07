@@ -8,40 +8,37 @@ class DepartmentService {
         return dept;
     }
 
-    getAllDepartment = async (page, name, description) => {
+    getAllDepartment = async (page, limit, text) => {
+        if (!page || page < 0) page = 0;
+        if (!limit || limit < 0) limit = 10;
         let currentPage = parseInt(page)
         let currentPageStart = parseInt(page) + 1
-        let currentPageEnd = parseInt(page) + 15
+        let currentPageEnd = parseInt(page) + parseInt(limit)
+        let currentLimit = parseInt(limit)
 
         const [count] = await this.knex('departments')
             .count('id')
             .modify((queryBuilder) => {
-                if (name) {
-                    queryBuilder.whereRaw(`to_tsvector(name) @@ plainto_tsquery('${name}')`)
-                }
-                if (description) {
-                    queryBuilder.whereRaw(`to_tsvector(description) @@ plainto_tsquery('${description}')`)
+                if (text) {
+                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description) @@ plainto_tsquery('${text}')`)
                 }
             })
 
         const dept = await this.knex('departments')
             .select()
-            .limit(15)
+            .limit(currentLimit)
             .offset(currentPage)
             .orderBy('id')
             .modify((queryBuilder) => {
-                if (name) {
-                    queryBuilder.whereRaw(`to_tsvector(name) @@ plainto_tsquery('${name}')`)
-                }
-                if (description) {
-                    queryBuilder.whereRaw(`to_tsvector(description) @@ plainto_tsquery('${description}')`)
+                if (text) {
+                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description) @@ plainto_tsquery('${text}')`)
                 }
             })
 
         if (currentPageEnd >= count.count) {
             currentPageEnd = parseInt(count.count)
         }
-        return { dept: dept, count: count.count, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd }
+        return { dept: dept, count: count.count, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, currentLimit: currentLimit }
     }
 
     createDepartment = async (name, description) => {
@@ -63,8 +60,21 @@ class DepartmentService {
     deleteDepartment = async (id) => {
         const [dept] = await this.knex('departments')
             .where({ id: id })
+            .del(['id', 'name'])
+        return dept
+    }
+
+    batchDeleteDepartment = async (id) => {
+        const dept = await this.knex('departments')
+            .whereIn('id', id)
             .del(['id'])
         return dept
+    }
+
+    getDepartmentCount = async () => {
+        const [count] = await this.knex('departments')
+            .count()
+        return count.count
     }
 }
 
