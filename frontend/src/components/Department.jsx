@@ -1,207 +1,167 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { confirmDepartmentUpdate, fetchDepartment, fetchSpecificDepartment, updateDepartment, deleteDepartment, resetDepartment, gotoNextDepartmentPage, gotoPreviousDepartmentPage, createDepartment } from '../actions/department'
-import { Table, Grid, Form, Button, Menu, Input } from 'semantic-ui-react'
+import { confirmDepartmentUpdate, fetchDepartment, updateDepartment, handleDelete, gotoNextDepartmentPage, gotoPreviousDepartmentPage, toggleCreating, handleCreate, fetchDepartmentsByEntries, toggleFiltering, resetDepartmentQuery, fetchDepartmentByQuery, toggleUpdating, toggleDeleting, handleSelect, handleSelectAll, toggleBatchDeleting, handleBatchDelete } from '../actions/department'
+import { Table, Grid, Form, Button, Header, Input } from 'semantic-ui-react'
 import TableBody from './TableBody'
 import TableHeader from './TableHeader'
 import TableFooter from './TableFooter'
 import Config from './Config'
+import '../css/main.css'
 
 function Department() {
     const dispatch = useDispatch()
     const department = useSelector(state => state.department)
-    const [state, setState] = useState({
-        isUpdating: false,
-        isDeleting: false,
-        isCreating: false
-    })
-
-    const header = ['id', 'Department Name', 'Department Description', 'Actions']
 
     useEffect(() => {
         dispatch(fetchDepartment(department.currentPage))
     }, [department.currentPage, dispatch])
 
-    const toggleUpdating = (department) => {
-        if (department) dispatch(fetchSpecificDepartment(department.id))
-        if (!department) dispatch(resetDepartment())
-        setState(prevState => {
-            return {
-                ...prevState,
-                isUpdating: !prevState.isUpdating
-            }
-        })
-    }
-
-    const toggleDeleting = (department) => {
-        if (department) dispatch(fetchSpecificDepartment(department.id))
-        if (!department) dispatch(resetDepartment())
-        setState(prevState => {
-            return {
-                ...prevState,
-                isDeleting: !prevState.isDeleting
-            }
-        })
-    }
-
-    const toggleCreating = () => {
-        dispatch(resetDepartment())
-        setState(prevState => {
-            return {
-                ...prevState,
-                isCreating: !prevState.isCreating
-            }
-        })
-    }
-
-    const handleUpdate = () => {
-        dispatch(confirmDepartmentUpdate(department.departmentId, department.departmentName, department.departmentDescription))
-        toggleUpdating()
-    }
-
-    const handleDelete = () => {
-        dispatch(deleteDepartment(department.departmentId))
-        toggleDeleting()
-    }
-
-    const handleCreate = () => {
-        dispatch(createDepartment(department.departmentName, department.departmentDescription))
-        toggleCreating()
-    }
-
     const handleSearch = () => {
-        dispatch(fetchDepartment(department.currentPage, department.departmentName, department.departmentDescription))
-    }
-
-    const gotoNextPage = () => {
-        dispatch(gotoNextDepartmentPage(department.currentPage, department.pageLength))
-    }
-
-    const gotoPreviousPage = () => {
-        dispatch(gotoPreviousDepartmentPage(department.currentPage))
+        dispatch(fetchDepartment(department.currentPage, department.currentLimit, department.departmentText))
     }
 
     return (
-        <Grid>
-            <Grid.Row>
-                <Grid.Column>
-                    <Menu>
-                        <Menu.Item>
-                            <label htmlFor="departmentName">Name</label>
-                        </Menu.Item>
-                        <Menu.Item>
-                            <Input id="departmentName" name="departmentName" value={department.departmentName} onChange={(e) => dispatch(updateDepartment(e))} />
-                        </Menu.Item>
-                        <Menu.Item>
-                            <label htmlFor="departmentDescription">Description</label>
-                        </Menu.Item>
-                        <Menu.Item>
-                            <Input id="departmentDescription" name="departmentDescription" value={department.departmentDescription} onChange={(e) => dispatch(updateDepartment(e))} />
-                        </Menu.Item>
-                        <Menu.Menu position='right'>
-                            <Menu.Item>
-                                <Button onClick={() => handleSearch()}>Search</Button>
-                            </Menu.Item>
-                        </Menu.Menu>
-                    </Menu>
-                </Grid.Column>
-            </Grid.Row>
-            <Grid.Row textAlign="right">
-                <Grid.Column>
-                    <Button color="blue" onClick={() => toggleCreating()}>Create Department</Button>
-                </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-                <Grid.Column>
-                    <Table celled>
-                        <TableHeader
-                            header={header}
-                        />
-                        <TableBody
-                            data={department.record}
-                            primaryAction={"Update"}
-                            primaryFunc={toggleUpdating}
-                            primaryActionColor={"blue"}
-                            secondaryAction={"Delete"}
-                            secondaryFunc={toggleDeleting}
-                            secondaryActionColor={"red"}
-                            cellSize={["1", "3", "8"]}
-                        />
-                        <TableFooter
-                            colSpan={4}
-                            pageTotal={department.pageLength}
-                            pageStart={department.currentPageStart}
-                            pageEnd={department.currentPageEnd}
-                            onNext={gotoNextPage}
-                            onPrevious={gotoPreviousPage}
-                        />
-                    </Table>
-                </Grid.Column>
-            </Grid.Row>
+        <div className="record">
+            <Grid>
+                <Grid.Row>
+                    <Grid.Column>
+                        <Header>Department Management</Header>
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row columns="2">
+                    <Grid.Column>
+                        <Button size="tiny" color="red" disabled={!department.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(department.isBatchDeleting))}>Batch Delete</Button>
+                    </Grid.Column>
+                    <Grid.Column textAlign="right">
+                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(department.isFiltering))}>Filter</Button>
+                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(department.isCreating))}>Create Department</Button>
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row>
+                    <Grid.Column>
+                        <Table celled size="small">
+                            <TableHeader
+                                header={['id', 'Department Name', 'Department Description', 'Actions']}
+                                checkFunc={(e) => dispatch(handleSelectAll(e, department.record))}
+                            />
+                            <TableBody
+                                data={department.record}
+                                primaryAction={"Update"}
+                                primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
+                                primaryActionColor={"blue"}
+                                secondaryAction={"Delete"}
+                                secondaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
+                                secondaryActionColor={"red"}
+                                cellSize={["1", "3", "8"]}
+                                checkedRows={department.selectedRecord}
+                                checkFunc={(e) => dispatch(handleSelect(e))}
+                            />
+                            <TableFooter
+                                colSpan={5}
+                                pageTotal={department.pageLength}
+                                pageStart={department.currentPageStart}
+                                pageEnd={department.currentPageEnd}
+                                onNext={() => dispatch(gotoNextDepartmentPage(department.currentPage, department.currentLimit, department.pageLength, department.queryDepartmentName))}
+                                onPrevious={() => dispatch(gotoPreviousDepartmentPage(department.currentPage, department.currentLimit, department.queryDepartmentName))}
+                                entriesNum={department.currentLimit}
+                                entriesFunc={(e, result) => dispatch(fetchDepartmentsByEntries(result.value, department.currentPage, department.queryDepartmentName))}
+                            />
+                        </Table>
+                    </Grid.Column>
+                </Grid.Row>
+            </Grid >
             <Config
-                isConfigOpen={state.isUpdating}
+                isConfigOpen={department.isUpdating}
                 configType={"Update Department"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleUpdating}
+                configPrimaryFunc={() => dispatch(toggleUpdating())}
                 configSecondaryAction={"Update"}
+                configSecondaryFunc={() => dispatch(confirmDepartmentUpdate(department.departmentId, department.departmentName, department.departmentDesc))}
                 configSecondaryColor={"blue"}
-                configSecondaryFunc={handleUpdate}
-                configContent={
-                    <Form>
-                        <Form.Field>
-                            <label htmlFor="id">id</label>
-                            <input id="id" name="id" value={department.departmentId} disabled />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="departmentName">Department Name</label>
-                            <input id="departmentName" name="departmentName" value={department.departmentName} onChange={(e) => dispatch(updateDepartment(e))} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="departmentDescription">Department Name</label>
-                            <input id="departmentDescription" name="departmentDescription" value={department.departmentDescription} onChange={(e) => dispatch(updateDepartment(e))} />
-                        </Form.Field>
-                    </Form>
-                }
-            />
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="id">id</label>
+                        <input id="id" name="id" value={department.departmentId} disabled />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="departmentName">Department Name</label>
+                        <input id="departmentName" name="departmentName" value={department.departmentName} onChange={(e) => dispatch(updateDepartment(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="departmentDescription">Department Name</label>
+                        <input id="departmentDescription" name="departmentDescription" value={department.departmentDesc} onChange={(e) => dispatch(updateDepartment(e))} />
+                    </Form.Field>
+                </Form>
+            </Config>
             <Config
-                isConfigOpen={state.isDeleting}
+                isConfigOpen={department.isDeleting}
                 configType={"Delete Department"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleDeleting}
+                configPrimaryFunc={() => dispatch(toggleDeleting())}
                 configSecondaryAction={"Delete"}
-                configSecondaryFunc={handleDelete}
+                configSecondaryFunc={() => dispatch(handleDelete(department.departmentId, department.currentPage, department.currentLimit, department.queryDepartmentName))}
                 configSecondaryColor={'red'}
-                configContent={
-                    <React.Fragment>
-                        <p><strong>Are you sure to delete this department record?</strong></p>
-                        <p><strong>Department id:</strong> {department.departmentId}</p>
-                        <p><strong>Department Name:</strong> {department.departmentName}</p>
-                        <p><strong>Department Description:</strong> {department.departmentDescription}</p>
-                    </React.Fragment>
-                }
-            />
+            >
+                <p><strong>Are you sure to delete this department record?</strong></p>
+                <p><strong>Department id:</strong> {department.departmentId}</p>
+                <p><strong>Department Name:</strong> {department.departmentName}</p>
+                <p><strong>Department Description:</strong> {department.departmentDesc}</p>
+            </Config>
             <Config
-                isConfigOpen={state.isCreating}
+                isConfigOpen={department.isCreating}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={toggleCreating}
+                configPrimaryFunc={() => dispatch(toggleCreating(department.isCreating))}
                 configType={"Create Department"}
                 configSecondaryAction={"Update"}
                 configSecondaryColor={"green"}
-                configSecondaryFunc={handleCreate}
-                configContent={
-                    <Form>
-                        <Form.Field>
-                            <label htmlFor="departmentName">Department Name: </label>
-                            <input id="departmentName" name="departmentName" value={department.departmentName} onChange={(e) => dispatch(updateDepartment(e))} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="departmentDescription">Department Description:</label>
-                            <input id="departmentDescription" name="departmentDescription" value={department.departmentDescription} onChange={(e) => dispatch(updateDepartment(e))} />
-                        </Form.Field>
-                    </Form>
-                }
-            />
-        </Grid >
+                configSecondaryFunc={() => dispatch(handleCreate(department.createDepartmentName, department.createDepartmentDesc))}
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="createDepartmentName">Department Name</label>
+                        <input id="createDepartmentName" name="createDepartmentName" value={department.createDepartmentName} onChange={(e) => dispatch(updateDepartment(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="createDepartmentDesc">Department Description</label>
+                        <input id="createDepartmentDesc" name="createDepartmentDesc" value={department.createDepartmentDesc} onChange={(e) => dispatch(updateDepartment(e))} />
+                    </Form.Field>
+                </Form>
+            </Config>
+            <Config
+                isConfigOpen={department.isFiltering}
+                configType={"Search and Filter"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={() => dispatch(toggleFiltering(department.isFiltering))}
+                configSecondaryAction={"Reset"}
+                configSecondaryFunc={() => dispatch(resetDepartmentQuery(department.currentPage, department.currentLimit))}
+                configSecondaryColor={"grey"}
+                configTertiaryAction={"Search"}
+                configTertiaryFunc={() => dispatch(fetchDepartmentByQuery(department.queryDepartmentName))}
+                configTertiaryColor={"green"}
+            >
+                <Form>
+                    <Form.Field>
+                        <label htmlFor="queryDepartmentName">Contains</label>
+                        <input placeholder="Department name, description ..." id="queryDepartmentName" name="queryDepartmentName" value={department.queryDepartmentName} onChange={(e) => dispatch(updateDepartment(e))} />
+                    </Form.Field>
+                </Form>
+            </Config>
+            <Config
+                isConfigOpen={department.isBatchDeleting}
+                configType={"Batch Delete Department Record"}
+                configPrimaryAction={"Cancel"}
+                configPrimaryFunc={() => dispatch(toggleBatchDeleting(department.isBatchDeleting))}
+                configSecondaryAction={"Delete"}
+                configSecondaryColor={"red"}
+                configSecondaryFunc={() => dispatch(handleBatchDelete(department.selectedRecord, department.currentPage, department.currentLimit, department.queryDepartmentName))}
+            >
+                <p><strong>Are you sure to delete the following department records?</strong></p>
+                {department.selectedRecord.map((el, i) =>
+                    <p key={i}><strong>ID:</strong> {el}</p>
+                )}
+            </Config>
+        </div>
     )
 }
 
