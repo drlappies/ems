@@ -3,12 +3,11 @@ class AllowanceService {
         this.knex = knex
     }
 
-    createAllowance = async (name, description, amount, interval, rma, rate) => {
+    createAllowance = async (name, description, amount, rma, rate) => {
         const [allowance] = await this.knex('allowance').insert({
             name: name,
             description: description,
             amount: amount,
-            interval: interval,
             minimum_attendance_required: rma,
             required_attendance_rate: rate
         }).returning(['id', 'name', 'description', 'amount'])
@@ -16,24 +15,33 @@ class AllowanceService {
     }
 
     deleteAllowance = async (id) => {
-        const [allowance] = await this.knex('allowance').where('id', id).del(['id', 'name'])
+        const [allowance] = await this.knex('allowance')
+            .where('id', id)
+            .del(['id', 'name'])
         return allowance
     }
 
-    editAllowance = async (id, name, description, amount, status) => {
-        const [allowance] = await this.knex('allowance').where('id', id).update({
-            name: name,
-            description: description,
-            amount: amount,
-            status: status
-        }, ['id', 'name', 'amount', 'status'])
+    editAllowance = async (id, name, description, amount, status, minimum_attendance_required, required_attendance_rate) => {
+        const [allowance] = await this.knex('allowance')
+            .where('id', id)
+            .update({
+                name: name,
+                description: description,
+                amount: amount,
+                status: status,
+                minimum_attendance_required: minimum_attendance_required,
+                required_attendance_rate: required_attendance_rate
+            }, ['id', 'name', 'amount', 'status', 'description'])
         return allowance
     }
 
-    getAllAllowance = async (page, amountFrom, amountTo, status, query) => {
+    getAllAllowance = async (page, limit, text, amountFrom, amountTo, status, isAttendRequired, requiredAttendRateFrom, requiredAttendRateTo) => {
+        if (!page || page < 0) page = 0;
+        if (!limit || limit < 0) limit = 10;
         let currentPage = parseInt(page)
         let currentPageStart = parseInt(page) + 1
-        let currentPageEnd = parseInt(page) + 15
+        let currentPageEnd = parseInt(page) + parseInt(limit)
+        let currentLimit = parseInt(limit)
 
         const [count] = await this.knex('allowance')
             .count('id')
@@ -47,14 +55,23 @@ class AllowanceService {
                 if (status) {
                     queryBuilder.where('status', status)
                 }
-                if (query) {
-                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description) @@ to_tsquery('${query}')`)
+                if (text) {
+                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description || ' ' || name) @@ to_tsquery('${text}')`)
+                }
+                if (isAttendRequired === "yes") {
+                    queryBuilder.where('minimum_attendance_required', isAttendRequired)
+                }
+                if (requiredAttendRateFrom) {
+                    queryBuilder.where('required_attendance_rate', '>=', requiredAttendRateFrom)
+                }
+                if (requiredAttendRateTo) {
+                    queryBuilder.where('required_attendance_rate', '<=', requiredAttendRateTo)
                 }
             })
 
         const allowance = await this.knex('allowance')
             .select(['id', 'name', 'description', 'amount', 'status'])
-            .limit(15)
+            .limit(currentLimit)
             .offset(currentPage)
             .orderBy('id')
             .modify((queryBuilder) => {
@@ -67,15 +84,24 @@ class AllowanceService {
                 if (status) {
                     queryBuilder.where('status', status)
                 }
-                if (query) {
-                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description) @@ to_tsquery('${query}')`)
+                if (text) {
+                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description || ' ' || name) @@ to_tsquery('${text}')`)
+                }
+                if (isAttendRequired === "yes") {
+                    queryBuilder.where('minimum_attendance_required', isAttendRequired)
+                }
+                if (requiredAttendRateFrom) {
+                    queryBuilder.where('required_attendance_rate', '>=', requiredAttendRateFrom)
+                }
+                if (requiredAttendRateTo) {
+                    queryBuilder.where('required_attendance_rate', '<=', requiredAttendRateTo)
                 }
             })
 
         if (currentPageEnd >= count.count) {
             currentPageEnd = parseInt(count.count)
         }
-        return { allowance: allowance, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count }
+        return { allowance: allowance, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count, currentLimit: currentLimit }
     }
 
     getAllowance = async (id) => {
@@ -121,6 +147,27 @@ class AllowanceService {
             .where('employee_id', employeeId)
             .andWhere('allowance_id', allowanceId)
         return allowance_employee
+    }
+
+    batchUpdateAllowance = async (id, amount, status, minimum_attendance_required, required_attendance_rate) => {
+        let update = {};
+        if (amount) update.amount = amount;
+        if (status) update.status = status;
+        if (minimum_attendance_required) update.minimum_attendance_required = minimum_attendance_required === "yes" ? true : false;
+        if (required_attendance_rate) update.required_attendance_rate = required_attendance_rate;
+
+        const allowance = await this.knex('allowance')
+            .whereIn('id', id)
+            .update(update, ['id', 'amount', 'status', 'minimum_attendance_required', 'required_attendance_rate'])
+        return allowance
+    }
+
+    batchDeleteAllowance = async (id) => {
+        if (!Array.isArray(id)) id = [id]
+        const allowance = await this.knex('allowance')
+            .whereIn('id', id)
+            .del()
+        return allowance
     }
 }
 
