@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { popErrorMessage, popSuccessMessage } from '../actions/ui';
 import { Grid, Form, Header } from 'semantic-ui-react'
 import axios from 'axios'
+import '../css/main.css'
 
 function Reimbursement() {
     const dispatch = useDispatch()
@@ -46,34 +47,26 @@ function Reimbursement() {
     }
 
     return (
-        <Grid>
-            <Grid.Row></Grid.Row>
-            <Grid.Row></Grid.Row>
-            <Grid.Row>
-                <Grid.Column>
-                    <Header>Reimbursement Application Portal</Header>
-                </Grid.Column>
-            </Grid.Row>
-            <Grid.Row columns={1}>
-                <Grid.Column>
-                    <Form onSubmit={(e) => handleSubmit(e)}>
-                        <Form.Field>
-                            <label htmlFor="amount">Reimubursement Amount:</label>
-                            <input id="amount" name="amount" type="number" value={state.amount} onChange={(e) => handleChange(e)} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="reason">Reason:</label>
-                            <input id="reason" name="reason" type="text" value={state.reason} onChange={(e) => handleChange(e)} />
-                        </Form.Field>
-                        <Form.Field>
-                            <label htmlFor="date">Date</label>
-                            <input id="date" name="date" type="date" value={state.date} onChange={(e) => handleChange(e)} />
-                        </Form.Field>
-                        <Form.Button color="green">Apply</Form.Button>
-                    </Form>
-                </Grid.Column>
-            </Grid.Row>
-        </Grid>
+        <div className="leave-container">
+            <div className="leave-form">
+                <Header>Reimbursement Application Portal</Header>
+                <Form onSubmit={(e) => handleSubmit(e)}>
+                    <Form.Field>
+                        <label htmlFor="amount">Reimubursement Amount:</label>
+                        <input id="amount" name="amount" type="number" value={state.amount} onChange={(e) => handleChange(e)} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="reason">Reason:</label>
+                        <input id="reason" name="reason" type="text" value={state.reason} onChange={(e) => handleChange(e)} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="date">Date</label>
+                        <input id="date" name="date" type="date" value={state.date} onChange={(e) => handleChange(e)} />
+                    </Form.Field>
+                    <Form.Button color="green">Apply</Form.Button>
+                </Form>
+            </div>
+        </div>
     )
 }
 
