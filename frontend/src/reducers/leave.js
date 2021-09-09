@@ -1,4 +1,4 @@
-import { APPLY_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, TOGGLE_LEAVE_CREATING, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, RESET_LEAVE, CREATE_LEAVE } from "../types/leave"
+import { DELETE_LEAVE, APPLY_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, TOGGLE_LEAVE_CREATING, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, RESET_LEAVE, CREATE_LEAVE, BATCH_DELETE_LEAVE, CONFIRM_UPDATE_LEAVE, BATCH_UPDATE_LEAVE } from "../types/leave"
 
 const initialState = {
     record: [],
@@ -162,7 +162,7 @@ const leaveReducer = (state = initialState, action) => {
         case RESET_LEAVE_SELECTED:
             return {
                 ...state,
-                selectedRecord: []
+                selectedRecord: action.payload.id
             }
         case TOGGLE_LEAVE_FILTERING:
             return {
@@ -198,16 +198,6 @@ const leaveReducer = (state = initialState, action) => {
                 pageLength: action.payload.pageLength,
                 currentLimit: action.payload.currentLimit
             }
-        case RESET_LEAVE:
-            return {
-                ...state,
-                applyFrom: "",
-                applyTo: "",
-                applyType: "sick_leave",
-                applySpan: "half_day",
-                applyReason: "",
-                applyEmployee: "",
-            }
         case APPLY_LEAVE:
             return {
                 ...state,
@@ -235,6 +225,54 @@ const leaveReducer = (state = initialState, action) => {
                 applySpan: action.payload.applySpan,
                 applyReason: action.payload.applyReason,
                 applyEmployee: action.payload.applyEmployee,
+            }
+        case BATCH_DELETE_LEAVE:
+            return {
+                ...state,
+                isBatchDeleting: action.payload.isBatchDeleting,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
+            }
+        case DELETE_LEAVE:
+            return {
+                ...state,
+                isDeleting: action.payload.isBatchDeleting,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
+            }
+        case CONFIRM_UPDATE_LEAVE:
+            return {
+                ...state,
+                isUpdating: action.payload.isUpdating,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
+            }
+        case BATCH_UPDATE_LEAVE:
+            return {
+                ...state,
+                isBatchUpdating: action.payload.isBatchUpdating,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
             }
         default:
             return state

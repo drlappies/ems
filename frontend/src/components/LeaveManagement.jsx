@@ -93,7 +93,7 @@ function LeaveManagement() {
                 configPrimaryFunc={() => dispatch(toggleUpdating())}
                 configSecondaryAction={"Update"}
                 configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(confirmLeaveUpdate(leave.leaveId, leave.duration, leave.type, leave.status))}
+                configSecondaryFunc={() => dispatch(confirmLeaveUpdate(leave.leaveId, leave.duration, leave.type, leave.status, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
             >
                 <Form>
                     <Form.Field>
@@ -144,7 +144,7 @@ function LeaveManagement() {
                 configType={"Delete Leave Record"}
                 configSecondaryAction={"Delete"}
                 configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(deleteLeave(leave.leaveId))}
+                configSecondaryFunc={() => dispatch(deleteLeave(leave.leaveId, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
             >
                 <p><strong>ID:</strong> {leave.leaveId}</p>
                 <p><strong>Employee ID:</strong> {leave.employeeId}</p>
@@ -210,7 +210,7 @@ function LeaveManagement() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleFiltering(leave.isFiltering))}
                 configSecondaryAction={"Reset"}
-                configSecondaryFunc={() => dispatch(resetQuery(leave.currentPage, leave.currentLimit))}
+                configSecondaryFunc={() => dispatch(resetQuery())}
                 configSecondaryColor={"grey"}
                 configTertiaryColor={"green"}
                 configTertiaryAction={"Search"}
@@ -265,7 +265,7 @@ function LeaveManagement() {
                 configPrimaryFunc={() => dispatch(toggleBatchUpdating(leave.isBatchUpdating))}
                 configSecondaryAction={"Batch Update"}
                 configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(confirmBatchLeaveUpdate(leave.selectedRecord, leave.batchUpdateDuration, leave.batchUpdateType, leave.batchUpdateStatus))}
+                configSecondaryFunc={() => dispatch(confirmBatchLeaveUpdate(leave.selectedRecord, leave.batchUpdateDuration, leave.batchUpdateType, leave.batchUpdateStatus, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
             >
                 <Form>
                     <Form.Field>
@@ -303,7 +303,7 @@ function LeaveManagement() {
                 configPrimaryFunc={() => dispatch(toggleBatchDeleting(leave.isBatchDeleting))}
                 configSecondaryAction={"Delete"}
                 configSecondaryColor={'red'}
-                configSecondaryFunc={() => dispatch(batchDeleteLeave(leave.selectedRecord))}
+                configSecondaryFunc={() => dispatch(batchDeleteLeave(leave.selectedRecord, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
             >
                 <p><strong>Are you sure to batch delete leave record?</strong></p>
                 {leave.selectedRecord.map(el =>

@@ -1,4 +1,4 @@
-import { FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, RESET_LEAVE, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_CREATING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, APPLY_LEAVE, CREATE_LEAVE } from "../types/leave";
+import { DELETE_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, RESET_LEAVE, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_CREATING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, APPLY_LEAVE, CREATE_LEAVE, BATCH_DELETE_LEAVE, CONFIRM_UPDATE_LEAVE, BATCH_UPDATE_LEAVE } from "../types/leave";
 import axios from 'axios'
 import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 
@@ -159,13 +159,7 @@ export const fetchSpecificLeave = (id) => {
     }
 }
 
-export const resetLeave = () => {
-    return (dispatch) => {
-        dispatch({ type: RESET_LEAVE })
-    }
-}
-
-export const confirmLeaveUpdate = (leaveId, duration, type, status) => {
+export const confirmLeaveUpdate = (leaveId, duration, type, status, currentPage, currentLimit, queryText, queryFrom, queryTo, queryType, queryStatus) => {
     return async (dispatch) => {
         try {
             leaveId = [leaveId]
@@ -177,30 +171,40 @@ export const confirmLeaveUpdate = (leaveId, duration, type, status) => {
             }
             const res = await axios.put('/leave', body)
             dispatch(popSuccessMessage(res.data.success))
-            dispatch({
-                type: TOGGLE_LEAVE_UPDATING,
-                payload: {
-                    isUpdating: false,
-                    employeeId: "",
-                    reason: "",
-                    status: "",
-                    duration: "",
-                    from: "",
-                    to: "",
-                    firstname: "",
-                    lastname: "",
-                    leaveId: "",
-                    type: ""
+
+            const res2 = await axios.get('/leave', {
+                params: {
+                    page: currentPage,
+                    limit: currentLimit,
+                    from: queryFrom,
+                    to: queryTo,
+                    status: queryStatus,
+                    text: queryText,
+                    type: queryType,
+
                 }
             })
-            dispatch(fetchLeave())
+
+            dispatch({
+                type: CONFIRM_UPDATE_LEAVE,
+                payload: {
+                    isUpdating: false,
+                    record: res2.data.leave,
+                    employeeList: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
+                }
+            })
         } catch (err) {
             console.log(err)
         }
     }
 }
 
-export const confirmBatchLeaveUpdate = (leaveId, duration, type, status) => {
+export const confirmBatchLeaveUpdate = (leaveId, duration, type, status, currentPage, currentLimit, queryText, queryFrom, queryTo, queryType, queryStatus) => {
     return async (dispatch) => {
         try {
             const body = {
@@ -209,17 +213,31 @@ export const confirmBatchLeaveUpdate = (leaveId, duration, type, status) => {
                 type: type,
                 status: status
             }
-
             const res = await axios.put('/leave', body)
             dispatch(popSuccessMessage(res.data.success))
-            dispatch(fetchLeave())
+            const res2 = await axios.get('/leave', {
+                params: {
+                    page: currentPage,
+                    limit: currentLimit,
+                    from: queryFrom,
+                    to: queryTo,
+                    status: queryStatus,
+                    text: queryText,
+                    type: queryType,
+
+                }
+            })
             dispatch({
-                type: TOGGLE_LEAVE_BATCH_UPDATING,
+                type: BATCH_UPDATE_LEAVE,
                 payload: {
                     isBatchUpdating: false,
-                    batchUpdateDuration: "",
-                    batchUpdateType: "",
-                    batchUpdateStatus: ""
+                    record: res2.data.leave,
+                    employeeList: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
                 }
             })
         } catch (err) {
@@ -244,26 +262,34 @@ export const toggleBatchDeleting = (isBatchDeleting) => {
     }
 }
 
-export const deleteLeave = (leaveId) => {
+export const deleteLeave = (leaveId, currentPage, currentLimit, queryText, queryFrom, queryTo, queryType, queryStatus) => {
     return async (dispatch) => {
         try {
             const res = await axios.delete(`/leave/?ids=${leaveId}`)
             dispatch(popSuccessMessage(res.data.success))
-            dispatch(fetchLeave())
+            const res2 = await axios.get('/leave', {
+                params: {
+                    page: currentPage,
+                    limit: currentLimit,
+                    from: queryFrom,
+                    to: queryTo,
+                    status: queryStatus,
+                    text: queryText,
+                    type: queryType,
+
+                }
+            })
             dispatch({
-                type: TOGGLE_LEAVE_DELETING,
+                type: DELETE_LEAVE,
                 payload: {
                     isDeleting: false,
-                    employeeId: "",
-                    reason: "",
-                    status: "",
-                    duration: "",
-                    from: "",
-                    to: "",
-                    firstname: "",
-                    lastname: "",
-                    leaveId: "",
-                    type: ""
+                    record: res2.data.leave,
+                    employeeList: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
                 }
             })
         } catch (err) {
@@ -272,19 +298,36 @@ export const deleteLeave = (leaveId) => {
     }
 }
 
-export const batchDeleteLeave = (leaveId) => {
+export const batchDeleteLeave = (leaveId, currentPage, currentLimit, queryText, queryFrom, queryTo, queryType, queryStatus) => {
     return async (dispatch) => {
         try {
             const res = await axios.delete(`/leave/${leaveId.map((el, i) => i === 0 ? `?ids=${el}` : `&ids=${el}`).join("")}`)
             dispatch(popSuccessMessage(res.data.success))
-            dispatch(fetchLeave())
-            dispatch({
-                type: TOGGLE_LEAVE_BATCH_DELETING,
-                payload: {
-                    isBatchDeleting: false
+            const res2 = await axios.get('/leave', {
+                params: {
+                    page: currentPage,
+                    limit: currentLimit,
+                    from: queryFrom,
+                    to: queryTo,
+                    status: queryStatus,
+                    text: queryText,
+                    type: queryType,
+
                 }
             })
-            dispatch({ type: RESET_LEAVE_SELECTED })
+            dispatch({
+                type: BATCH_DELETE_LEAVE,
+                payload: {
+                    isBatchDeleting: false,
+                    record: res2.data.leave,
+                    employeeList: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
+                }
+            })
         } catch (err) {
             console.log(err)
         }
@@ -453,29 +496,19 @@ export const handleSelect = (e) => {
 
 export const handleSelectAll = (e, rows) => {
     return (dispatch) => {
-        if (e.target.checked) {
-            rows = rows.map(el => el.id.toString())
-            dispatch({
-                type: ADD_ALL_TO_LEAVE_SELECTED,
-                payload: {
-                    id: rows
-                }
-            })
-        } else {
-            dispatch({ type: RESET_LEAVE_SELECTED })
-        }
+        dispatch({
+            type: e.target.checked ? ADD_ALL_TO_LEAVE_SELECTED : RESET_LEAVE_SELECTED,
+            payload: {
+                id: e.target.checked ? rows = rows.map(el => el.id.toString()) : []
+            }
+        })
     }
 }
 
-export const resetQuery = (currentPage, currentLimit) => {
+export const resetQuery = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/leave', {
-                params: {
-                    page: currentPage,
-                    limit: currentLimit
-                }
-            })
+            const res = await axios.get('/leave')
             dispatch({
                 type: RESET_QUERY,
                 payload: {
