@@ -54,7 +54,7 @@ class DeductionController {
             }
             const deduction = await this.DeductionService.updateDeduction(id, employeeId, reason, amount, date)
             return res.status(200).json({
-                success: `Successfully updated deduction. id: ${deduction.id}`
+                success: `Successfully updated deduction. ID: ${deduction.id}`
             })
         } catch (err) {
             console.log(err)
@@ -66,15 +66,16 @@ class DeductionController {
 
     getAllDeduction = async (req, res) => {
         try {
-            const { page, dateFrom, dateTo, amountFrom, amountTo, text } = req.query
-            const deduction = await this.DeductionService.getAllDeduction(page, dateFrom, dateTo, amountFrom, amountTo, text)
+            const { page, limit, dateFrom, dateTo, amountFrom, amountTo, text } = req.query
+            const deduction = await this.DeductionService.getAllDeduction(page, limit, dateFrom, dateTo, amountFrom, amountTo, text)
             return res.status(200).json({
                 deduction: deduction.deduction,
                 employee: deduction.employee,
                 currentPage: deduction.currentPage,
                 currentPageStart: deduction.currentPageStart,
                 currentPageEnd: deduction.currentPageEnd,
-                pageLength: deduction.pageLength
+                pageLength: deduction.pageLength,
+                currentLimit: deduction.currentLimit
             })
         } catch (err) {
             console.log(err)
@@ -95,6 +96,21 @@ class DeductionController {
             const deduction = await this.DeductionService.getDeduction(id)
             return res.status(200).json({
                 deduction: deduction
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    batchUpdateDeduction = async (req, res) => {
+        try {
+            const { id, employee_id, date, reason, amount } = req.body;
+            const deduction = await this.DeductionService.batchUpdateDeduction(id, employee_id, date, reason, amount)
+            return res.status(200).json({
+                success: 'Successfully batch updated deduction records.'
             })
         } catch (err) {
             console.log(err)

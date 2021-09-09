@@ -28,10 +28,13 @@ class DeductionService {
         return deduction
     }
 
-    getAllDeduction = async (page, dateFrom, dateTo, amountFrom, amountTo, text) => {
+    getAllDeduction = async (page, limit, dateFrom, dateTo, amountFrom, amountTo, text) => {
+        if (!page || page < 0) page = 0;
+        if (!limit || limit < 10) limit = 10;
         let currentPage = parseInt(page)
         let currentPageStart = parseInt(page) + 1
         let currentPageEnd = parseInt(page) + 15
+        let currentLimit = parseInt(limit)
 
         const employee = await this.knex('employee').select(['id', 'firstname', 'lastname'])
 
@@ -65,7 +68,7 @@ class DeductionService {
         const deduction = await this.knex('deduction')
             .join('employee', 'deduction.employee_id', 'employee.id')
             .select(['deduction.id', 'deduction.employee_id', 'employee.firstname', 'employee.lastname', 'deduction.date', 'deduction.reason', 'deduction.amount'])
-            .limit(15)
+            .limit(currentLimit)
             .offset(currentPage)
             .orderBy('deduction.id')
             .modify(queryBuilder => {
@@ -90,7 +93,7 @@ class DeductionService {
             currentPageEnd = parseInt(count.count)
         }
 
-        return { deduction: deduction, employee: employee, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count }
+        return { deduction: deduction, employee: employee, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count, currentLimit: currentLimit }
     }
 
     getDeduction = async (id) => {
@@ -98,6 +101,20 @@ class DeductionService {
             .join('employee', 'deduction.employee_id', 'employee.id')
             .select(['deduction.id', 'deduction.employee_id', 'deduction.reason', 'deduction.amount', 'deduction.date', 'employee.firstname', 'employee.lastname'])
             .where('deduction.id', id)
+        return deduction
+    }
+
+    batchUpdateDeduction = async (id, employee_id, date, reason, amount) => {
+        if (!Array.isArray(id)) id = [id]
+        let update = {};
+        if (employee_id) update.employee_id = employee_id
+        if (date) update.date = date
+        if (reason) update.reason = reason
+        if (amount) update.amount = amount
+        const deduction = await this.knex('deduction')
+            .whereIn('id', id)
+            .update(update)
+
         return deduction
     }
 }
