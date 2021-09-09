@@ -30,8 +30,8 @@ function LeaveManagement() {
                         <Button size="tiny" color="red" disabled={leave.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(leave.isBatchDeleting))}>Batch Delete</Button>
                     </Grid.Column>
                     <Grid.Column textAlign="right">
-                        <Button size="tiny" onClick={() => dispatch(toggleFiltering())}> Filter</Button>
-                        <Button size="tiny" color="blue" onClick={() => dispatch(toggleCreating())}>Create Leave Record</Button>
+                        <Button size="tiny" onClick={() => dispatch(toggleFiltering(leave.isFiltering))}> Filter</Button>
+                        <Button size="tiny" color="blue" onClick={() => dispatch(toggleCreating(leave.isCreating))}>Create Leave Record</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
@@ -160,10 +160,10 @@ function LeaveManagement() {
                 isConfigOpen={leave.isCreating}
                 configType={"Create Leave Record"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleCreating())}
+                configPrimaryFunc={() => dispatch(toggleCreating(leave.isCreating))}
                 configSecondaryAction={"Create"}
                 configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(createLeave(leave.applyEmployee, leave.applyReason, leave.applyFrom, leave.applyTo, leave.applyType, leave.applySpan))}
+                configSecondaryFunc={() => dispatch(createLeave(leave.applyEmployee, leave.applyReason, leave.applyFrom, leave.applyTo, leave.applyType, leave.applySpan, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
             >
                 <Form>
                     <Form.Field>
@@ -208,7 +208,7 @@ function LeaveManagement() {
                 isConfigOpen={leave.isFiltering}
                 configType={"Search and Filter"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleFiltering())}
+                configPrimaryFunc={() => dispatch(toggleFiltering(leave.isFiltering))}
                 configSecondaryAction={"Reset"}
                 configSecondaryFunc={() => dispatch(resetQuery(leave.currentPage, leave.currentLimit))}
                 configSecondaryColor={"grey"}

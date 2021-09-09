@@ -1,4 +1,4 @@
-import { APPLY_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, TOGGLE_LEAVE_CREATING, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, RESET_LEAVE } from "../types/leave"
+import { APPLY_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, TOGGLE_LEAVE_CREATING, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, RESET_LEAVE, CREATE_LEAVE } from "../types/leave"
 
 const initialState = {
     record: [],
@@ -129,7 +129,7 @@ const leaveReducer = (state = initialState, action) => {
         case TOGGLE_LEAVE_CREATING:
             return {
                 ...state,
-                isCreating: !state.isCreating
+                isCreating: action.payload.isCreating
             }
         case TOGGLE_LEAVE_BATCH_UPDATING:
             return {
@@ -167,7 +167,7 @@ const leaveReducer = (state = initialState, action) => {
         case TOGGLE_LEAVE_FILTERING:
             return {
                 ...state,
-                isFiltering: !state.isFiltering
+                isFiltering: action.payload.isFiltering
             }
         case RESET_QUERY:
             return {
@@ -217,6 +217,24 @@ const leaveReducer = (state = initialState, action) => {
                 applySpan: action.payload.applySpan,
                 applyReason: action.payload.applyReason,
                 applyEmployee: action.payload.applyEmployee
+            }
+        case CREATE_LEAVE:
+            return {
+                ...state,
+                isCreating: action.payload.isCreating,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
+                applyFrom: action.payload.applyFrom,
+                applyTo: action.payload.applyTo,
+                applyType: action.payload.applyType,
+                applySpan: action.payload.applySpan,
+                applyReason: action.payload.applyReason,
+                applyEmployee: action.payload.applyEmployee,
             }
         default:
             return state

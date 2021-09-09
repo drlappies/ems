@@ -1,4 +1,4 @@
-import { FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, RESET_LEAVE, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_CREATING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING } from "../types/leave";
+import { FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, RESET_LEAVE, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_CREATING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, APPLY_LEAVE, CREATE_LEAVE } from "../types/leave";
 import axios from 'axios'
 import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 
@@ -42,15 +42,26 @@ export const applyLeave = (employeeId, reason, from, to, type, duration) => {
                 duration: duration,
                 type: type
             }
-            await axios.post('/leave', body)
-            dispatch(resetLeave())
+            const res = await axios.post('/leave', body)
+            dispatch(popSuccessMessage(res.data.success))
+            dispatch({
+                type: APPLY_LEAVE,
+                payload: {
+                    applyFrom: "",
+                    applyTo: "",
+                    applyType: "",
+                    applySpan: "",
+                    applyReason: "",
+                    applyEmployee: ""
+                }
+            })
         } catch (err) {
-            console.log(err.response.data.error)
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
 
-export const createLeave = (employeeId, reason, from, to, type, duration) => {
+export const createLeave = (employeeId, reason, from, to, type, duration, currentPage, currentLimit, queryText, queryFrom, queryTo, queryType, queryStatus) => {
     return async (dispatch) => {
         try {
             const body = {
@@ -63,30 +74,48 @@ export const createLeave = (employeeId, reason, from, to, type, duration) => {
             }
             const res = await axios.post('/leave', body)
             dispatch(popSuccessMessage(res.data.success))
-            dispatch(fetchLeave())
-            dispatch({ type: RESET_LEAVE })
-            dispatch({ type: TOGGLE_LEAVE_CREATING })
 
+            const res2 = await axios.get('/leave', {
+                params: {
+                    page: currentPage,
+                    limit: currentLimit,
+                    from: queryFrom,
+                    to: queryTo,
+                    status: queryStatus,
+                    text: queryText,
+                    type: queryType,
+
+                }
+            })
+            dispatch({
+                type: CREATE_LEAVE,
+                payload: {
+                    isCreating: false,
+                    record: res2.data.leave,
+                    employeeList: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
+                    applyFrom: "",
+                    applyTo: "",
+                    applyType: "",
+                    applySpan: "",
+                    applyReason: "",
+                    applyEmployee: "",
+                }
+            })
         } catch (err) {
             dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
 
-export const fetchLeave = (page, from, to, type, status, text) => {
+export const fetchLeave = () => {
     return async (dispatch) => {
         try {
-            if (!page) page = 0
-            const res = await axios.get('/leave', {
-                params: {
-                    page: page,
-                    from: from,
-                    to: to,
-                    type: type,
-                    status: status,
-                    text: text
-                }
-            })
+            const res = await axios.get('/leave')
             dispatch({
                 type: FETCH_LEAVE,
                 payload: {
@@ -201,6 +230,11 @@ export const confirmBatchLeaveUpdate = (leaveId, duration, type, status) => {
 
 export const toggleBatchDeleting = (isBatchDeleting) => {
     return async (dispatch) => {
+        if (isBatchDeleting) {
+            window.history.replaceState(null, null, '/leave/management')
+        } else {
+            window.history.replaceState(null, null, '/leave/management/batchdelete')
+        }
         dispatch({
             type: TOGGLE_LEAVE_BATCH_DELETING,
             payload: {
@@ -260,42 +294,29 @@ export const batchDeleteLeave = (leaveId) => {
 export const toggleViewing = (id) => {
     return async (dispatch) => {
         try {
+            let res;
             if (id) {
-                const res = await axios.get(`/leave/${id}`)
-                dispatch({
-                    type: TOGGLE_LEAVE_VIEWING,
-                    payload: {
-                        isViewing: true,
-                        employeeId: res.data.leave.employee_id,
-                        reason: res.data.leave.reason,
-                        status: res.data.leave.status,
-                        duration: res.data.leave.duration,
-                        from: res.data.leave.from,
-                        to: res.data.leave.to,
-                        firstname: res.data.leave.firstname,
-                        lastname: res.data.leave.lastname,
-                        leaveId: res.data.leave.id,
-                        type: res.data.leave.type
-                    }
-                })
+                res = await axios.get(`/leave/${id}`)
+                window.history.replaceState(null, null, `/leave/management/${id}/details`)
             } else {
-                dispatch({
-                    type: TOGGLE_LEAVE_VIEWING,
-                    payload: {
-                        isViewing: false,
-                        employeeId: "",
-                        reason: "",
-                        status: "",
-                        duration: "",
-                        from: "",
-                        to: "",
-                        firstname: "",
-                        lastname: "",
-                        leaveId: "",
-                        type: ""
-                    }
-                })
+                window.history.replaceState(null, null, `/leave/management`)
             }
+            dispatch({
+                type: TOGGLE_LEAVE_VIEWING,
+                payload: {
+                    isViewing: id ? true : false,
+                    employeeId: id ? res.data.leave.employee_id : "",
+                    reason: id ? res.data.leave.reason : "",
+                    status: id ? res.data.leave.status : "",
+                    duration: id ? res.data.leave.duration : "",
+                    from: id ? res.data.leave.from : "",
+                    to: id ? res.data.leave.to : "",
+                    firstname: id ? res.data.leave.firstname : "",
+                    lastname: id ? res.data.leave.lastname : "",
+                    leaveId: id ? res.data.leave.id : "",
+                    type: id ? res.data.leave.type : ""
+                }
+            })
         } catch (err) {
             console.log(err)
         }
@@ -305,43 +326,30 @@ export const toggleViewing = (id) => {
 export const toggleUpdating = (id) => {
     return async (dispatch) => {
         try {
+            let res;
             if (id) {
-                const res = await axios.get(`/leave/${id}`)
-                console.log(res.data)
-                dispatch({
-                    type: TOGGLE_LEAVE_UPDATING,
-                    payload: {
-                        isUpdating: true,
-                        employeeId: res.data.leave.employee_id,
-                        reason: res.data.leave.reason,
-                        status: res.data.leave.status,
-                        duration: res.data.leave.duration,
-                        from: res.data.leave.from,
-                        to: res.data.leave.to,
-                        firstname: res.data.leave.firstname,
-                        lastname: res.data.leave.lastname,
-                        leaveId: res.data.leave.id,
-                        type: res.data.leave.type
-                    }
-                })
+                res = await axios.get(`/leave/${id}`)
+                window.history.replaceState(null, null, `/leave/management/${id}/update`)
             } else {
-                dispatch({
-                    type: TOGGLE_LEAVE_UPDATING,
-                    payload: {
-                        isUpdating: false,
-                        employeeId: "",
-                        reason: "",
-                        status: "",
-                        duration: "",
-                        from: "",
-                        to: "",
-                        firstname: "",
-                        lastname: "",
-                        leaveId: "",
-                        type: ""
-                    }
-                })
+                window.history.replaceState(null, null, '/leave/management')
             }
+            dispatch({
+                type: TOGGLE_LEAVE_UPDATING,
+                payload: {
+                    isUpdating: id ? true : false,
+                    employeeId: id ? res.data.leave.employee_id : "",
+                    reason: id ? res.data.leave.reason : "",
+                    status: id ? res.data.leave.status : "",
+                    duration: id ? res.data.leave.duration : "",
+                    from: id ? res.data.leave.from : "",
+                    to: id ? res.data.leave.to : "",
+                    firstname: id ? res.data.leave.firstname : "",
+                    lastname: id ? res.data.leave.lastname : "",
+                    leaveId: id ? res.data.leave.id : "",
+                    type: id ? res.data.leave.type : ""
+                }
+            })
+
         } catch (err) {
             console.log(err)
         }
@@ -350,6 +358,12 @@ export const toggleUpdating = (id) => {
 
 export const toggleBatchUpdating = (isBatchUpdating) => {
     return async (dispatch) => {
+        if (isBatchUpdating) {
+            window.history.replaceState(null, null, '/leave/management')
+        } else {
+            window.history.replaceState(null, null, '/leave/management/batchupdate')
+        }
+
         dispatch({
             type: TOGGLE_LEAVE_BATCH_UPDATING,
             payload: {
@@ -365,84 +379,75 @@ export const toggleBatchUpdating = (isBatchUpdating) => {
 export const toggleDeleting = (id) => {
     return async (dispatch) => {
         try {
+            let res;
             if (id) {
-                const res = await axios.get(`/leave/${id}`)
-                dispatch({
-                    type: TOGGLE_LEAVE_DELETING,
-                    payload: {
-                        isDeleting: true,
-                        employeeId: res.data.leave.employee_id,
-                        reason: res.data.leave.reason,
-                        status: res.data.leave.status,
-                        duration: res.data.leave.duration,
-                        from: res.data.leave.from,
-                        to: res.data.leave.to,
-                        firstname: res.data.leave.firstname,
-                        lastname: res.data.leave.lastname,
-                        leaveId: res.data.leave.id,
-                        type: res.data.leave.type
-                    }
-                })
+                res = await axios.get(`/leave/${id}`)
+                window.history.replaceState(null, null, `/leave/management/${id}/delete`)
             } else {
-                dispatch({
-                    type: TOGGLE_LEAVE_DELETING,
-                    payload: {
-                        isDeleting: false,
-                        employeeId: "",
-                        reason: "",
-                        status: "",
-                        duration: "",
-                        from: "",
-                        to: "",
-                        firstname: "",
-                        lastname: "",
-                        leaveId: "",
-                        type: ""
-                    }
-                })
+                window.history.replaceState(null, null, '/leave/management')
             }
+            dispatch({
+                type: TOGGLE_LEAVE_DELETING,
+                payload: {
+                    isDeleting: id ? true : false,
+                    employeeId: id ? res.data.leave.employee_id : "",
+                    reason: id ? res.data.leave.reason : "",
+                    status: id ? res.data.leave.status : "",
+                    duration: id ? res.data.leave.duration : "",
+                    from: id ? res.data.leave.from : "",
+                    to: id ? res.data.leave.to : "",
+                    firstname: id ? res.data.leave.firstname : "",
+                    lastname: id ? res.data.leave.lastname : "",
+                    leaveId: id ? res.data.leave.id : "",
+                    type: id ? res.data.leave.type : ""
+                }
+            })
         } catch (err) {
             console.log(err)
         }
     }
 }
 
-export const toggleCreating = () => {
+export const toggleCreating = (isCreating) => {
     return (dispatch) => {
+        if (isCreating) {
+            window.history.replaceState(null, null, '/leave/management')
+        } else {
+            window.history.replaceState(null, null, '/leave/management/create')
+        }
         dispatch({
             type: TOGGLE_LEAVE_CREATING,
             payload: {
-                isCreating: true
+                isCreating: !isCreating
             }
         })
     }
 }
 
-export const toggleFiltering = () => {
+export const toggleFiltering = (isFiltering) => {
     return (dispatch) => {
+        if (isFiltering) {
+            window.history.replaceState(null, null, '/leave/management')
+        } else {
+            window.history.replaceState(null, null, '/leave/management/search')
+        }
         dispatch({
             type: TOGGLE_LEAVE_FILTERING,
+            payload: {
+                isFiltering: !isFiltering
+            }
         })
     }
 }
 
 export const handleSelect = (e) => {
     return (dispatch) => {
-        if (e.target.checked) {
-            dispatch({
-                type: ADD_TO_LEAVE_SELECTED,
-                payload: {
-                    id: e.target.name
-                }
-            })
-        } else {
-            dispatch({
-                type: REMOVE_FROM_LEAVE_SELECTED,
-                payload: {
-                    id: e.target.name
-                }
-            })
-        }
+        dispatch({
+            type: e.target.checked ? ADD_TO_LEAVE_SELECTED : REMOVE_FROM_LEAVE_SELECTED,
+            payload: {
+                id: e.target.name
+            }
+        })
     }
 }
 
