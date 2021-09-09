@@ -1,4 +1,4 @@
-import { FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, TOGGLE_LEAVE_CREATING, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, RESET_LEAVE } from "../types/leave"
+import { APPLY_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, TOGGLE_LEAVE_CREATING, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, RESET_LEAVE } from "../types/leave"
 
 const initialState = {
     record: [],
@@ -207,6 +207,16 @@ const leaveReducer = (state = initialState, action) => {
                 applySpan: "half_day",
                 applyReason: "",
                 applyEmployee: "",
+            }
+        case APPLY_LEAVE:
+            return {
+                ...state,
+                applyFrom: action.payload.applyFrom,
+                applyTo: action.payload.applyTo,
+                applyType: action.payload.applyType,
+                applySpan: action.payload.applySpan,
+                applyReason: action.payload.applyReason,
+                applyEmployee: action.payload.applyEmployee
             }
         default:
             return state
