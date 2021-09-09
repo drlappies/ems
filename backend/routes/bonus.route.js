@@ -7,5 +7,7 @@ module.exports.BonusRoute = (BonusController) => {
     router.delete('/:id', BonusController.deleteBonus)
     router.get('/', BonusController.getAllBonus);
     router.get('/:id', BonusController.getBonus)
+    router.put('/', BonusController.batchUpdateBonus)
+    router.delete('/', BonusController.batchDeleteBonus)
     return router
 }
