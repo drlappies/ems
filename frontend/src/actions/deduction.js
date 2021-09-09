@@ -1,4 +1,4 @@
-import { CONFIRM_UPDATE_DEDUCTION, CREATE_DEDUCTION, DELETE_DEDUCTION, FETCH_DEDUCTION, FETCH_DEDUCTION_BY_ENTRIES, FETCH_DEDUCTION_BY_FILTER, FETCH_SPECIFIC_DEDUCTION, RESET_DEDUCTION_FILTER, SELECT_ALL_DEDUCTION, SELECT_DEDUCTION, TOGGLE_DEDUCTION_CREATING, TOGGLE_DEDUCTION_DELETING, TOGGLE_DEDUCTION_FILTERING, TOGGLE_DEDUCTION_UPDATING, UNSELECT_ALL_DEDUCTION, UNSELECT_DEDUCTION, UPDATE_DEDUCTION, TOGGLE_DEDUCTION_BATCH_UPDATING, TOGGLE_DEDUCTION_BATCH_DELETING, BATCH_UPDATE_DEDUCTION } from '../types/deduction'
+import { CONFIRM_UPDATE_DEDUCTION, CREATE_DEDUCTION, DELETE_DEDUCTION, FETCH_DEDUCTION, FETCH_DEDUCTION_BY_ENTRIES, FETCH_DEDUCTION_BY_FILTER, RESET_DEDUCTION_FILTER, SELECT_ALL_DEDUCTION, SELECT_DEDUCTION, TOGGLE_DEDUCTION_CREATING, TOGGLE_DEDUCTION_DELETING, TOGGLE_DEDUCTION_FILTERING, TOGGLE_DEDUCTION_UPDATING, UNSELECT_ALL_DEDUCTION, UNSELECT_DEDUCTION, UPDATE_DEDUCTION, TOGGLE_DEDUCTION_BATCH_UPDATING, TOGGLE_DEDUCTION_BATCH_DELETING, BATCH_UPDATE_DEDUCTION } from '../types/deduction'
 import axios from 'axios';
 import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 
@@ -16,28 +16,6 @@ export const fetchDeduction = () => {
                     currentPageEnd: res.data.currentPageEnd,
                     pageLength: res.data.pageLength,
                     currentLimit: res.data.currentLimit
-                }
-            })
-        } catch (err) {
-            console.log(err)
-        }
-    }
-}
-
-export const fetchSpecificDeduction = (id) => {
-    return async (dispatch) => {
-        try {
-            const res = await axios.get(`/deduction/${id}`)
-            dispatch({
-                type: FETCH_SPECIFIC_DEDUCTION,
-                payload: {
-                    deductionId: res.data.deduction.id,
-                    employeeId: res.data.deduction.employee_id,
-                    reason: res.data.deduction.reason,
-                    amount: res.data.deduction.amount,
-                    date: res.data.deduction.date,
-                    firstname: res.data.deduction.firstname,
-                    lastname: res.data.deduction.lastname
                 }
             })
         } catch (err) {
