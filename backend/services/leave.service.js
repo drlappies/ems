@@ -76,7 +76,7 @@ class LeaveService {
         if (currentPageEnd >= count.count) {
             currentPageEnd = parseInt(count.count)
         }
-        console.log(page, from, to, type, status, text, limit)
+
         return { leave: leave, employee: employee, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count, currentLimit: currentLimit }
     }
 
@@ -116,12 +116,9 @@ class LeaveService {
 
     checkLeaveConflict = async (employeeId, from, to) => {
         const leave = await this.knex('leave')
-            .select('id')
-            .where('from', '>=', from)
-            .andWhere('to', '<=', to)
+            .where(queryBuilder => queryBuilder.where('from', '<=', to).andWhere('to', '>=', from))
             .andWhere('employee_id', employeeId)
-
-        return leave.length >= 1
+        return leave
     }
 
     checkAnnualLeave = async (employeeId) => {

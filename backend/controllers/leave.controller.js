@@ -53,14 +53,14 @@ class LeaveController {
                 })
             }
 
-            if (await this.LeaveService.checkLeaveConflict(employeeId, from, to)) {
+            const leaveConflict = await this.LeaveService.checkLeaveConflict(employeeId, from, to)
+            if (leaveConflict.length >= 1) {
                 return res.status(400).json({
-                    error: 'Employee already has leave within this timespan.'
+                    error: 'Found conflicting leave record.'
                 })
             }
 
             const leave = await this.LeaveService.createLeave(employeeId, reason, from, to, duration, type);
-
             res.status(200).json({
                 success: `Successfully applied for leave from ${new Date(leave.from).getFullYear()} - ${new Date(leave.from).getMonth() + 1} - ${new Date(leave.from).getDate()} to ${new Date(leave.to).getFullYear()} - ${new Date(leave.to).getMonth() + 1} - ${new Date(leave.to).getDate()} Reason: ${leave.reason}`
             })
