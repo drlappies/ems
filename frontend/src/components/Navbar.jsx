@@ -41,7 +41,7 @@ function Navbar(props) {
                         <Menu.Item as={Link} to="/attendance/overtime/check_in" onClick={() => dispatch((toggleSidebar()))}>
                             Employee Overtime Check In
                         </Menu.Item>
-                        <Menu.Item as={Link} to="/attendance/leave" onClick={() => dispatch((toggleSidebar()))}>
+                        <Menu.Item as={Link} to="/leave/application" onClick={() => dispatch((toggleSidebar()))}>
                             Employee Leave Application
                         </Menu.Item>
                         <Menu.Item as={Link} to="/attendance" onClick={() => dispatch((toggleSidebar()))}>
@@ -50,7 +50,7 @@ function Navbar(props) {
                         <Menu.Item as={Link} to="/overtime" onClick={() => dispatch((toggleSidebar()))}>
                             Overtime History
                         </Menu.Item>
-                        <Menu.Item as={Link} to="/attendance/leave/history" onClick={() => dispatch((toggleSidebar()))}>
+                        <Menu.Item as={Link} to="/leave/management" onClick={() => dispatch((toggleSidebar()))}>
                             Leave History
                         </Menu.Item>
                     </Menu.Menu>
