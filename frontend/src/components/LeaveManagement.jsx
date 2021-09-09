@@ -26,12 +26,12 @@ function LeaveManagement() {
                 </Grid.Row>
                 <Grid.Row columns="2">
                     <Grid.Column>
-                        <Button size="tiny" color="blue" disabled={!leave.selectedRecord.length} onClick={() => dispatch(toggleBatchUpdating(leave.isBatchUpdating))}>Batch Update</Button>
-                        <Button size="tiny" color="red" disabled={!leave.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(leave.isBatchDeleting))}>Batch Delete</Button>
+                        <Button size="tiny" color="blue" disabled={leave.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchUpdating(leave.isBatchUpdating))}>Batch Update</Button>
+                        <Button size="tiny" color="red" disabled={leave.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(leave.isBatchDeleting))}>Batch Delete</Button>
                     </Grid.Column>
                     <Grid.Column textAlign="right">
                         <Button size="tiny" onClick={() => dispatch(toggleFiltering())}> Filter</Button>
-                        <Button size="tiny" color="linkedin" onClick={() => dispatch(toggleCreating())}>Create Leave Record</Button>
+                        <Button size="tiny" color="blue" onClick={() => dispatch(toggleCreating())}>Create Leave Record</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
@@ -218,20 +218,20 @@ function LeaveManagement() {
             >
                 <Form>
                     <Form.Field>
-                        <label htmlFor="queryText">Contains:</label>
-                        <input type="text" id="queryText" name="queryText" placeholder="ID, employee ID, leave reason..." value={leave.queryText} onChange={(e) => dispatch(updateLeave(e))} />
+                        <label htmlFor="queryText">Keywords:</label>
+                        <input type="text" id="queryText" name="queryText" value={leave.queryText} onChange={(e) => dispatch(updateLeave(e))} />
                     </Form.Field>
                     <Grid>
                         <Grid.Row columns="2">
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryFrom">Leave From:</label>
+                                    <label htmlFor="queryFrom">Date Range From:</label>
                                     <input type="date" id="queryFrom" name="queryFrom" value={leave.queryFrom} onChange={(e) => dispatch(updateLeave(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryTo">Leave To:</label>
+                                    <label htmlFor="queryTo">Date Range To:</label>
                                     <input type="date" id="queryTo" name="queryTo" value={leave.queryTo} onChange={(e) => dispatch(updateLeave(e))} />
                                 </Form.Field>
                             </Grid.Column>
