@@ -16,10 +16,6 @@ function Department() {
         dispatch(fetchDepartment(department.currentPage))
     }, [department.currentPage, dispatch])
 
-    const handleSearch = () => {
-        dispatch(fetchDepartment(department.currentPage, department.currentLimit, department.departmentText))
-    }
-
     return (
         <div className="record">
             <Grid>
@@ -28,13 +24,11 @@ function Department() {
                         <Header>Department Management</Header>
                     </Grid.Column>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
-                        <Button size="tiny" color="red" disabled={!department.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(department.isBatchDeleting))}>Batch Delete</Button>
-                    </Grid.Column>
+                <Grid.Row columns="1">
                     <Grid.Column textAlign="right">
-                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(department.isFiltering))}>Filter</Button>
-                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(department.isCreating))}>Create Department</Button>
+                        <Button size="tiny" color="red" disabled={!department.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(department.isBatchDeleting))}>Batch Delete</Button>
+                        <Button size="tiny" color="teal" primary onClick={() => dispatch(toggleFiltering(department.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(department.isCreating))}>Create Department</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>

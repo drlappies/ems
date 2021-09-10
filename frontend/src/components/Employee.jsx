@@ -34,14 +34,12 @@ function Employee() {
                 <Grid.Row>
                     <Header>Employee Management</Header>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
+                <Grid.Row columns="1">
+                    <Grid.Column textAlign="right">
                         <Button size="tiny" color="blue" onClick={() => dispatch(toggleBatchUpdating(employee.isBatchUpdating))}>Batch Updating</Button>
                         <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(employee.isBatchDeleting))}>Batch Delete</Button>
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(employee.isFiltering))}>Filter</Button>
-                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(employee.isCreating))}>Create Employee</Button>
+                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(employee.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(employee.isCreating))}>Create Employee</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
@@ -53,12 +51,12 @@ function Employee() {
                             />
                             <TableBody
                                 data={data}
-                                primaryAction={"Details"}
+                                primaryAction={"View"}
                                 primaryFunc={(e) => dispatch(toggleViewing(e.target.value))}
-                                primaryActionColor={"blue"}
+                                primaryActionColor={"olive"}
                                 secondaryAction={"Update"}
                                 secondaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
-                                secondaryActionColor={"teal"}
+                                secondaryActionColor={"blue"}
                                 tertiaryAction={"Delete"}
                                 tertiaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
                                 tertiaryActionColor={"red"}

@@ -24,14 +24,12 @@ function Payroll() {
                         <Header>Employee Payroll Management</Header>
                     </Grid.Column>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
+                <Grid.Row columns="1">
+                    <Grid.Column textAlign="right">
                         <Button size="tiny" color="blue" disabled={!payroll.selectedRecord.length} onClick={() => dispatch(toggleBatchUpdating(payroll.isBatchUpdating))}>Batch Update</Button>
                         <Button size="tiny" color="red" disabled={!payroll.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(payroll.isBatchDeleting))}>Batch Delete</Button>
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(payroll.isFiltering))}>Filter</Button>
-                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(payroll.isCreating))}>Generate Payroll</Button>
+                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(payroll.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(payroll.isCreating))}>Generate Payroll</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
@@ -43,10 +41,10 @@ function Payroll() {
                             />
                             <TableBody
                                 data={payroll.record}
-                                primaryAction={"Details"}
-                                primaryActionColor={"teal"}
+                                primaryAction={"View"}
+                                primaryActionColor={"olive"}
                                 primaryFunc={(e) => dispatch(toggleViewing(e.target.value))}
-                                secondaryAction={"Edit"}
+                                secondaryAction={"Update"}
                                 secondaryActionColor={"blue"}
                                 secondaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
                                 tertiaryAction={"Delete"}

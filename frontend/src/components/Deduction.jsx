@@ -24,14 +24,12 @@ function Deduction() {
                         <Header>Employee Payroll Deduction Management</Header>
                     </Grid.Column>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
+                <Grid.Row columns="1">
+                    <Grid.Column textAlign="right">
                         <Button size="tiny" color="blue" onClick={() => dispatch(toggleBatchUpdating(deduction.isBatchUpdating))} disabled={deduction.selectedRecord.length < 2}>Batch Update</Button>
                         <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(deduction.isBatchDeleting))} disabled={deduction.selectedRecord.length < 2}>Batch Delete</Button>
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(deduction.isFiltering))}>Filter</Button>
-                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(deduction.isCreating))}>Create Deduction</Button>
+                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(deduction.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(deduction.isCreating))}>Create Deduction</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>

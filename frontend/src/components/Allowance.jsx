@@ -24,14 +24,12 @@ function Allowance() {
                         <Header>Employee Allowance Management</Header>
                     </Grid.Column>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
+                <Grid.Row columns="1">
+                    <Grid.Column textAlign="right">
                         <Button size="tiny" color="blue" onClick={() => dispatch(toggleBatchUpdating(allowance.isBatchUpdating))} disabled={!allowance.selectedRecord.length}>Batch Update</Button>
                         <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(allowance.isBatchDeleting))} disabled={!allowance.selectedRecord.length}>Batch Delete</Button>
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(allowance.isFiltering))}>Filter</Button>
-                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(allowance.isCreating))}>Create Allowance</Button>
+                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(allowance.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(allowance.isCreating))}>Create Allowance</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
@@ -46,12 +44,12 @@ function Allowance() {
                                 primaryAction={"Update"}
                                 primaryActionColor={"blue"}
                                 primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
-                                secondaryAction={"Delete"}
-                                secondaryActionColor={"red"}
-                                secondaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
-                                tertiaryAction={"Manage"}
-                                tertiaryFunc={(e) => dispatch(toggleManaging(e.target.value))}
-                                tertiaryActionColor={'teal'}
+                                tertiaryAction={"Delete"}
+                                tertiaryActionColor={"red"}
+                                tertiaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
+                                secondaryAction={"Manage"}
+                                secondaryFunc={(e) => dispatch(toggleManaging(e.target.value))}
+                                secondaryActionColor={'orange'}
                                 checkedRows={allowance.selectedRecord}
                                 checkFunc={(e) => dispatch(handleSelect(e))}
                             />

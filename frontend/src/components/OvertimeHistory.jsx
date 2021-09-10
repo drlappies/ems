@@ -22,47 +22,47 @@ function OvertimeHistory() {
                 <Grid.Row>
                     <Header>Employee Overtime Management</Header>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
+                <Grid.Row columns="1">
+                    <Grid.Column textAlign="right">
                         <Button size="tiny" color="blue" disabled={overtime.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchUpdating(overtime.isBatchUpdating))}>Batch Update</Button>
                         <Button size="tiny" color="red" disabled={overtime.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(overtime.isBatchDeleting))}>Batch Delete</Button>
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" onClick={() => dispatch(toggleFiltering(overtime.isFiltering))}>Filter</Button>
-                        <Button size="tiny" color="blue" onClick={() => dispatch(toggleCreating(overtime.isCreating))}>Create record</Button>
+                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(overtime.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(overtime.isCreating))}>Create record</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
-                    <Table celled size="small">
-                        <TableHeader
-                            header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Time in', 'Time out', 'Date', 'Status', 'Actions']}
-                            checkName={"selectAll"}
-                            checkValue={overtime.isAllSelected}
-                            checkFunc={(e) => dispatch(toggleSelectAll(e, overtime.overtimeRecord))}
-                        />
-                        <TableBody
-                            data={overtime.overtimeRecord}
-                            primaryAction={"Update"}
-                            primaryActionColor={"teal"}
-                            primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
-                            secondaryAction={"Delete"}
-                            secondaryActionColor={"red"}
-                            secondaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
-                            checkedRows={overtime.selectedRecord}
-                            checkFunc={(e) => dispatch(handleSelect(e))}
-                        />
-                        <TableFooter
-                            colSpan={11}
-                            pageStart={overtime.currentPageStart}
-                            pageEnd={overtime.currentPageEnd}
-                            pageTotal={overtime.pageLength}
-                            entriesName={"currentLimit"}
-                            entriesNum={overtime.currentLimit}
-                            entriesFunc={(e, result) => dispatch(fetchOvertimeRecordByEntries(result.value, overtime.currentPage, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
-                            onNext={() => dispatch(fetchNextOvertimeRecord(overtime.currentPage, overtime.pageLength, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
-                            onPrevious={() => dispatch(fetchPreviousOvertimeRecord(overtime.currentPage, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
-                        />
-                    </Table>
+                    <Grid.Column>
+                        <Table celled size="small" selectable>
+                            <TableHeader
+                                header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Time in', 'Time out', 'Date', 'Status', 'Actions']}
+                                checkName={"selectAll"}
+                                checkValue={overtime.isAllSelected}
+                                checkFunc={(e) => dispatch(toggleSelectAll(e, overtime.overtimeRecord))}
+                            />
+                            <TableBody
+                                data={overtime.overtimeRecord}
+                                primaryAction={"Update"}
+                                primaryActionColor={"blue"}
+                                primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
+                                secondaryAction={"Delete"}
+                                secondaryActionColor={"red"}
+                                secondaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
+                                checkedRows={overtime.selectedRecord}
+                                checkFunc={(e) => dispatch(handleSelect(e))}
+                            />
+                            <TableFooter
+                                colSpan={11}
+                                pageStart={overtime.currentPageStart}
+                                pageEnd={overtime.currentPageEnd}
+                                pageTotal={overtime.pageLength}
+                                entriesName={"currentLimit"}
+                                entriesNum={overtime.currentLimit}
+                                entriesFunc={(e, result) => dispatch(fetchOvertimeRecordByEntries(result.value, overtime.currentPage, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
+                                onNext={() => dispatch(fetchNextOvertimeRecord(overtime.currentPage, overtime.pageLength, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
+                                onPrevious={() => dispatch(fetchPreviousOvertimeRecord(overtime.currentPage, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
+                            />
+                        </Table>
+                    </Grid.Column>
                 </Grid.Row>
             </Grid>
             <Config

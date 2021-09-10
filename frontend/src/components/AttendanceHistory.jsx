@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { fetchAttendance, fetchNext, fetchPrevious, deleteAttendance, updateAttendance, createAttendance, handleUpdateAttendance, resetQuery, toggleUpdating, toggleCreating, toggleFiltering, toggleBatchUpdating, toggleBatchDeleting, toggleDeleting, updateRow, fetchAttendanceByQuery, toggleSelect, toggleSelectAll, updateBatchAttendance, batchDeleteAttendance } from '../actions/attendance';
 import { useSelector, useDispatch } from 'react-redux';
-import { Table, Grid, Form, Button, Header } from 'semantic-ui-react'
+import { Table, Grid, Form, Button, Header, Input, Label } from 'semantic-ui-react'
 import TableHeader from './TableHeader';
 import TableFooter from './TableFooter';
 import TableBody from './TableBody';
@@ -24,14 +24,12 @@ function AttendanceHistory() {
                         <Header>Employee Attendance Management</Header>
                     </Grid.Column>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
+                <Grid.Row columns="1">
+                    <Grid.Column textAlign="right">
                         <Button size="mini" color="blue" disabled={!attendance.selectedRecord.length} onClick={() => dispatch(toggleBatchUpdating(attendance.isBatchUpdating))}>Batch Update</Button>
                         <Button size="mini" color="red" disabled={!attendance.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(attendance.isBatchDeleting))}>Batch Delete</Button>
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button size="mini" onClick={() => dispatch(toggleFiltering(attendance.isFiltering))} color="grey">Filter</Button>
-                        <Button size="mini" color="blue" onClick={() => dispatch(toggleCreating(attendance.isCreating))}>Create record</Button>
+                        <Button size="mini" color="teal" onClick={() => dispatch(toggleFiltering(attendance.isFiltering))}>Filter</Button>
+                        <Button size="mini" color="green" onClick={() => dispatch(toggleCreating(attendance.isCreating))}>Create record</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
@@ -45,7 +43,7 @@ function AttendanceHistory() {
                         <TableBody
                             data={attendance.record}
                             primaryAction={"Update"}
-                            primaryActionColor={"teal"}
+                            primaryActionColor={"blue"}
                             primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
                             secondaryAction={"Delete"}
                             secondaryActionColor={"red"}
@@ -184,11 +182,11 @@ function AttendanceHistory() {
             >
                 <Form>
                     <Form.Field>
-                        <label htmlFor="queryText">Contains:</label>
-                        <input id="queryText" name="queryText" placeholder="Employee Name" value={attendance.queryText} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
+                        <label htmlFor="queryText">Keywords</label>
+                        <input id="queryText" name="queryText" value={attendance.queryText} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
                     </Form.Field>
                     <Form.Field>
-                        <label htmlFor="queryStatus">Status:</label>
+                        <label htmlFor="queryStatus">Status</label>
                         <select id="queryStatus" name="queryStatus" value={attendance.queryStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
                             <option value="" hidden>Status</option>
                             <option value="on_time">On Time</option>
@@ -199,13 +197,13 @@ function AttendanceHistory() {
                         <Grid.Row columns="2">
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryDateFrom">Date From:</label>
+                                    <label htmlFor="queryDateFrom">Date From</label>
                                     <input type="date" id="queryDateFrom" name="queryDateFrom" value={attendance.queryDateFrom} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryDateTo">Date To:</label>
+                                    <label htmlFor="queryDateTo">Date To</label>
                                     <input type="date" id="queryDateTo" name="queryDateTo" value={attendance.queryDateTo} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
                                 </Form.Field>
                             </Grid.Column>
@@ -213,13 +211,13 @@ function AttendanceHistory() {
                         <Grid.Row columns="2">
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryCheckinFrom">Check In From:</label>
+                                    <label htmlFor="queryCheckinFrom">Check In From</label>
                                     <input type="time" step="1" id="queryCheckinFrom" name="queryCheckinFrom" value={attendance.queryCheckinFrom} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryCheckinTo">Check In To:</label>
+                                    <label htmlFor="queryCheckinTo">Check In To</label>
                                     <input type="time" step="1" id="queryCheckinTo" name="queryCheckinTo" value={attendance.queryCheckinTo} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
                                 </Form.Field>
                             </Grid.Column>
@@ -227,13 +225,13 @@ function AttendanceHistory() {
                         <Grid.Row columns="2">
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryCheckoutFrom">Check Out From:</label>
+                                    <label htmlFor="queryCheckoutFrom">Check Out From</label>
                                     <input type="time" step="1" id="queryCheckoutFrom" name="queryCheckoutFrom" value={attendance.queryCheckoutFrom} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryCheckoutTo">Check Out To:</label>
+                                    <label htmlFor="queryCheckoutTo">Check Out To</label>
                                     <input type="time" step="1" id="queryCheckoutTo" name="queryCheckoutTo" value={attendance.queryCheckoutTo} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
                                 </Form.Field>
                             </Grid.Column>

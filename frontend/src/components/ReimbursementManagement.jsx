@@ -26,14 +26,12 @@ function ReimbursementManagement() {
                         </Header>
                     </Grid.Column>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
+                <Grid.Row columns="1">
+                    <Grid.Column textAlign="right">
                         <Button color="blue" size="tiny" onClick={() => dispatch(toggleBatchUpdating(reimbursement.isBatchUpdating))} disabled={reimbursement.selectedRecord.length < 2}>Batch Update</Button>
                         <Button color="red" size="tiny" onClick={() => dispatch(toggleBatchDeleting(reimbursement.isBatchDeleting))} disabled={reimbursement.selectedRecord.length < 2}>Batch Delete</Button>
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button primary size="tiny" onClick={() => dispatch(toggleFiltering(reimbursement.isFiltering))}>Filter</Button>
-                        <Button secondary size="tiny" onClick={() => dispatch(toggleCreating(reimbursement.isCreating))}>Create Reimbursement Record</Button>
+                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(reimbursement.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(reimbursement.isCreating))}>Create Reimbursement Record</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>

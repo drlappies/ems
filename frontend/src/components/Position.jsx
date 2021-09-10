@@ -24,13 +24,11 @@ function Position() {
                         <Header>Position Management</Header>
                     </Grid.Column>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
-                        <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(position.isBatchDeleting))}>Batch Delete</Button>
-                    </Grid.Column>
+                <Grid.Row columns="1">
                     <Grid.Column textAlign="right">
-                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(position.isFiltering))}>Filter</Button>
-                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(position.isCreating))}>Create Position</Button>
+                        <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(position.isBatchDeleting))}>Batch Delete</Button>
+                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(position.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(position.isCreating))}>Create Position</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>

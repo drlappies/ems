@@ -24,14 +24,12 @@ function Bonus() {
                         <Header>Employee Bonus Management</Header>
                     </Grid.Column>
                 </Grid.Row>
-                <Grid.Row columns="2">
-                    <Grid.Column>
+                <Grid.Row columns="1">
+                    <Grid.Column textAlign="right">
                         <Button size="tiny" color="blue" disabled={bonus.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchUpdating(bonus.isBatchUpdating))}>Batch Update</Button>
                         <Button size="tiny" color="red" disabled={bonus.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(bonus.isBatchDeleting))}>Batch Delete</Button>
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(bonus.isFiltering))}>Filter</Button>
-                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(bonus.isCreating))}>Create Bonus</Button>
+                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(bonus.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(bonus.isCreating))}>Create Bonus</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
