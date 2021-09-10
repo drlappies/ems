@@ -24,12 +24,12 @@ function OvertimeHistory() {
                 </Grid.Row>
                 <Grid.Row columns="2">
                     <Grid.Column>
-                        <Button size="tiny" color="blue" disabled={!overtime.selectedRecord.length} onClick={() => dispatch(toggleBatchUpdating(overtime.isBatchUpdating))}>Batch Update</Button>
-                        <Button size="tiny" color="red" disabled={!overtime.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(overtime.isBatchDeleting))}>Batch Delete</Button>
+                        <Button size="tiny" color="blue" disabled={overtime.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchUpdating(overtime.isBatchUpdating))}>Batch Update</Button>
+                        <Button size="tiny" color="red" disabled={overtime.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(overtime.isBatchDeleting))}>Batch Delete</Button>
                     </Grid.Column>
                     <Grid.Column textAlign="right">
-                        <Button size="tiny" primary onClick={() => dispatch(toggleFiltering(overtime.isFiltering))}>Filter</Button>
-                        <Button size="tiny" secondary onClick={() => dispatch(toggleCreating(overtime.isCreating))}>Create record</Button>
+                        <Button size="tiny" onClick={() => dispatch(toggleFiltering(overtime.isFiltering))}>Filter</Button>
+                        <Button size="tiny" color="blue" onClick={() => dispatch(toggleCreating(overtime.isCreating))}>Create record</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
@@ -43,7 +43,7 @@ function OvertimeHistory() {
                         <TableBody
                             data={overtime.overtimeRecord}
                             primaryAction={"Update"}
-                            primaryActionColor={"blue"}
+                            primaryActionColor={"teal"}
                             primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
                             secondaryAction={"Delete"}
                             secondaryActionColor={"red"}
@@ -70,12 +70,9 @@ function OvertimeHistory() {
                 configType={"Update Overtime Record"}
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleUpdating())}
-                configSecondaryAction={"Approve"}
-                configSecondaryFunc={() => dispatch(updateOvertimeRecord(overtime.overtimeId, overtime.overtimeFrom, overtime.overtimeTo, 'approved'))}
+                configSecondaryAction={"Update"}
+                configSecondaryFunc={() => dispatch(updateOvertimeRecord(overtime.overtimeId, overtime.overtimeFrom, overtime.overtimeTo, overtime.overtimeStatus, overtime.currentPage, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
                 configSecondaryColor={"green"}
-                configTertiaryAction={"Reject"}
-                configTertiaryFunc={() => dispatch(updateOvertimeRecord(overtime.overtimeId, overtime.overtimeFrom, overtime.overtimeTo, 'rejected'))}
-                configTertiaryColor={"red"}
             >
                 <p><strong>Overtime Record id: </strong>{overtime.overtimeId}</p>
                 <p><strong>Employee id: </strong>{overtime.overtimeEmployeeId}</p>
@@ -88,8 +85,16 @@ function OvertimeHistory() {
                         <input id="overtimeFrom" name="overtimeFrom" type="time" step="1" value={overtime.overtimeFrom} onChange={(e) => dispatch(updateOvertime(e))} />
                     </Form.Field>
                     <Form.Field>
-                        <label htmlFor="to">Check out</label>
+                        <label htmlFor="overtimeTo">Check out</label>
                         <input id="overtimeTo" name="overtimeTo" type="time" step="1" value={overtime.overtimeTo} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="overtimeStatus">Status</label>
+                        <select id="overtimeStatus" name="overtimeStatus" value={overtime.overtimeStatus} onChange={(e) => dispatch(updateOvertime(e))}>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
                     </Form.Field>
                 </Form>
             </Config>
@@ -136,7 +141,7 @@ function OvertimeHistory() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleDeleting())}
                 configSecondaryAction={"Delete"}
-                configSecondaryFunc={() => dispatch(deleteOvertime(overtime.overtimeId))}
+                configSecondaryFunc={() => dispatch(deleteOvertime(overtime.overtimeId, overtime.currentPage, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
                 configSecondaryColor={"red"}
             >
                 <p><strong>Are you sure to delete the following overtime record?</strong></p>
@@ -236,10 +241,10 @@ function OvertimeHistory() {
                 isConfigOpen={overtime.isBatchUpdating}
                 configType={"Batch Update Overtime Record"}
                 configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchUpdating())}
+                configPrimaryFunc={() => dispatch(toggleBatchUpdating(overtime.isBatchUpdating))}
                 configSecondaryAction={"Batch Update"}
                 configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(updateBatchOvertimeRecord(overtime.selectedRecord, overtime.updateOvertimeTimein, overtime.updateOvertimeTimeout, overtime.updateOvertimeStatus))}
+                configSecondaryFunc={() => dispatch(updateBatchOvertimeRecord(overtime.selectedRecord, overtime.updateOvertimeTimein, overtime.updateOvertimeTimeout, overtime.updateOvertimeStatus, overtime.currentPage, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
             >
                 <Form>
                     <Form.Field>
@@ -268,7 +273,7 @@ function OvertimeHistory() {
                 configPrimaryFunc={() => dispatch(toggleBatchDeleting(overtime.isBatchDeleting))}
                 configSecondaryAction={"Delete"}
                 configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(batchDeleteOvertime(overtime.selectedRecord))}
+                configSecondaryFunc={() => dispatch(batchDeleteOvertime(overtime.selectedRecord, overtime.currentPage, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
             >
                 <p><strong>Are you sure to batch delete the following records?</strong></p>
                 {overtime.selectedRecord.map((el, i) =>
