@@ -108,10 +108,10 @@ class AttendanceController {
 
     deleteAttendance = async (req, res) => {
         try {
-            const { ids } = req.query
-            const attendance = await this.AttendanceService.deleteAttendance(ids)
+            const { id } = req.params
+            const attendance = await this.AttendanceService.deleteAttendance(id)
             return res.status(200).json({
-                success: `Successfully deleted attendance record`
+                success: `Successfully deleted attendance record ID ${attendance.id}`
             })
         } catch (err) {
             console.log(err)
@@ -123,8 +123,9 @@ class AttendanceController {
 
     updateAttendance = async (req, res) => {
         try {
-            const { ids, check_in, check_out, status } = req.body
-            const attendance = await this.AttendanceService.updateAttendance(ids, check_in, check_out, status)
+            const { id } = req.params
+            const { check_in, check_out, status } = req.body
+            const attendance = await this.AttendanceService.updateAttendance(id, check_in, check_out, status)
             return res.status(200).json({
                 success: 'Successfully updated attendance record'
             })
@@ -179,6 +180,37 @@ class AttendanceController {
             const attendance = await this.AttendanceService.getAttendance(id);
             return res.status(200).json({
                 attendance: attendance
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    batchDeleteAttendance = async (req, res) => {
+        try {
+            const { id } = req.query;
+            console.log(id)
+            const attendance = await this.AttendanceService.batchDeleteAttendance(id)
+            return res.status(200).json({
+                success: 'Successfully batch deleted attendance record.'
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    batchUpdateAttendance = async (req, res) => {
+        try {
+            const { id, check_in, check_out, status } = req.body
+            const attendance = await this.AttendanceService.batchUpdateAttendance(id, check_in, check_out, status)
+            return res.status(200).json({
+                success: 'Successfully batch updated attendance record.'
             })
         } catch (err) {
             console.log(err)

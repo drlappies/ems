@@ -213,30 +213,21 @@ class AttendanceService extends EmployeeService {
         return { rate: rate }
     }
 
-    deleteAttendance = async (ids) => {
-        if (!Array.isArray(ids)) ids = [ids]
+    deleteAttendance = async (id) => {
         const [attendance] = await this.knex('attendance')
-            .whereIn('id', ids)
-            .del(['id', 'employee_id', 'check_in', 'check_out', 'date', 'status'])
+            .where('id', id)
+            .del(['id'])
         return attendance
     }
 
-    updateAttendance = async (ids, check_in, check_out, status) => {
-        const updateBatch = {};
-
-        if (check_in) {
-            updateBatch.check_in = check_in
-        }
-        if (check_out) {
-            updateBatch.check_out = check_out
-        }
-        if (status) {
-            updateBatch.status = status;
-        }
-
+    updateAttendance = async (id, check_in, check_out, status) => {
         const attendance = await this.knex('attendance')
-            .whereIn('id', ids)
-            .update(updateBatch, ['id'])
+            .where('id', id)
+            .update({
+                check_in: check_in,
+                check_out: check_out,
+                status: status
+            }, ['id'])
         return attendance
     }
 
@@ -265,6 +256,24 @@ class AttendanceService extends EmployeeService {
             .join('employee', 'attendance.employee_id', 'employee.id')
             .where('attendance.id', id)
 
+        return attendance
+    }
+
+    batchDeleteAttendance = async (id) => {
+        const attendance = await this.knex('attendance')
+            .whereIn('id', id)
+            .del(['id'])
+        return attendance
+    }
+
+    batchUpdateAttendance = async (id, check_in, check_out, status) => {
+        let update = {};
+        if (check_in) update.check_in = check_in;
+        if (check_out) update.check_out = check_out;
+        if (status) update.status = status;
+        const attendance = await this.knex('attendance')
+            .whereIn('id', id)
+            .update(update)
         return attendance
     }
 }
