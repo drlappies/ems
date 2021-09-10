@@ -1,4 +1,4 @@
-import { FETCH_ATTENDANCE, UPDATE_ATTENDANCE, FETCH_SPECIFIC_ATTENDANCE, RESET_ATTENDANCE, ADD_SELECTED, REMOVE_SELECTED, RESET_SELECTED, RESET_QUERY, UPDATE_ROW, ADD_ALL_SELECTED, TOGGLE_UPDATING, TOGGLE_CREATING, TOGGLE_FILTERING, TOGGLE_BATCH_DELETING, TOGGLE_DELETING, TOGGLE_BATCH_UPDATING } from '../types/attendance'
+import { FETCH_ATTENDANCE, UPDATE_ATTENDANCE, FETCH_SPECIFIC_ATTENDANCE, RESET_ATTENDANCE, ADD_SELECTED, REMOVE_SELECTED, RESET_SELECTED, RESET_QUERY, UPDATE_ROW, ADD_ALL_SELECTED, TOGGLE_UPDATING, TOGGLE_CREATING, TOGGLE_FILTERING, TOGGLE_BATCH_DELETING, TOGGLE_DELETING, TOGGLE_BATCH_UPDATING, DELETE_ATTENDANCE, BATCH_DELETE_ATTENDANCE, UPDATE_ATTENDANCE_RECORD, BATCH_UPDATE_ATTENDANCE, CREATE_ATTENDANCE, FETCH_ATTENDANCE_BY_FILTER } from '../types/attendance'
 
 const initialState = {
     record: [],
@@ -94,19 +94,20 @@ const attendanceReducer = (state = initialState, action) => {
         case RESET_SELECTED:
             return {
                 ...state,
-                selectedRecord: []
+                selectedRecord: action.payload.selectedRecord
             }
         case RESET_QUERY:
             return {
                 ...state,
-                queryText: "",
-                queryStatus: "",
-                queryDateFrom: "",
-                queryDateTo: "",
-                queryCheckinFrom: "",
-                queryCheckinTo: "",
-                queryCheckoutFrom: "",
-                queryCheckoutTo: "",
+                isFiltering: action.payload.isFiltering,
+                queryText: action.payload.queryText,
+                queryStatus: action.payload.queryStatus,
+                queryDateFrom: action.payload.queryDateFrom,
+                queryDateTo: action.payload.queryDateTo,
+                queryCheckinFrom: action.payload.queryCheckinFrom,
+                queryCheckinTo: action.payload.queryCheckinTo,
+                queryCheckoutFrom: action.payload.queryCheckoutFrom,
+                queryCheckoutTo: action.payload.queryCheckoutTo,
                 record: action.payload.record,
                 pageLength: action.payload.count,
                 currentPage: action.payload.page,
@@ -147,12 +148,12 @@ const attendanceReducer = (state = initialState, action) => {
         case TOGGLE_CREATING:
             return {
                 ...state,
-                isCreating: !state.isCreating
+                isCreating: action.payload.isCreating
             }
         case TOGGLE_DELETING:
             return {
                 ...state,
-                isDeleting: !state.isDeleting,
+                isDeleting: action.payload.isDeleting,
                 attendanceId: action.payload.attendanceId,
                 employeeId: action.payload.employeeId,
                 employeeFirstname: action.payload.employeeFirstname,
@@ -165,20 +166,93 @@ const attendanceReducer = (state = initialState, action) => {
         case TOGGLE_FILTERING:
             return {
                 ...state,
-                isFiltering: !state.isFiltering
+                isFiltering: action.payload.isFiltering
             }
         case TOGGLE_BATCH_DELETING:
             return {
                 ...state,
-                isBatchDeleting: !state.isBatchDeleting
+                isBatchDeleting: action.payload.isBatchDeleting
             }
         case TOGGLE_BATCH_UPDATING:
             return {
                 ...state,
-                isBatchUpdating: !state.isBatchUpdating,
-                updateAttendanceCheckin: "",
-                updateAttendanceCheckout: "",
-                updateAttendanceStatus: "",
+                isBatchUpdating: action.payload.isBatchUpdating,
+                updateAttendanceCheckin: action.payload.updateAttendanceCheckin,
+                updateAttendanceCheckout: action.payload.updateAttendanceCheckout,
+                updateAttendanceStatus: action.payload.updateAttendanceStatus,
+            }
+        case DELETE_ATTENDANCE:
+            return {
+                ...state,
+                isDeleting: action.payload.isDeleting,
+                record: action.payload.record,
+                pageLength: action.payload.count,
+                currentPage: action.payload.page,
+                currentPageStart: action.payload.pageStart,
+                currentPageEnd: action.payload.pageEnd,
+                employeeList: action.payload.employeeList,
+                currentLimit: action.payload.currentLimit,
+            }
+        case BATCH_DELETE_ATTENDANCE:
+            return {
+                ...state,
+                isBatchDeleting: action.payload.isBatchDeleting,
+                record: action.payload.record,
+                pageLength: action.payload.count,
+                currentPage: action.payload.page,
+                currentPageStart: action.payload.pageStart,
+                currentPageEnd: action.payload.pageEnd,
+                employeeList: action.payload.employeeList,
+                currentLimit: action.payload.currentLimit,
+                selectedRecord: action.payload.selectedRecord
+            }
+        case UPDATE_ATTENDANCE_RECORD:
+            return {
+                ...state,
+                isUpdating: action.payload.isUpdating,
+                record: action.payload.record,
+                pageLength: action.payload.count,
+                currentPage: action.payload.page,
+                currentPageStart: action.payload.pageStart,
+                currentPageEnd: action.payload.pageEnd,
+                employeeList: action.payload.employeeList,
+                currentLimit: action.payload.currentLimit,
+            }
+        case BATCH_UPDATE_ATTENDANCE:
+            return {
+                ...state,
+                isBatchUpdating: action.payload.isBatchUpdating,
+                record: action.payload.record,
+                pageLength: action.payload.count,
+                currentPage: action.payload.page,
+                currentPageStart: action.payload.pageStart,
+                currentPageEnd: action.payload.pageEnd,
+                employeeList: action.payload.employeeList,
+                currentLimit: action.payload.currentLimit,
+            }
+        case CREATE_ATTENDANCE:
+            return {
+                ...state,
+                isCreating: action.payload.isCreating,
+                record: action.payload.record,
+                pageLength: action.payload.count,
+                currentPage: action.payload.page,
+                currentPageStart: action.payload.pageStart,
+                currentPageEnd: action.payload.pageEnd,
+                employeeList: action.payload.employeeList,
+                currentLimit: action.payload.currentLimit,
+            }
+        case FETCH_ATTENDANCE_BY_FILTER:
+            return {
+                ...state,
+                isFiltering: action.payload.isFiltering,
+                record: action.payload.record,
+                pageLength: action.payload.count,
+                currentPage: action.payload.page,
+                currentPageStart: action.payload.pageStart,
+                currentPageEnd: action.payload.pageEnd,
+                employeeList: action.payload.employeeList,
+                currentLimit: action.payload.currentLimit,
             }
         default:
             return state

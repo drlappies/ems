@@ -30,8 +30,8 @@ function AttendanceHistory() {
                         <Button size="mini" color="red" disabled={!attendance.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(attendance.isBatchDeleting))}>Batch Delete</Button>
                     </Grid.Column>
                     <Grid.Column textAlign="right">
-                        <Button size="mini" primary onClick={() => dispatch(toggleFiltering(attendance.isFiltering))} color="grey">Filter</Button>
-                        <Button size="mini" secondary onClick={() => dispatch(toggleCreating())}>Create record</Button>
+                        <Button size="mini" onClick={() => dispatch(toggleFiltering(attendance.isFiltering))} color="grey">Filter</Button>
+                        <Button size="mini" color="blue" onClick={() => dispatch(toggleCreating(attendance.isCreating))}>Create record</Button>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
@@ -45,7 +45,7 @@ function AttendanceHistory() {
                         <TableBody
                             data={attendance.record}
                             primaryAction={"Update"}
-                            primaryActionColor={"blue"}
+                            primaryActionColor={"teal"}
                             primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
                             secondaryAction={"Delete"}
                             secondaryActionColor={"red"}
@@ -73,18 +73,17 @@ function AttendanceHistory() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleDeleting())}
                 configSecondaryAction={"Delete"}
-                configSecondaryFunc={() => dispatch(deleteAttendance(attendance.attendanceId))}
+                configSecondaryColor={"red"}
+                configSecondaryFunc={() => dispatch(deleteAttendance(attendance.attendanceId, attendance.currentPage, attendance.currentLimit, attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo))}
             >
-                <React.Fragment>
-                    <p><strong>Are you sure to delete the following attendance record?</strong></p>
-                    <p><strong>Attendance record ID: </strong>{attendance.attendanceId}</p>
-                    <p><strong>Employee ID: </strong>{attendance.employeeId}</p>
-                    <p><strong>Employee: </strong>{attendance.employeeFirstname} {attendance.employeeLastname}</p>
-                    <p><strong>Date: </strong>{new Date(attendance.attendanceDate).getFullYear()} - {new Date(attendance.attendanceDate).getMonth() + 1} - {new Date(attendance.attendanceDate).getDate()}</p>
-                    <p><strong>Check in: </strong>{attendance.attendanceCheckin}</p>
-                    <p><strong>Check out: </strong>{attendance.attendanceCheckout ? attendance.attendanceCheckout : "Employee did not check out."}</p>
-                    <p><strong>Status: </strong>{attendance.attendanceStatus}</p>
-                </React.Fragment>
+                <p><strong>Are you sure to delete the following attendance record?</strong></p>
+                <p><strong>Attendance record ID: </strong>{attendance.attendanceId}</p>
+                <p><strong>Employee ID: </strong>{attendance.employeeId}</p>
+                <p><strong>Employee: </strong>{attendance.employeeFirstname} {attendance.employeeLastname}</p>
+                <p><strong>Date: </strong>{new Date(attendance.attendanceDate).getFullYear()} - {new Date(attendance.attendanceDate).getMonth() + 1} - {new Date(attendance.attendanceDate).getDate()}</p>
+                <p><strong>Check in: </strong>{attendance.attendanceCheckin}</p>
+                <p><strong>Check out: </strong>{attendance.attendanceCheckout ? attendance.attendanceCheckout : "Employee did not check out."}</p>
+                <p><strong>Status: </strong>{attendance.attendanceStatus}</p>
             </Config>
             <Config
                 isConfigOpen={attendance.isUpdating}
@@ -92,7 +91,7 @@ function AttendanceHistory() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleUpdating())}
                 configSecondaryAction={"Update"}
-                configSecondaryFunc={() => dispatch(updateAttendance(attendance.attendanceId, attendance.attendanceCheckin, attendance.attendanceCheckout, attendance.attendanceStatus))}
+                configSecondaryFunc={() => dispatch(updateAttendance(attendance.attendanceId, attendance.attendanceCheckin, attendance.attendanceCheckout, attendance.attendanceStatus, attendance.currentPage, attendance.currentLimit, attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo))}
                 configSecondaryColor={"green"}
             >
                 <p><strong>Attendance Record ID: </strong>{attendance.attendanceId}</p>
@@ -136,7 +135,7 @@ function AttendanceHistory() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleCreating(attendance.isCreating))}
                 configSecondaryAction={"Create"}
-                configSecondaryFunc={() => dispatch(createAttendance(attendance.employeeId, attendance.attendanceDate, attendance.attendanceCheckout, attendance.attendanceCheckin, attendance.attendanceStatus))}
+                configSecondaryFunc={() => dispatch(createAttendance(attendance.employeeId, attendance.attendanceDate, attendance.attendanceCheckout, attendance.attendanceCheckin, attendance.attendanceStatus, attendance.currentPage, attendance.currentLimit, attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo))}
                 configSecondaryColor={"green"}
             >
                 <Form>
@@ -248,7 +247,7 @@ function AttendanceHistory() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleBatchDeleting(attendance.isBatchDeleting))}
                 configSecondaryAction={"Batch Delete"}
-                configSecondaryFunc={() => dispatch(batchDeleteAttendance((attendance.selectedRecord)))}
+                configSecondaryFunc={() => dispatch(batchDeleteAttendance(attendance.selectedRecord, attendance.currentPage, attendance.currentLimit, attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo))}
                 configSecondaryColor={"red"}
             >
                 <p><strong>Are you sure to delete the following attendance records?</strong></p>
@@ -262,7 +261,7 @@ function AttendanceHistory() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleBatchUpdating(attendance.isBatchUpdating))}
                 configSecondaryAction={"Batch Update"}
-                configSecondaryFunc={() => dispatch(updateBatchAttendance(attendance.selectedRecord, attendance.updateAttendanceCheckin, attendance.updateAttendanceCheckout, attendance.updateAttendanceStatus))}
+                configSecondaryFunc={() => dispatch(updateBatchAttendance(attendance.selectedRecord, attendance.updateAttendanceCheckin, attendance.updateAttendanceCheckout, attendance.updateAttendanceStatus, attendance.currentPage, attendance.currentLimit, attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo))}
                 configSecondaryColor={"green"}
             >
                 <Form>
