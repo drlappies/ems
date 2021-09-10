@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { confirmDepartmentUpdate, fetchDepartment, updateDepartment, handleDelete, gotoNextDepartmentPage, gotoPreviousDepartmentPage, toggleCreating, handleCreate, fetchDepartmentsByEntries, toggleFiltering, resetDepartmentQuery, fetchDepartmentByQuery, toggleUpdating, toggleDeleting, handleSelect, handleSelectAll, toggleBatchDeleting, handleBatchDelete } from '../actions/department'
-import { Table, Grid, Form, Button, Header, Input } from 'semantic-ui-react'
+import { Table, Grid, Form, Button, Header } from 'semantic-ui-react'
 import TableBody from './TableBody'
 import TableHeader from './TableHeader'
 import TableFooter from './TableFooter'
