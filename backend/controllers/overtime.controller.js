@@ -91,9 +91,9 @@ class OvertimeController {
 
     updateOvertime = async (req, res) => {
         try {
-            const { from, to, status, ids } = req.body;
-            const overtime = await this.OvertimeService.updateOvertime(from, to, status, ids);
-            console.log(overtime)
+            const { id } = req.params;
+            const { from, to, status } = req.body;
+            const overtime = await this.OvertimeService.updateOvertime(id, from, to, status);
             return res.status(200).json({
                 success: `Successfully updated overtime record ID: ${overtime.map(el => `${el.id}`)}`,
             })
@@ -107,9 +107,8 @@ class OvertimeController {
 
     deleteOvertime = async (req, res) => {
         try {
-            const { ids } = req.query;
-            console.log(ids)
-            const overtime = await this.OvertimeService.deleteOvertime(ids);
+            const { id } = req.params
+            const overtime = await this.OvertimeService.deleteOvertime(id);
             return res.status(200).json({
                 success: `Successfully deleted overtime record ${overtime.id}`
             })
@@ -124,7 +123,6 @@ class OvertimeController {
     getAllOvertime = async (req, res) => {
         try {
             const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit } = req.query
-            console.log(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit)
             const query = await this.OvertimeService.getAllOvertime(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit);
             return res.status(200).json({
                 overtimeRecord: query.overtime,
@@ -168,6 +166,36 @@ class OvertimeController {
             }
             const overtimeStatus = await this.OvertimeService.getEmployeeOvertimeStatus(employeeId);
             return res.status(200).json(overtimeStatus)
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    batchDeleteOvertime = async (req, res) => {
+        try {
+            const { id } = req.query;
+            const overtime = await this.OvertimeService.batchDeleteOvertime(id)
+            return res.status(200).json({
+                success: 'Successfully batch deleted overtime records.'
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    batchUpdateOvertime = async (req, res) => {
+        try {
+            const { id, from, to, status } = req.body
+            const overtime = await this.OvertimeService.batchUpdateOvertime(id, from, to, status)
+            return res.status(200).json({
+                success: 'Successfully batch updated overtime records.'
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({

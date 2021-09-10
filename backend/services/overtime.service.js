@@ -46,32 +46,21 @@ class OvertimeService {
         return created
     }
 
-    updateOvertime = async (from, to, status, ids) => {
-        console.log(from, to, status, ids)
-        let batchUpdate = {};
-        if (from) {
-            batchUpdate.from = from
-        }
-
-        if (to) {
-            batchUpdate.to = to
-        }
-
-        if (status) {
-            batchUpdate.status = status
-        }
-
+    updateOvertime = async (id, from, to, status) => {
         const overtime = await this.knex('overtime')
-            .whereIn('id', ids)
-            .update(batchUpdate, ['id'])
+            .where('id', id)
+            .update({
+                from: from,
+                to: to,
+                status: status
+            }, ['id'])
 
         return overtime
     }
 
-    deleteOvertime = async (ids) => {
-        if (!Array.isArray(ids)) ids = [ids]
+    deleteOvertime = async (id) => {
         const [overtime] = await this.knex('overtime')
-            .whereIn('id', ids)
+            .where('id', id)
             .del(['id'])
         return overtime
     }
@@ -84,7 +73,6 @@ class OvertimeService {
         let pageStart = parseInt(page) + 1;
         let pageEnd = parseInt(page) + parseInt(limit);
 
-        console.log(page)
         const [count] = await this.knex('overtime')
             .count()
             .from(queryBuilder => {
@@ -210,6 +198,25 @@ class OvertimeService {
             return true
         }
         return false
+    }
+
+    batchDeleteOvertime = async (id) => {
+        const overtime = await this.knex('overtime')
+            .whereIn('id', id)
+            .del(['id'])
+        return overtime
+    }
+
+    batchUpdateOvertime = async (id, from, to, status) => {
+        let update = {}
+        if (from) update.from = from;
+        if (to) update.to = to;
+        if (status) update.status = status;
+
+        const overtime = await this.knex('overtime')
+            .whereIn('id', id)
+            .update(update)
+        return overtime
     }
 }
 
