@@ -23,6 +23,7 @@ import Payroll from './components/Payroll';
 import Deduction from './components/Deduction';
 import Leave from './components/Leave';
 import LeaveManagement from './components/LeaveManagement';
+import User from './components/User'
 import 'semantic-ui-css/semantic.min.css'
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
           <Navbar>
             <Switch>
               <AdminRoute exact path="/dashboard" component={Dashboard} />
+              <PrivateRoute exact path="/user" component={User} />
               <PrivateRoute exact path="/attendance/punch" component={Attendance} />
               <AdminRoute exact path="/attendance" component={AttendanceHistory} />
               <PrivateRoute exact path="/attendance/overtime/check_in" component={AttendanceOvertime} />
