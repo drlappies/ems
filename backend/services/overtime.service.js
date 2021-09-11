@@ -65,7 +65,7 @@ class OvertimeService {
         return overtime
     }
 
-    getAllOvertime = async (text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit) => {
+    getAllOvertime = async (text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employeeId) => {
         if (!page || page < 0) page = 0;
         if (!limit) limit = 10;
         let currentPage = parseInt(page);
@@ -105,6 +105,9 @@ class OvertimeService {
                         if (text) {
                             queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || employee.id || ' ' || overtime.id) @@ plainto_tsquery('${text}')`)
                         }
+                        if (employeeId) {
+                            queryBuilder.where('overtime.employee_id', employeeId)
+                        }
                     })
                     .as('count')
             })
@@ -139,6 +142,9 @@ class OvertimeService {
                 }
                 if (text) {
                     queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || employee.id || ' ' || overtime.id) @@ plainto_tsquery('${text}')`)
+                }
+                if (employeeId) {
+                    queryBuilder.where('overtime.employee_id', employeeId)
                 }
             })
 

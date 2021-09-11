@@ -122,8 +122,8 @@ class OvertimeController {
 
     getAllOvertime = async (req, res) => {
         try {
-            const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit } = req.query
-            const query = await this.OvertimeService.getAllOvertime(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit);
+            const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employeeId } = req.query
+            const query = await this.OvertimeService.getAllOvertime(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employeeId);
             return res.status(200).json({
                 overtimeRecord: query.overtime,
                 employeeList: query.employeeList,
