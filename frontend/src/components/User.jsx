@@ -2,18 +2,23 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { Grid, Segment, Header, Table, Tab } from 'semantic-ui-react'
 import Calendar from './Calendar';
+import UserLeave from './UserLeave';
+import UserPayroll from './UserPayroll';
+import UserOvertime from './UserOvertime';
 import '../css/main.css'
+
 
 function User() {
     const auth = useSelector(state => state.auth)
 
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     const panes = [
-        { menuItem: 'Attendance Record', render: () => <Tab.Pane><Calendar /></Tab.Pane> },
-        { menuItem: 'Leave Record', render: () => <Tab.Pane>Tab 2 Content</Tab.Pane> },
-        { menuItem: 'Payroll Record', render: () => <Tab.Pane>Tab 3 Content</Tab.Pane> },
-        { menuItem: 'Reimbursement Record', render: () => <Tab.Pane>Tab 3 Content</Tab.Pane> },
-        { menuItem: 'Allowance Record', render: () => <Tab.Pane>Tab 3 Content</Tab.Pane> },
+        { menuItem: 'Attendance', render: () => <Tab.Pane><Calendar /></Tab.Pane> },
+        { menuItem: 'Leave', render: () => <Tab.Pane><UserLeave /></Tab.Pane> },
+        { menuItem: 'Overtime', render: () => <Tab.Pane><UserOvertime /></Tab.Pane> },
+        { menuItem: 'Payroll', render: () => <Tab.Pane><UserPayroll /></Tab.Pane> },
+        { menuItem: 'Reimbursement', render: () => <Tab.Pane>Tab 3 Content</Tab.Pane> },
+        { menuItem: 'Allowance', render: () => <Tab.Pane>Tab 3 Content</Tab.Pane> },
     ]
 
     return (
