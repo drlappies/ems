@@ -25,8 +25,8 @@ class LeaveController {
 
     getAllLeave = async (req, res) => {
         try {
-            const { page, from, to, type, status, text, limit } = req.query
-            const data = await this.LeaveService.getAllLeave(page, from, to, type, status, text, limit);
+            const { page, from, to, type, status, text, limit, employee_id } = req.query
+            const data = await this.LeaveService.getAllLeave(page, from, to, type, status, text, limit, employee_id);
             return res.status(200).json({
                 leave: data.leave,
                 employee: data.employee,

@@ -11,7 +11,7 @@ class LeaveService {
         return leave
     }
 
-    getAllLeave = async (page, from, to, type, status, text, limit) => {
+    getAllLeave = async (page, from, to, type, status, text, limit, employee_id) => {
         if (!page || page < 0) page = 0;
         if (!limit) limit = 10;
         let currentPage = parseInt(page)
@@ -45,6 +45,9 @@ class LeaveService {
                         if (status) {
                             queryBuilder.where('leave.status', status)
                         }
+                        if (employee_id) {
+                            queryBuilder.where('leave.employee_id', employee_id)
+                        }
                     })
                     .as('count')
             })
@@ -70,6 +73,9 @@ class LeaveService {
                 }
                 if (status) {
                     queryBuilder.where('leave.status', status)
+                }
+                if (employee_id) {
+                    queryBuilder.where('leave.employee_id', employee_id)
                 }
             })
 

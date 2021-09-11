@@ -212,45 +212,58 @@ function LeaveManagement() {
                 configSecondaryColor={"grey"}
                 configTertiaryColor={"green"}
                 configTertiaryAction={"Search"}
-                configTertiaryFunc={() => dispatch(fetchLeaveByQuery(leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
+                configTertiaryFunc={() => dispatch(fetchLeaveByQuery(leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus, leave.queryEmployeeId))}
             >
                 <Form>
                     <Form.Field>
-                        <label htmlFor="queryText">Keywords:</label>
+                        <label htmlFor="queryText">Keywords</label>
                         <input type="text" id="queryText" name="queryText" value={leave.queryText} onChange={(e) => dispatch(updateLeave(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="queryEmployeeId">Employee</label>
+                        <select id="queryEmployeeId" name="queryEmployeeId" value={leave.queryEmployeeId} onChange={(e) => dispatch(updateLeave(e))} >
+                            <option value="">Employee</option>
+                            {leave.employeeList.map((el, i) =>
+                                <option key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</option>
+                            )}
+                        </select>
                     </Form.Field>
                     <Grid>
                         <Grid.Row columns="2">
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryFrom">Date Range From:</label>
+                                    <label htmlFor="queryFrom">Date Range From</label>
                                     <input type="date" id="queryFrom" name="queryFrom" value={leave.queryFrom} onChange={(e) => dispatch(updateLeave(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryTo">Date Range To:</label>
+                                    <label htmlFor="queryTo">Date Range To</label>
                                     <input type="date" id="queryTo" name="queryTo" value={leave.queryTo} onChange={(e) => dispatch(updateLeave(e))} />
                                 </Form.Field>
                             </Grid.Column>
                         </Grid.Row>
                         <Grid.Row columns="2">
                             <Grid.Column>
-                                <label htmlFor="queryType">Leave Type:</label>
-                                <select id="queryType" name="queryType" value={leave.queryType} onChange={(e) => dispatch(updateLeave(e))}>
-                                    <option value="" hidden>Type</option>
-                                    <option value="half_day">Half Day</option>
-                                    <option value="full_day">Full Day</option>
-                                </select>
+                                <Form.Field>
+                                    <label htmlFor="queryType">Leave Type</label>
+                                    <select id="queryType" name="queryType" value={leave.queryType} onChange={(e) => dispatch(updateLeave(e))}>
+                                        <option value="" hidden>Type</option>
+                                        <option value="half_day">Half Day</option>
+                                        <option value="full_day">Full Day</option>
+                                    </select>
+                                </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
-                                <label htmlFor="queryStatus">Leave Status:</label>
-                                <select id="queryStatus" name="queryStatus" value={leave.queryStatus} onChange={(e) => dispatch(updateLeave(e))}>
-                                    <option value="" hidden>Status</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
+                                <Form.Field>
+                                    <label htmlFor="queryStatus">Leave Status</label>
+                                    <select id="queryStatus" name="queryStatus" value={leave.queryStatus} onChange={(e) => dispatch(updateLeave(e))}>
+                                        <option value="" hidden>Status</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="rejected">Rejected</option>
+                                    </select>
+                                </Form.Field>
                             </Grid.Column>
                         </Grid.Row>
                     </Grid>
