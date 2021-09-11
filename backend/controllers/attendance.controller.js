@@ -219,6 +219,22 @@ class AttendanceController {
             })
         }
     }
+
+    getMonthlyAttendanceByEmployee = async (req, res) => {
+        try {
+            const { employeeId } = req.params
+            const { month, year } = req.query
+            const attendance = await this.AttendanceService.getMonthlyAttendanceByEmployee(employeeId, month, year)
+            return res.status(200).json({
+                attendance: attendance
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
 }
 
 module.exports = AttendanceController

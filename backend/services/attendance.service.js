@@ -276,6 +276,15 @@ class AttendanceService extends EmployeeService {
             .update(update)
         return attendance
     }
+
+    getMonthlyAttendanceByEmployee = async (employeeId, month, year) => {
+        const attendance = await this.knex('attendance')
+            .where('employee_id', employeeId)
+            .andWhereRaw(`EXTRACT(MONTH FROM date) = ${month}`)
+            .andWhereRaw(`EXTRACT(YEAR FROM date) = ${year}`)
+
+        return attendance
+    }
 }
 
 module.exports = AttendanceService

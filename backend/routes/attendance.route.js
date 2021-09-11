@@ -9,6 +9,7 @@ module.exports.AttendanceRoute = (AttendanceController) => {
     router.get('/status/:employeeId', AttendanceController.getTodayAttendanceByEmployee)
     router.get('/metric', AttendanceController.getOnTimeRate)
     router.get('/:id', AttendanceController.getAttendance)
+    router.get('/record/:employeeId', AttendanceController.getMonthlyAttendanceByEmployee)
     router.delete('/', AttendanceController.batchDeleteAttendance)
     router.delete('/:id', AttendanceController.deleteAttendance)
     router.put('/', AttendanceController.batchUpdateAttendance)
