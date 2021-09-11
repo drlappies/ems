@@ -37,7 +37,6 @@ const generateCalendar = (currentYear, currentMonth, monthlyAttendance) => {
         }
         month.push(week)
     }
-
     return month
 }
 
