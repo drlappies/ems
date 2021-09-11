@@ -160,15 +160,24 @@ function OvertimeHistory() {
                 configPrimaryFunc={() => dispatch(toggleFiltering(overtime.isFiltering))}
                 configTertiaryAction={"Search"}
                 configTertiaryColor={"green"}
-                configTertiaryFunc={() => dispatch(fetchOvertimeRecordByQuery(overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
+                configTertiaryFunc={() => dispatch(fetchOvertimeRecordByQuery(overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo, overtime.queryEmployeeId))}
                 configSecondaryAction={"Reset"}
                 configSecondaryColor={"grey"}
                 configSecondaryFunc={() => dispatch(resetOvertimeQuery())}
             >
                 <Form>
                     <Form.Field>
-                        <label htmlFor="queryText">Contains:</label>
-                        <input id="queryText" name="queryText" placeholder="ID, Employee Name, Employee ID ..." value={overtime.queryText} onChange={(e) => dispatch(updateOvertime(e))} />
+                        <label htmlFor="queryText">Keywords</label>
+                        <input id="queryText" name="queryText" value={overtime.queryText} onChange={(e) => dispatch(updateOvertime(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="queryEmployeeId">Employee</label>
+                        <select id="queryEmployeeId" name="queryEmployeeId" value={overtime.queryEmployeeId} onChange={(e) => dispatch(updateOvertime(e))}>
+                            <option value="">Employee</option>
+                            {overtime.employeeList.map((el, i) =>
+                                <option key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</option>
+                            )}
+                        </select>
                     </Form.Field>
                     <Form.Field>
                         <label htmlFor="queryStatus">Status:</label>

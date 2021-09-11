@@ -12,7 +12,6 @@ function Overtime() {
     const overtime = useSelector(state => state.overtime)
 
     useEffect(() => {
-        console.log(auth.id)
         dispatch(fetchOvertimeStatus(auth.id))
     }, [auth.id, dispatch])
 
