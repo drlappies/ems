@@ -7,6 +7,7 @@ import { toggleSidebar } from '../actions/ui'
 function Navbar(props) {
     const dispatch = useDispatch()
     const ui = useSelector(state => state.ui)
+    const auth = useSelector(state => state.auth)
 
     return (
         <Sidebar.Pushable>
@@ -20,6 +21,16 @@ function Navbar(props) {
             >
                 <Menu.Item></Menu.Item>
                 <Menu.Item></Menu.Item>
+                <Menu.Item>
+                    <Menu.Header>
+                        <Icon name="user" />User
+                    </Menu.Header>
+                    <Menu.Menu>
+                        <Menu.Item as={Link} to="/user" onClick={() => dispatch(toggleSidebar())}>
+                            User Dashboard
+                        </Menu.Item>
+                    </Menu.Menu>
+                </Menu.Item>
                 <Menu.Item>
                     <Menu.Header>
                         <Icon name='dashboard' />Dashboard
