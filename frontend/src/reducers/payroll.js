@@ -36,6 +36,7 @@ const initialState = {
     queryStatus: "",
     queryAmountFrom: "",
     queryAmountTo: "",
+    queryEmployeeId: "",
     queryIsReimbursementCaled: false,
     queryIsAllowanceCaled: false,
     queryIsDeductionCaled: false,

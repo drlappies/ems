@@ -64,8 +64,9 @@ class PayrollController {
 
     getAllPayroll = async (req, res) => {
         try {
-            const { page, from, to, text, status, limit, amountFrom, amountTo, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled } = req.query
-            const payroll = await this.PayrollService.getAllPayroll(page, limit, from, to, text, status, amountFrom, amountTo, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled);
+            const { page, from, to, text, status, limit, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled } = req.query
+            console.log(page, from, to, text, status, limit, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled)
+            const payroll = await this.PayrollService.getAllPayroll(page, limit, from, to, text, status, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled);
             return res.status(200).json({
                 payroll: payroll.payroll,
                 employee: payroll.employee,

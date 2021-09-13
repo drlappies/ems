@@ -2,19 +2,10 @@ import { FETCH_PAYROLL, UPDATE_PAYROLL, ADD_TO_PAYROLL_SELECTED, TOGGLE_PAYROLL_
 import axios from 'axios';
 import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 
-export const fetchPayroll = (page, from, limit, to, name, status) => {
+export const fetchPayroll = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/payroll', {
-                params: {
-                    page: page,
-                    from: from,
-                    to: to,
-                    name: name,
-                    status: status,
-                    limit: limit
-                }
-            });
+            const res = await axios.get('/payroll');
             dispatch({
                 type: FETCH_PAYROLL,
                 payload: {
@@ -461,7 +452,8 @@ export const resetQuery = (page, limit) => {
     }
 }
 
-export const handleSearch = (page, limit, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
+export const handleSearch = (page, limit, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
+    console.log(queryIsLeaveCaled)
     return async (dispatch) => {
         try {
             const res = await axios.get('/payroll', {
@@ -474,6 +466,7 @@ export const handleSearch = (page, limit, queryFrom, queryTo, queryText, querySt
                     status: queryStatus,
                     amountFrom: queryAmountFrom,
                     amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId,
                     isReimbursementCaled: queryIsReimbursementCaled,
                     isAllowanceCaled: queryIsAllowanceCaled,
                     isBonusCaled: queryIsBonusCaled,

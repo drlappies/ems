@@ -221,13 +221,14 @@ class PayrollService {
         return payroll
     }
 
-    getAllPayroll = async (page, limit, from, to, text, status, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled) => {
+    getAllPayroll = async (page, limit, from, to, text, status, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled) => {
         if (!page || page < 0) page = 0;
         if (!limit) limit = 10;
         let currentPage = parseInt(page)
         let currentPageStart = parseInt(page) + 1
         let currentPageEnd = parseInt(page) + parseInt(limit)
         let currentLimit = parseInt(limit)
+        
         const employee = await this.knex('employee')
             .select(['id', 'firstname', 'lastname'])
             .where('status', 'available')
@@ -237,7 +238,7 @@ class PayrollService {
             .count()
             .from(queryBuilder => {
                 queryBuilder
-                    .select(['payroll.from', 'payroll.to', 'employee.firstname', 'employee.lastname', 'payroll.status'])
+                    .select(['payroll.employee_id', 'payroll.from', 'payroll.to', 'employee.firstname', 'employee.lastname', 'payroll.status'])
                     .from('payroll')
                     .join('employee', 'payroll.employee_id', 'employee.id')
                     .modify(queryBuilder => {
@@ -252,6 +253,16 @@ class PayrollService {
                         }
                         if (status) {
                             queryBuilder.where('payroll.status', status)
+                        }
+                        if (amountFrom) {
+                            queryBuilder.where('payroll.amount', '>=', amountFrom)
+                        }
+                        if (amountTo) {
+                            queryBuilder.where('payroll.amount', '<=', amountTo)
+                        }
+                        if (employee_id) {
+                            console.log(employee_id)
+                            queryBuilder.where('payroll.employee_id', employee_id)
                         }
                         if (isReimbursementCaled) {
                             queryBuilder.where('payroll.is_reimbursement_calculated', isReimbursementCaled)
@@ -293,6 +304,17 @@ class PayrollService {
                 }
                 if (status) {
                     queryBuilder.where('payroll.status', status)
+                }
+                if (amountFrom) {
+                    queryBuilder.where('payroll.amount', '>=', amountFrom)
+                }
+                if (amountTo) {
+                    queryBuilder.where('payroll.amount', '<=', amountTo)
+                }
+                if (employee_id) {
+                    console.log(employee_id)
+                    console.log(typeof employee_id)
+                    queryBuilder.where('payroll.employee_id', employee_id)
                 }
                 if (isReimbursementCaled) {
                     queryBuilder.where('payroll.is_reimbursement_calculated', isReimbursementCaled)

@@ -26,8 +26,8 @@ function Payroll() {
                 </Grid.Row>
                 <Grid.Row columns="1">
                     <Grid.Column textAlign="right">
-                        <Button size="tiny" color="blue" disabled={!payroll.selectedRecord.length} onClick={() => dispatch(toggleBatchUpdating(payroll.isBatchUpdating))}>Batch Update</Button>
-                        <Button size="tiny" color="red" disabled={!payroll.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(payroll.isBatchDeleting))}>Batch Delete</Button>
+                        <Button size="tiny" color="blue" disabled={payroll.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchUpdating(payroll.isBatchUpdating))}>Batch Update</Button>
+                        <Button size="tiny" color="red" disabled={payroll.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(payroll.isBatchDeleting))}>Batch Delete</Button>
                         <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(payroll.isFiltering))}>Filter</Button>
                         <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(payroll.isCreating))}>Generate Payroll</Button>
                     </Grid.Column>
@@ -207,22 +207,35 @@ function Payroll() {
                 configSecondaryFunc={() => dispatch(resetQuery(payroll.currentPage, payroll.currentLimit))}
                 configTertiaryColor={"green"}
                 configTertiaryAction={"Search"}
-                configTertiaryFunc={() => dispatch(handleSearch(payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOverTimeCaled, payroll.isLeaveCaled))}
+                configTertiaryFunc={() => dispatch(handleSearch(payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
             >
                 <Form>
                     <Grid>
                         <Grid.Row>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryText">Contains:</label>
-                                    <input id="queryText" name="queryText" value={payroll.queryText} placeholder="ID, Employee ID, Employee Name ..." onChange={(e) => dispatch(updatePayroll(e))} />
+                                    <label htmlFor="queryText">Keywords</label>
+                                    <input id="queryText" name="queryText" value={payroll.queryText} onChange={(e) => dispatch(updatePayroll(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryEmployeeId">Employee</label>
+                                    <select id="queryEmployeeId" name="queryEmployeeId" value={payroll.queryEmployeeId} onChange={(e) => dispatch(updatePayroll(e))}>
+                                        <option value="" hidden>Employee</option>
+                                        {payroll.employeeList.map((el, i) =>
+                                            <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
+                                        )}
+                                    </select>
                                 </Form.Field>
                             </Grid.Column>
                         </Grid.Row>
                         <Grid.Row >
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryStatus">Status:</label>
+                                    <label htmlFor="queryStatus">Status</label>
                                     <select id="queryStatus" name="queryStatus" value={payroll.queryStatus} onChange={(e) => dispatch(updatePayroll(e))}>
                                         <option value="" hidden>Status</option>
                                         <option value="pending">Pending</option>
@@ -234,13 +247,13 @@ function Payroll() {
                         <Grid.Row columns="2">
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryFrom">Date from:</label>
+                                    <label htmlFor="queryFrom">Date from</label>
                                     <input id="queryFrom" name="queryFrom" type="date" value={payroll.queryFrom} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryTo">Date to:</label>
+                                    <label htmlFor="queryTo">Date to</label>
                                     <input id="queryTo" name="queryTo" type="date" value={payroll.queryTo} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
@@ -248,13 +261,13 @@ function Payroll() {
                         <Grid.Row columns="2">
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryAmountFrom">Amount From: </label>
+                                    <label htmlFor="queryAmountFrom">Amount From </label>
                                     <input id="queryAmountFrom" name="queryAmountFrom" type="number" value={payroll.queryAmountFrom} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryAmountTo">Amount To:</label>
+                                    <label htmlFor="queryAmountTo">Amount To</label>
                                     <input id="queryAmountTo" name="queryAmountTo" type="number" value={payroll.queryAmountTo} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
@@ -289,7 +302,7 @@ function Payroll() {
                             <Grid.Column>
                                 <Form.Field>
                                     <label htmlFor="queryIsOvertimeCaled">Is Overtime Calculated?</label>
-                                    <input id="queryIsOvertimeCaled" name="queryIsOvertimeCaled" type="checkbox" value={payroll.queryIsBonusCaled} onChange={(e) => dispatch(updatePayroll(e))} />
+                                    <input id="queryIsOvertimeCaled" name="queryIsOvertimeCaled" type="checkbox" value={payroll.queryIsOvertimeCaled} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
