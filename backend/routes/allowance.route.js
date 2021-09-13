@@ -7,6 +7,7 @@ module.exports.AllowanceRoute = (AllowanceController) => {
     router.delete('/:id', AllowanceController.deleteAllowance);
     router.put('/:id', AllowanceController.editAllowance);
     router.get('/', AllowanceController.getAllAllowance);
+    router.get('/entitlement/:employee_id', AllowanceController.getAllAllowanceByEmployee)
     router.get('/:id', AllowanceController.getAllowance);
     router.post('/entitlement/:id', AllowanceController.addEmployeeToAllowance);
     router.put('/', AllowanceController.batchUpdateAllowance)

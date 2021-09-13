@@ -38,6 +38,7 @@ class AllowanceService {
     getAllAllowance = async (page, limit, text, amountFrom, amountTo, status, isAttendRequired, requiredAttendRateFrom, requiredAttendRateTo) => {
         if (!page || page < 0) page = 0;
         if (!limit || limit < 0) limit = 10;
+
         let currentPage = parseInt(page)
         let currentPageStart = parseInt(page) + 1
         let currentPageEnd = parseInt(page) + parseInt(limit)
@@ -168,6 +169,31 @@ class AllowanceService {
             .whereIn('id', id)
             .del()
         return allowance
+    }
+
+    getAllAllowanceByEmployee = async (employee_id, offset, limit) => {
+        if (offset <= 0 || !offset) offset = 0;
+        if (limit <= 0 || !limit) limit = 10;
+        offset = parseInt(offset)
+        limit = parseInt(limit)
+        let pageStart = offset + 1;
+        let pageEnd = offset + limit;
+        if (pageEnd >= limit) pageEnd = limit
+
+        const [count] = await this.knex('allowance_employee')
+            .join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
+            .select()
+            .where('allowance_employee.employee_id', employee_id)
+            .count('allowance.id')
+
+        const allowance_employee = await this.knex('allowance_employee')
+            .join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
+            .select('allowance.name', 'allowance.description', 'allowance.amount', 'allowance.status', 'allowance.minimum_attendance_required', 'allowance.required_attendance_rate')
+            .offset(offset)
+            .limit(limit)
+            .where('allowance_employee.employee_id', employee_id)
+
+        return { allowance_employee: allowance_employee, offset: offset, limit: limit, count: parseInt(count.count), pageStart: pageStart, pageEnd: pageEnd }
     }
 }
 

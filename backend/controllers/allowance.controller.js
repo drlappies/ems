@@ -168,10 +168,30 @@ class AllowanceController {
     batchDeleteAllowance = async (req, res) => {
         try {
             const { id } = req.query;
-            console.log(id)
             const allowance = await this.AllowanceService.batchDeleteAllowance(id);
             return res.status(200).json({
                 success: 'Successfully batch deleted allowance record.'
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    getAllAllowanceByEmployee = async (req, res) => {
+        try {
+            const { employee_id } = req.params;
+            const { offset, limit } = req.query;
+            const query = await this.AllowanceService.getAllAllowanceByEmployee(employee_id, offset, limit)
+            return res.status(200).json({
+                allowance_employee: query.allowance_employee,
+                offset: query.offset,
+                limit: query.limit,
+                length: query.count,
+                start: query.pageStart,
+                end: query.pageEnd
             })
         } catch (err) {
             console.log(err)

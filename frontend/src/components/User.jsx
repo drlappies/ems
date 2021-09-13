@@ -6,8 +6,8 @@ import UserLeave from './UserLeave';
 import UserPayroll from './UserPayroll';
 import UserOvertime from './UserOvertime';
 import UserReimbursement from './UserReimbursement';
+import UserAllowance from './UserAllowance';
 import '../css/main.css'
-
 
 function User() {
     const auth = useSelector(state => state.auth)
@@ -19,7 +19,7 @@ function User() {
         { menuItem: 'Overtime', render: () => <Tab.Pane><UserOvertime /></Tab.Pane> },
         { menuItem: 'Payroll', render: () => <Tab.Pane><UserPayroll /></Tab.Pane> },
         { menuItem: 'Reimbursement', render: () => <Tab.Pane><UserReimbursement /></Tab.Pane> },
-        { menuItem: 'Allowance', render: () => <Tab.Pane>Allowance</Tab.Pane> },
+        { menuItem: 'Allowance', render: () => <Tab.Pane><UserAllowance /></Tab.Pane> },
         { menuItem: 'Deduction', render: () => <Tab.Pane>Deduction</Tab.Pane> },
     ]
 
