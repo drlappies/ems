@@ -5,6 +5,7 @@ import Calendar from './Calendar';
 import UserLeave from './UserLeave';
 import UserPayroll from './UserPayroll';
 import UserOvertime from './UserOvertime';
+import UserReimbursement from './UserReimbursement';
 import '../css/main.css'
 
 
@@ -17,8 +18,9 @@ function User() {
         { menuItem: 'Leave', render: () => <Tab.Pane><UserLeave /></Tab.Pane> },
         { menuItem: 'Overtime', render: () => <Tab.Pane><UserOvertime /></Tab.Pane> },
         { menuItem: 'Payroll', render: () => <Tab.Pane><UserPayroll /></Tab.Pane> },
-        { menuItem: 'Reimbursement', render: () => <Tab.Pane>Tab 3 Content</Tab.Pane> },
-        { menuItem: 'Allowance', render: () => <Tab.Pane>Tab 3 Content</Tab.Pane> },
+        { menuItem: 'Reimbursement', render: () => <Tab.Pane><UserReimbursement /></Tab.Pane> },
+        { menuItem: 'Allowance', render: () => <Tab.Pane>Allowance</Tab.Pane> },
+        { menuItem: 'Deduction', render: () => <Tab.Pane>Deduction</Tab.Pane> },
     ]
 
     return (
