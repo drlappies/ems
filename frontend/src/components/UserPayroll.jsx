@@ -103,43 +103,41 @@ function UserPayroll() {
     }, [fetchEmployeePayroll])
 
     return (
-        <div className="payroll-container">
-            <Table compact size="small" celled>
-                <Table.Header>
-                    <Table.Row>
-                        <Table.HeaderCell colSpan={4}>
-                            <Menu floated='right' pagination size="tiny">
-                                <Menu.Item>
-                                    {state.currentPageStart} - {state.currentPageEnd} of {state.currentPageLength}
-                                </Menu.Item>
-                                <Menu.Item as='a' icon onClick={() => fetchPrevEmployeePayroll()}>
-                                    <Icon name='chevron left' />
-                                </Menu.Item>
-                                <Menu.Item as='a' icon onClick={() => fetchNextEmployeePayroll()}>
-                                    <Icon name='chevron right' />
-                                </Menu.Item>
-                            </Menu>
-                        </Table.HeaderCell>
+        <Table compact size="small" celled>
+            <Table.Header>
+                <Table.Row>
+                    <Table.HeaderCell colSpan={4}>
+                        <Menu floated='right' pagination size="tiny">
+                            <Menu.Item>
+                                {state.currentPageStart} - {state.currentPageEnd} of {state.currentPageLength}
+                            </Menu.Item>
+                            <Menu.Item as='a' icon onClick={() => fetchPrevEmployeePayroll()}>
+                                <Icon name='chevron left' />
+                            </Menu.Item>
+                            <Menu.Item as='a' icon onClick={() => fetchNextEmployeePayroll()}>
+                                <Icon name='chevron right' />
+                            </Menu.Item>
+                        </Menu>
+                    </Table.HeaderCell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.HeaderCell sorted={'descending'}>Date From</Table.HeaderCell>
+                    <Table.HeaderCell>Date To</Table.HeaderCell>
+                    <Table.HeaderCell>Amount</Table.HeaderCell>
+                    <Table.HeaderCell>Status</Table.HeaderCell>
+                </Table.Row>
+            </Table.Header>
+            <Table.Body>
+                {state.currentPayrollRecord.map((el, i) =>
+                    <Table.Row key={i}>
+                        <Table.Cell>{`${new Date(el.from).getDate()} ${months[new Date(el.from).getMonth()]} ${new Date(el.from).getFullYear()}`}</Table.Cell>
+                        <Table.Cell>{`${new Date(el.to).getDate()} ${months[new Date(el.to).getMonth()]} ${new Date(el.to).getFullYear()}`}</Table.Cell>
+                        <Table.Cell>{el.amount}</Table.Cell>
+                        <Table.Cell positive={el.status === 'confirmed'} warning={el.status === 'pending'}>{el.status}</Table.Cell>
                     </Table.Row>
-                    <Table.Row>
-                        <Table.HeaderCell sorted={'descending'}>Date From</Table.HeaderCell>
-                        <Table.HeaderCell>Date To</Table.HeaderCell>
-                        <Table.HeaderCell>Amount</Table.HeaderCell>
-                        <Table.HeaderCell>Status</Table.HeaderCell>
-                    </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                    {state.currentPayrollRecord.map((el, i) =>
-                        <Table.Row key={i}>
-                            <Table.Cell>{`${new Date(el.from).getDate()} ${months[new Date(el.from).getMonth()]} ${new Date(el.from).getFullYear()}`}</Table.Cell>
-                            <Table.Cell>{`${new Date(el.to).getDate()} ${months[new Date(el.to).getMonth()]} ${new Date(el.to).getFullYear()}`}</Table.Cell>
-                            <Table.Cell>{el.amount}</Table.Cell>
-                            <Table.Cell positive={el.status === 'confirmed'} warning={el.status === 'pending'}>{el.status}</Table.Cell>
-                        </Table.Row>
-                    )}
-                </Table.Body>
-            </Table>
-        </div >
+                )}
+            </Table.Body>
+        </Table>
     )
 }
 
