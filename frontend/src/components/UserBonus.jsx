@@ -39,6 +39,58 @@ function UserBonus() {
         }
     }, [auth.id])
 
+    const next = useCallback(async () => {
+        try {
+            if (state.currentOffset + state.currentLimit >= state.currentLimit) return;
+            const res = await axios.get('/bonus', {
+                params: {
+                    employee_id: auth.id,
+                    page: state.currentOffset + state.currentLimit,
+                    limit: state.currentLimit
+                }
+            })
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    bonusRecord: res.data.bonus,
+                    currentOffset: res.data.currentPage,
+                    currentLimit: res.data.currentLimit,
+                    pageStart: res.data.currentPageStart,
+                    pageEnd: res.data.currentPageEnd,
+                    pageLength: res.data.pageLength
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }, [auth.id, state.currentLimit, state.currentOffset])
+
+    const prev = useCallback(async () => {
+        try {
+            if (state.currentOffset <= 0) return;
+            const res = await axios.get('/bonus', {
+                params: {
+                    employee_id: auth.id,
+                    page: state.currentOffset - state.currentLimit,
+                    limit: state.currentLimit
+                }
+            })
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    bonusRecord: res.data.bonus,
+                    currentOffset: res.data.currentPage,
+                    currentLimit: res.data.currentLimit,
+                    pageStart: res.data.currentPageStart,
+                    pageEnd: res.data.currentPageEnd,
+                    pageLength: res.data.pageLength
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
+    }, [auth.id, state.currentLimit, state.currentOffset])
+
     useEffect(() => {
         fetchBonusRecord()
     }, [fetchBonusRecord])
