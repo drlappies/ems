@@ -15,6 +15,7 @@ const initialState = {
     queryAmountFrom: "",
     queryAmountTo: "",
     queryText: "",
+    queryEmployeeId: "",
     currentPage: 0,
     currentPageStart: 0,
     currentPageEnd: 0,

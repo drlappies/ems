@@ -28,7 +28,7 @@ class DeductionService {
         return deduction
     }
 
-    getAllDeduction = async (page, limit, dateFrom, dateTo, amountFrom, amountTo, text) => {
+    getAllDeduction = async (page, limit, dateFrom, dateTo, amountFrom, amountTo, text, employee_id) => {
         if (!page || page < 0) page = 0;
         if (!limit || limit < 10) limit = 10;
         let currentPage = parseInt(page)
@@ -61,6 +61,9 @@ class DeductionService {
                         if (text) {
                             queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || deduction.reason) @@ plainto_tsquery('${text}')`)
                         }
+                        if (employee_id) {
+                            queryBuilder.where('deduction.employee_id', employee_id)
+                        }
                     })
                     .as('count')
             })
@@ -86,6 +89,9 @@ class DeductionService {
                 }
                 if (text) {
                     queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || deduction.reason) @@ plainto_tsquery('${text}')`)
+                }
+                if (employee_id) {
+                    queryBuilder.where('deduction.employee_id', employee_id)
                 }
             })
 

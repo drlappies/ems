@@ -157,7 +157,7 @@ function Deduction() {
                 configSecondaryColor={"grey"}
                 configSecondaryFunc={() => dispatch(resetDeductionFilter())}
                 configTertiaryAction={"Search"}
-                configTertiaryFunc={() => dispatch(fetchDeductionByFilter(deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
+                configTertiaryFunc={() => dispatch(fetchDeductionByFilter(deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo, deduction.queryEmployeeId))}
                 configTertiaryColor={"green"}
             >
                 <Form>
@@ -167,6 +167,19 @@ function Deduction() {
                                 <Form.Field>
                                     <label htmlFor="queryText">Keywords</label>
                                     <input id="queryText" name="queryText" value={deduction.queryText} onChange={(e) => dispatch(updateDeduction(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryEmployeeId">Employee</label>
+                                    <select id="queryEmployeeId" name="queryEmployeeId" value={deduction.queryEmployeeId} onChange={(e) => dispatch(updateDeduction(e))}>
+                                        <option value="" hidden> Employee</option>
+                                        {deduction.employeeRecord.map((el, i) =>
+                                            <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
+                                        )}
+                                    </select>
                                 </Form.Field>
                             </Grid.Column>
                         </Grid.Row>

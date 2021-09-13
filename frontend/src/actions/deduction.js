@@ -341,7 +341,7 @@ export const toggleFiltering = (isFiltering) => {
     }
 }
 
-export const fetchDeductionByFilter = (queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo) => {
+export const fetchDeductionByFilter = (queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo, queryEmployeeId) => {
     return async (dispatch) => {
         try {
             const res = await axios.get('/deduction', {
@@ -350,7 +350,8 @@ export const fetchDeductionByFilter = (queryText, queryDateFrom, queryDateTo, qu
                     dateFrom: queryDateFrom,
                     dateTo: queryDateTo,
                     amountFrom: queryAmountFrom,
-                    amountTo: queryAmountTo
+                    amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId
                 }
             })
 
