@@ -30,7 +30,7 @@ class BonusService {
         return bonus
     }
 
-    getAllBonus = async (page, limit, dateFrom, dateTo, amountFrom, amountTo, text) => {
+    getAllBonus = async (page, limit, dateFrom, dateTo, amountFrom, amountTo, text, employee_id) => {
         if (!page || page < 0) page = 0;
         if (!limit || limit < 0) limit = 10;
         let currentPage = parseInt(page)
@@ -61,6 +61,9 @@ class BonusService {
                         if (text) {
                             queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || bonus.reason ) @@ plainto_tsquery('${text}')`)
                         }
+                        if (employee_id) {
+                            queryBuilder.where('bonus.employee_id', employee_id)
+                        }
                     })
                     .as('count')
             })
@@ -86,6 +89,9 @@ class BonusService {
                 }
                 if (text) {
                     queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || bonus.reason ) @@ plainto_tsquery('${text}')`)
+                }
+                if (employee_id) {
+                    queryBuilder.where('bonus.employee_id', employee_id)
                 }
             })
 

@@ -159,7 +159,7 @@ function Bonus() {
                 configTertiaryAction={"Search"}
                 configTertiaryColor={"green"}
                 configPrimaryFunc={() => dispatch(toggleFiltering(bonus.isFiltering))}
-                configTertiaryFunc={() => dispatch(fetchBonusByFilter(bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
+                configTertiaryFunc={() => dispatch(fetchBonusByFilter(bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo, bonus.queryEmployeeId))}
                 configSecondaryFunc={() => dispatch(resetBonusFilter())}
             >
                 <Form>
@@ -167,8 +167,21 @@ function Bonus() {
                         <Grid.Row>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryText">Keywords</label>
+                                    <label htmlFor="queryText">Contains</label>
                                     <input id="queryText" name="queryText" value={bonus.queryText} onChange={(e) => dispatch(updateBonus(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryEmployeeId">Employee</label>
+                                    <select id="queryEmployeeId" name="queryEmployeeId" value={bonus.queryEmployeeId} onChange={(e) => dispatch(updateBonus(e))}>
+                                        <option value="" hidden>Employee</option>
+                                        {bonus.employeeRecord.map((el, i) =>
+                                            <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
+                                        )}
+                                    </select>
                                 </Form.Field>
                             </Grid.Column>
                         </Grid.Row>

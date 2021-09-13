@@ -66,8 +66,8 @@ class BonusController {
 
     getAllBonus = async (req, res) => {
         try {
-            const { page, limit, dateFrom, dateTo, amountFrom, amountTo, text } = req.query
-            const bonus = await this.BonusService.getAllBonus(page, limit, dateFrom, dateTo, amountFrom, amountTo, text);
+            const { page, limit, dateFrom, dateTo, amountFrom, amountTo, text, employee_id } = req.query
+            const bonus = await this.BonusService.getAllBonus(page, limit, dateFrom, dateTo, amountFrom, amountTo, text, employee_id);
             return res.status(200).json({
                 bonus: bonus.bonus,
                 employee: bonus.employee,

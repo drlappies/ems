@@ -20,6 +20,7 @@ const initialState = {
     queryAmountFrom: "",
     queryAmountTo: "",
     queryText: "",
+    queryEmployeeId: "",
     isUpdating: false,
     isCreating: false,
     createEmployeeId: "",

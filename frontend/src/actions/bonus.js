@@ -310,7 +310,7 @@ export const toggleFiltering = (isFiltering) => {
     }
 }
 
-export const fetchBonusByFilter = (queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo) => {
+export const fetchBonusByFilter = (queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo, queryEmployeeId) => {
     return async (dispatch) => {
         try {
             const res = await axios.get('/bonus', {
@@ -320,6 +320,7 @@ export const fetchBonusByFilter = (queryText, queryDateFrom, queryDateTo, queryA
                     dateTo: queryDateTo,
                     amountFrom: queryAmountFrom,
                     amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId
                 }
             })
 
