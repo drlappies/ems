@@ -1,24 +1,22 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import { useSelector } from 'react-redux';
-import { Table, Menu, Icon } from 'semantic-ui-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { useSelector } from 'react-redux'
+import { Table, Menu, Icon } from 'semantic-ui-react';
 import axios from 'axios'
 
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-
-function UserBonus() {
+function UserDeduction() {
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
-        bonusRecord: [],
+        deductionRecord: [],
         currentOffset: 0,
-        currentLimit: 0,
+        currentLimit: 10,
         pageStart: 0,
         pageEnd: 0,
         pageLength: 0,
     })
 
-    const fetchBonusRecord = useCallback(async () => {
+    const fetchDeductionRecord = useCallback(async () => {
         try {
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/deduction', {
                 params: {
                     employee_id: auth.id
                 }
@@ -26,7 +24,7 @@ function UserBonus() {
             setState(prevState => {
                 return {
                     ...prevState,
-                    bonusRecord: res.data.bonus,
+                    deductionRecord: res.data.deduction,
                     currentOffset: res.data.currentPage,
                     currentLimit: res.data.currentLimit,
                     pageStart: res.data.currentPageStart,
@@ -92,22 +90,22 @@ function UserBonus() {
     }, [auth.id, state.currentLimit, state.currentOffset])
 
     useEffect(() => {
-        fetchBonusRecord()
-    }, [fetchBonusRecord])
+        fetchDeductionRecord()
+    }, [fetchDeductionRecord])
 
     return (
-        <Table celled compact size="small">
+        <Table compact celled size="small">
             <Table.Header>
                 <Table.Row>
-                    <Table.HeaderCell colSpan={3}>
+                    <Table.HeaderCell colSpan="3">
                         <Menu floated='right' pagination size="tiny">
                             <Menu.Item>
                                 {state.pageStart} - {state.pageEnd} of {state.pageLength}
                             </Menu.Item>
-                            <Menu.Item as='a' icon >
+                            <Menu.Item as='a' icon>
                                 <Icon name='chevron left' onClick={() => prev()} />
                             </Menu.Item>
-                            <Menu.Item as='a' icon >
+                            <Menu.Item as='a' icon>
                                 <Icon name='chevron right' onClick={() => next()} />
                             </Menu.Item>
                         </Menu>
@@ -120,9 +118,9 @@ function UserBonus() {
                 </Table.Row>
             </Table.Header>
             <Table.Body>
-                {state.bonusRecord.map((el, i) =>
+                {state.deductionRecord.map((el, i) =>
                     <Table.Row key={i}>
-                        <Table.Cell>{new Date(el.date).getDate()} {months[new Date(el.date).getMonth()]} {new Date(el.date).getFullYear()}</Table.Cell>
+                        <Table.Cell>{el.date}</Table.Cell>
                         <Table.Cell>{el.reason}</Table.Cell>
                         <Table.Cell>{el.amount}</Table.Cell>
                     </Table.Row>
@@ -132,4 +130,4 @@ function UserBonus() {
     )
 }
 
-export default UserBonus
+export default UserDeduction
