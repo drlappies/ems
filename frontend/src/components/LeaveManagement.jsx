@@ -36,7 +36,7 @@ function LeaveManagement() {
                     <Grid.Column>
                         <Table celled size="small">
                             <TableHeader
-                                header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Leave From', 'Leave To', 'Leave Type', 'Status', 'Actions']}
+                                header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Leave From', 'Leave To', 'Leave Type', 'Duration', 'Status', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, leave.record))}
                             />
                             <TableBody
@@ -54,7 +54,7 @@ function LeaveManagement() {
                                 checkedRows={leave.selectedRecord}
                             />
                             <TableFooter
-                                colSpan={10}
+                                colSpan={11}
                                 pageStart={leave.currentPageStart}
                                 pageEnd={leave.currentPageEnd}
                                 pageTotal={leave.pageLength}

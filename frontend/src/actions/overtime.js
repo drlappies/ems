@@ -319,7 +319,7 @@ export const fetchOvertimeRecordByEntries = (newLimit, currentPage, queryText, q
     }
 }
 
-export const fetchOvertimeRecordByQuery = (queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo) => {
+export const fetchOvertimeRecordByQuery = (queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo, queryEmployeeId) => {
     return async (dispatch) => {
         try {
             const res = await axios.get('/overtime', {
@@ -331,7 +331,8 @@ export const fetchOvertimeRecordByQuery = (queryText, queryStatus, queryDateFrom
                     checkinFrom: queryCheckinFrom,
                     checkinTo: queryCheckinTo,
                     checkoutFrom: queryCheckoutFrom,
-                    checkoutTo: queryCheckoutTo
+                    checkoutTo: queryCheckoutTo,
+                    employeeId: queryEmployeeId
                 }
             })
 

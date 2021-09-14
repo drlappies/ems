@@ -47,8 +47,8 @@ class ReimbursementController {
 
     getAllReimbursement = async (req, res) => {
         try {
-            const { page, limit, text, dateFrom, dateTo, amountFrom, amountTo, status } = req.query
-            const reimbursement = await this.ReimbursementService.getAllReimbursement(page, limit, text, dateFrom, dateTo, amountFrom, amountTo, status);
+            const { page, limit, text, dateFrom, dateTo, amountFrom, amountTo, status, employee_id } = req.query
+            const reimbursement = await this.ReimbursementService.getAllReimbursement(page, limit, text, dateFrom, dateTo, amountFrom, amountTo, status, employee_id);
             return res.status(200).json({
                 reimbursement: reimbursement.reimbursement,
                 currentPage: reimbursement.currentPage,

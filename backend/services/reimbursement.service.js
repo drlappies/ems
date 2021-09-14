@@ -25,7 +25,7 @@ class ReimbursementService {
         return reimbursement
     }
 
-    getAllReimbursement = async (page, limit, text, dateFrom, dateTo, amountFrom, amountTo, status) => {
+    getAllReimbursement = async (page, limit, text, dateFrom, dateTo, amountFrom, amountTo, status, employee_id) => {
         if (!page || page < 0) page = 0;
         if (!limit || limit < 0) limit = 10;
         let currentPage = parseInt(page)
@@ -59,6 +59,9 @@ class ReimbursementService {
                         if (status) {
                             queryBuilder.where('reimbursement.status', status)
                         }
+                        if (employee_id) {
+                            queryBuilder.where('reimbursement.employee_id', employee_id)
+                        }
                     })
                     .as('count')
             })
@@ -88,6 +91,9 @@ class ReimbursementService {
                 }
                 if (status) {
                     queryBuilder.where('reimbursement.status', status)
+                }
+                if (employee_id) {
+                    queryBuilder.where('reimbursement.employee_id', employee_id)
                 }
             })
 

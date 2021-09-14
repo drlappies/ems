@@ -32,6 +32,7 @@ const initialState = {
     queryCheckinTo: "",
     queryCheckoutFrom: "",
     queryCheckoutTo: "",
+    queryEmployeeId: "",
     updateOvertimeTimein: "",
     updateOvertimeTimeout: "",
     updateOvertimeStatus: "",
