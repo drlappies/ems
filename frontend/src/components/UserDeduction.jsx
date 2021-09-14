@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux'
 import { Table, Menu, Icon } from 'semantic-ui-react';
 import axios from 'axios'
 
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
 function UserDeduction() {
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
@@ -120,7 +122,7 @@ function UserDeduction() {
             <Table.Body>
                 {state.deductionRecord.map((el, i) =>
                     <Table.Row key={i}>
-                        <Table.Cell>{el.date}</Table.Cell>
+                        <Table.Cell>{new Date(el.date).getDate()} {months[new Date(el.date).getMonth()]} {new Date(el.date).getFullYear()}</Table.Cell>
                         <Table.Cell>{el.reason}</Table.Cell>
                         <Table.Cell>{el.amount}</Table.Cell>
                     </Table.Row>
