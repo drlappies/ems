@@ -44,7 +44,7 @@ function Employee() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small">
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['employee ID', 'Firstname', 'Lastname', 'Status', 'Department', 'Position', 'Actions']}
                                 checkFunc={(e) => dispatch(selectAllEmployee(e, employee.record))}

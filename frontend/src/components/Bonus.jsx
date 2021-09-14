@@ -34,7 +34,7 @@ function Bonus() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small">
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['id', 'Employee Id', 'Firstname', 'Lastname', 'Date', 'Reason', 'Amount', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, bonus.record))}

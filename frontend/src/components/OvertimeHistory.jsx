@@ -32,7 +32,7 @@ function OvertimeHistory() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small" selectable>
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Time in', 'Time out', 'Date', 'Status', 'Actions']}
                                 checkName={"selectAll"}

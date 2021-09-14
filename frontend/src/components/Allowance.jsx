@@ -34,7 +34,7 @@ function Allowance() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small">
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['id', 'Allowance Name', 'Description', 'Amount', 'Status', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, allowance.record))}

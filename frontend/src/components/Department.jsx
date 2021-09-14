@@ -33,7 +33,7 @@ function Department() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small">
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['id', 'Department Name', 'Department Description', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, department.record))}

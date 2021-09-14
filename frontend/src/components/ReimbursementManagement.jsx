@@ -36,7 +36,7 @@ function ReimbursementManagement() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small">
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['id', 'Employee ID', 'Firstname', 'Lastname', 'Reason', 'Date', 'Amount', 'Status', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, reimbursement.record))}

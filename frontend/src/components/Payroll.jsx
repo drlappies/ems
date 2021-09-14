@@ -34,7 +34,7 @@ function Payroll() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small">
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Payroll Period From', 'To', 'Total Amount', 'Status', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, payroll.record))}

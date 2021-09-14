@@ -34,7 +34,7 @@ function LeaveManagement() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small">
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Leave From', 'Leave To', 'Leave Type', 'Duration', 'Status', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, leave.record))}

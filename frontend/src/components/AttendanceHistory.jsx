@@ -33,7 +33,7 @@ function AttendanceHistory() {
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
-                    <Table celled size="small">
+                    <Table celled compact selectable size="small">
                         <TableHeader
                             header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Date', 'Time in', 'Time out', 'Status', 'Actions']}
                             checkName={"isAllSelected"}

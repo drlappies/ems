@@ -33,7 +33,7 @@ function Position() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small">
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['id', 'Position', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, position.record))}

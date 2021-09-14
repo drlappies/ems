@@ -34,7 +34,7 @@ function Deduction() {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <Table celled size="small">
+                        <Table celled compact selectable size="small">
                             <TableHeader
                                 header={['id', 'Employee id', 'Firstname', 'Lastname', 'Date', 'Reason', 'Deducted Amount', 'Actions']}
                                 checkFunc={(e) => dispatch(selectAllDeduction(e, deduction.record))}
