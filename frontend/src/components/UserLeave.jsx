@@ -40,6 +40,15 @@ const generateCalendar = (currentMonth, currentYear, currentMonthlyLeave) => {
     return month
 }
 
+const yearSelect = (currentYear) => {
+    let years = [];
+    const earliestYear = 1970;
+    for (let i = currentYear; i > earliestYear; i--) {
+        years.push(i)
+    }
+    return years
+}
+
 function UserLeave() {
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
@@ -49,7 +58,7 @@ function UserLeave() {
     })
 
     const calendar = useMemo(() => generateCalendar(state.currentMonth, state.currentYear, state.currentMonthlyLeave), [state.currentMonth, state.currentYear, state.currentMonthlyLeave])
-    console.log(calendar)
+    const years = useMemo(() => yearSelect(new Date().getFullYear()), [])
 
     const fetchMonthlyLeave = useCallback(async () => {
         const res = await axios.get('/leave', {
@@ -107,12 +116,22 @@ function UserLeave() {
         <div>
             <Button size="tiny" onClick={() => prev()}>Last Month</Button>
             <Button size="tiny" onClick={() => next()}>Next Month</Button>
+            <span>Jump To:
+                <select name="currentMonth" defaultValue={state.currentMonth} onChange={(e) => jump(e)} >
+                    {months.map((el, i) =>
+                        <option value={i} key={i}>{el}</option>
+                    )}
+                </select>
+                <select name="currentYear" defaultValue={state.currentYear} onChange={(e) => jump(e)} >
+                    {years.map((el, i) =>
+                        <option value={el} key={i}>{el}</option>
+                    )}
+                </select>
+            </span>
             <div className="calendar-container">
                 <table className="calendar">
                     <thead>
-                        <tr>
-                            <th colSpan="7">{state.currentYear} {months[state.currentMonth]}</th>
-                        </tr>
+                        <tr><th colSpan="7">{state.currentYear} {months[state.currentMonth]}</th></tr>
                     </thead>
                     <thead>
                         <tr>
