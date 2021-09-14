@@ -10,7 +10,7 @@ const generateCalendar = (currentMonth, currentYear, currentOvertimeRecord) => {
     const start = new Date(currentYear, currentMonth, 1);
     const end = new Date(currentYear, currentMonth + 1, 0);
     let month = []
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
         if (start > end) break;
         let week = [];
         for (let j = 0; j < 7; j++) {
