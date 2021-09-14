@@ -110,12 +110,21 @@ app.use('/auth', loginRoute)
 
 const { PositionRoute } = require('./routes/position.route')
 const PositionController = require('./controllers/position.controller')
-const PositionService = require('./services/position.service')
+const PositionService = require('./services/position.service');
 
 const positionService = new PositionService(knex);
 const positionController = new PositionController(positionService)
 const positionRoute = PositionRoute(positionController)
 app.use('/position', positionRoute)
+
+const { DashboardRoute } = require('./routes/dashboard.route');
+const DashboardController = require('./controllers/dashboard.controller');
+const DashboardService = require('./services/dashboard.service');
+
+const dashboardService = new DashboardService(knex);
+const dashboardController = new DashboardController(dashboardService);
+const dashboardRoute = DashboardRoute(dashboardController)
+app.use('/dashboard', dashboardRoute)
 
 app.listen(5000, () => console.log('localhost:5000'))
 
