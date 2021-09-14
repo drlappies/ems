@@ -128,46 +128,44 @@ function UserLeave() {
                     )}
                 </select>
             </span>
-            <div className="calendar-container">
-                <table className="calendar">
-                    <thead>
-                        <tr><th colSpan="7">{state.currentYear} {months[state.currentMonth]}</th></tr>
-                    </thead>
-                    <thead>
-                        <tr>
-                            <th>Sun</th>
-                            <th>Mon</th>
-                            <th>Tue</th>
-                            <th>Wed</th>
-                            <th>Thu</th>
-                            <th>Fri</th>
-                            <th>Sat</th>
+            <table className="calendar">
+                <thead>
+                    <tr><th colSpan="7">{state.currentYear} {months[state.currentMonth]}</th></tr>
+                </thead>
+                <thead>
+                    <tr>
+                        <th>Sun</th>
+                        <th>Mon</th>
+                        <th>Tue</th>
+                        <th>Wed</th>
+                        <th>Thu</th>
+                        <th>Fri</th>
+                        <th>Sat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {calendar.map((week, i) =>
+                        <tr key={i}>
+                            {week.map((date, j) =>
+                                <td key={j} className="calendar-date">
+                                    {date ?
+                                        <div>
+                                            {date.duration && date.duration === 'full_day' ? <div>Full Day</div> : null}
+                                            {date.duration && date.duration === 'half_day' ? <div>Half Day</div> : null}
+                                            {date.type && date.type === 'sick_leave' ? <div style={{ backgroundColor: '#9acd32' }}>Sick Leave</div> : null}
+                                            {date.type && date.type === 'no_pay_leave' ? <div style={{ backgroundColor: '#B0E0E6' }}>No Pay Leave</div> : null}
+                                            {date.type && date.type === 'annual_leave' ? <div style={{ backgroundColor: '#89CFF0' }}>Annual Leave</div> : null}
+                                            {date.status && date.status === 'rejected' ? <div style={{ backgroundColor: 'red' }}>Rejected</div> : null}
+                                            {date.status && date.status === 'approved' ? <div style={{ backgroundColor: 'green' }}>Approved</div> : null}
+                                            {date.status && date.status === 'pending' ? <div style={{ backgroundColor: 'yellow' }}>Pending</div> : null}
+                                            <div>{date.date}</div>
+                                        </div> : null}
+                                </td>
+                            )}
                         </tr>
-                    </thead>
-                    <tbody>
-                        {calendar.map((week, i) =>
-                            <tr key={i}>
-                                {week.map((date, j) =>
-                                    <td key={j} className="calendar-date">
-                                        {date ?
-                                            <div>
-                                                {date.duration && date.duration === 'full_day' ? <div>Full Day</div> : null}
-                                                {date.duration && date.duration === 'half_day' ? <div>Half Day</div> : null}
-                                                {date.type && date.type === 'sick_leave' ? <div style={{ backgroundColor: '#9acd32' }}>Sick Leave</div> : null}
-                                                {date.type && date.type === 'no_pay_leave' ? <div style={{ backgroundColor: '#B0E0E6' }}>No Pay Leave</div> : null}
-                                                {date.type && date.type === 'annual_leave' ? <div style={{ backgroundColor: '#89CFF0' }}>Annual Leave</div> : null}
-                                                {date.status && date.status === 'rejected' ? <div style={{ backgroundColor: 'red' }}>Rejected</div> : null}
-                                                {date.status && date.status === 'approved' ? <div style={{ backgroundColor: 'green' }}>Approved</div> : null}
-                                                {date.status && date.status === 'pending' ? <div style={{ backgroundColor: 'yellow' }}>Pending</div> : null}
-                                                <div>{date.date}</div>
-                                            </div> : null}
-                                    </td>
-                                )}
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                    )}
+                </tbody>
+            </table>
         </div>
     )
 }

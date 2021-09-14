@@ -114,7 +114,7 @@ function UserOvertime() {
     }
 
     return (
-        <div className="calendar-container">
+        <div>
             <Button size="tiny" onClick={() => prev()}>Last Month</Button>
             <Button size="tiny" onClick={() => next()}>Next Month</Button>
             <span>Jump To:

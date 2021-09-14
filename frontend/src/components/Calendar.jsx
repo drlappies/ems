@@ -124,44 +124,42 @@ function Calendar(props) {
                     )}
                 </select>
             </span>
-            <div className="calendar-container">
-                <table className="calendar">
-                    <thead>
-                        <tr>
-                            <th colSpan="7">{state.currentYear} {months[state.currentMonth]}</th>
+            <table className="calendar">
+                <thead>
+                    <tr>
+                        <th colSpan="7">{state.currentYear} {months[state.currentMonth]}</th>
+                    </tr>
+                </thead>
+                <thead>
+                    <tr>
+                        <th>Sun</th>
+                        <th>Mon</th>
+                        <th>Tue</th>
+                        <th>Wed</th>
+                        <th>Thu</th>
+                        <th>Fri</th>
+                        <th>Sat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {calendar.map((week, i) =>
+                        <tr key={i}>
+                            {week.map((date, j) =>
+                                <td className="calendar-date" key={j}>
+                                    {date ?
+                                        <div>
+                                            {date.checkIn ? <div>In: {date.checkIn}</div> : null}
+                                            {date.checkOut ? <div>Out: {date.checkOut}</div> : null}
+                                            {date.status ? <div style={{ backgroundColor: date.status === 'on_time' ? 'green' : 'red' }}>{date.status}</div> : null}
+                                            <div>{date.date}</div>
+                                        </div>
+                                        : null}
+                                </td>
+                            )}
                         </tr>
-                    </thead>
-                    <thead>
-                        <tr>
-                            <th>Sun</th>
-                            <th>Mon</th>
-                            <th>Tue</th>
-                            <th>Wed</th>
-                            <th>Thu</th>
-                            <th>Fri</th>
-                            <th>Sat</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {calendar.map((week, i) =>
-                            <tr key={i}>
-                                {week.map((date, j) =>
-                                    <td className="calendar-date" key={j}>
-                                        {date ?
-                                            <div>
-                                                {date.checkIn ? <div>In: {date.checkIn}</div> : null}
-                                                {date.checkOut ? <div>Out: {date.checkOut}</div> : null}
-                                                {date.status ? <div style={{ backgroundColor: date.status === 'on_time' ? 'green' : 'red' }}>{date.status}</div> : null}
-                                                <div>{date.date}</div>
-                                            </div>
-                                            : null}
-                                    </td>
-                                )}
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                    )}
+                </tbody>
+            </table>
         </div>
     )
 }
