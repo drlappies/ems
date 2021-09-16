@@ -99,24 +99,6 @@ exports.seed = async function (knex) {
     { post: "UX researcher" }
   ])
 
-  const allowanceseed = await knex('allowance').insert([
-    { name: "Travel Allowance", description: "Covers travel expenses", amount: 500.00, minimum_attendance_required: true, required_attendance_rate: 60.00 },
-    { name: "Living Allowance", description: "Covers living expenses", amount: 10000.00, minimum_attendance_required: false, required_attendance_rate: 30.00 },
-  ])
-
-  const bonusseed = await knex('bonus').insert([
-    { employee_id: employeeSeed[0].id, reason: "being good", amount: 100.00, date: "2021-8-26" }
-  ])
-
-  const deductionseed = await knex('deduction').insert([
-    { employee_id: employeeSeed[0].id, reason: "This guy broke the office printer", amount: 300.00, date: "2021-8-26" },
-  ])
-
   const attendance = generateAttendance(365, employeeSeed[0].id)
   const attendanceseed = await knex.insert(attendance).into('attendance')
-  const overtime = generateOvertime(365, employeeSeed[0].id)
-  const overtimeseed = await knex.insert(overtime).into('overtime')
-
-  const attendanceRnd = generateAttendanceWithLeave(60, employeeSeed[1].id, 0.6)
-  const atttendancerndseed = await knex.insert(attendanceRnd).into('attendance')
 };
