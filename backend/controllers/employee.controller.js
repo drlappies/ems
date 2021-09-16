@@ -41,9 +41,16 @@ class EmployeeController {
     createEmployee = async (req, res) => {
         try {
             const { username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, salary_monthly, start_hour, end_hour, post_id, dept_id, ot_pay_entitled, ot_hourly_salary } = req.body;
-            // if (!username || !password || !role || !firstname || !lastname || !address || !phone_number || !emergency_contact_person || !emergency_contact_number || !onboard_date) {
-            //     return res.status(400).json({ error: 'Missing required fields' });
-            // }
+            if (!username || !password || !role || !firstname || !lastname || !address || !phone_number || !emergency_contact_person || !emergency_contact_number || !onboard_date) {
+                return res.status(400).json({ error: 'Missing required fields' });
+            }
+
+            if (start_hour >= end_hour) {
+                return res.status(400).json({
+                    error: 'Employee start work hour cannot be greater than or equal to his/her off hour.'
+                })
+            }
+
             const isUsernameTaken = await this.employeeService.checkDuplicate(username)
             if (isUsernameTaken.length >= 1) {
                 return res.status(409).json({ error: 'Username has been taken' })
@@ -62,10 +69,12 @@ class EmployeeController {
     updateEmployee = async (req, res) => {
         try {
             const { id } = req.params;
-            const { post_id, dept_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, username, password, role, start_hour, end_hour, salary_monthly, ot_pay_entitled, ot_hourly_salary, annual_leave_count } = req.body;
+            const { post_id, dept_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, username, role, start_hour, end_hour, salary_monthly, ot_pay_entitled, ot_hourly_salary, annual_leave_count } = req.body;
+            let { password } = req.body;
+            if (password) password = await hashPassword(password)
             const employee = await this.employeeService.updateEmployee(id, post_id, dept_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, username, password, role, start_hour, end_hour, salary_monthly, ot_pay_entitled, ot_hourly_salary, annual_leave_count)
             return res.status(200).json({
-                success: 'Successfully updated employee record',
+                success: `Successfully updated employee record ID: ${employee.id}`,
             })
         } catch (err) {
             console.log(err)
@@ -78,8 +87,7 @@ class EmployeeController {
             const { id } = req.params;
             const employee = await this.employeeService.deleteEmployee(id);
             return res.status(200).json({
-                success: 'Successfully deleted employee record.',
-                employee: employee
+                success: `Successfully deleted employee record ID: ${employee.id}`,
             })
         } catch (err) {
             console.log(err)
@@ -102,14 +110,9 @@ class EmployeeController {
     batchUpdateEmployee = async (req, res) => {
         try {
             const { id, start_hour, end_hour, status, role, ot_pay_entitled, ot_hourly_salary, salary_monthly } = req.body;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Please provide ID of employee records to be updated!'
-                })
-            }
             const employee = await this.employeeService.batchUpdateEmployee(id, start_hour, end_hour, status, role, ot_pay_entitled, ot_hourly_salary, salary_monthly)
             return res.status(200).json({
-                success: `Successfully batch updated employee records ID`
+                success: `Successfully batch updated employee records.`
             })
         } catch (err) {
             console.log(err)

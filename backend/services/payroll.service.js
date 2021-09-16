@@ -3,7 +3,7 @@ class PayrollService {
         this.knex = knex
     }
 
-    createPayroll = async (employee_id, starting_date, ending_date, isDeductCaled, isBonusCaled, isAllowanceCaled, isOTcaled, isReimbursementCaled, isLeaveCaled) => {
+    createPayroll = async (employee_id, starting_date, ending_date, payday, isDeductCaled, isBonusCaled, isAllowanceCaled, isOTcaled, isReimbursementCaled, isLeaveCaled) => {
         const workingDaysCounter = (year, month) => {
             const calendarDays = new Date(year, month + 1, 0).getDate();
             let weekendDays = 0;
@@ -106,7 +106,6 @@ class PayrollService {
                 let to = new Date(`December 17, 1995 ${overtime[i].to}`)
                 if (to.getMinutes() >= 30) {
                     to = new Date(new Date(to.setHours(to.getHours() + 1)).setMinutes(0))
-
                 }
                 amount = amount + (employee.ot_hourly_salary * (to.getHours() - from.getHours()))
                 totalOvertime = totalOvertime + (employee.ot_hourly_salary * (to.getHours() - from.getHours()))
@@ -171,13 +170,16 @@ class PayrollService {
             totalDeduction = totalDeduction + amount
         }
 
-        amount = Math.round(amount + parseInt(totalBonus) + parseInt(totalReimbursement) - parseInt(totalDeduction))
+        const basicSalary = amount
+        const mpf = amount * 0.05
+        const total = amount - parseInt(mpf) + parseInt(totalBonus) + parseInt(totalReimbursement) - parseInt(totalDeduction)
 
         const [payroll] = await this.knex('payroll').insert({
             employee_id: employee_id,
             from: starting_date,
             to: ending_date,
-            amount: amount,
+            amount: total,
+            basic_salary: basicSalary,
             reimbursement: totalReimbursement,
             allowance: totalAllowance,
             deduction: totalDeduction,
@@ -188,7 +190,9 @@ class PayrollService {
             is_deduction_calculated: isDeductCaled,
             is_bonus_calculated: isBonusCaled,
             is_overtime_calculated: isOTcaled,
-            is_leave_calculated: isLeaveCaled
+            is_leave_calculated: isLeaveCaled,
+            payday: payday,
+            mpf_deduction: mpf
         }, ['id', 'from', 'to', 'amount', 'employee_id'])
 
         return payroll
@@ -196,7 +200,7 @@ class PayrollService {
 
     checkIfPayrollOverlapped = async (employee_id, starting_date, ending_date) => {
         const payroll = await this.knex('payroll')
-            .select()
+            .select('id')
             .where('employee_id', employee_id)
             .andWhere(queryBuilder => {
                 queryBuilder.andWhere('from', '<=', ending_date)
@@ -206,29 +210,28 @@ class PayrollService {
     }
 
     deletePayroll = async (id) => {
-        if (!Array.isArray(id)) id = [id]
         const [payroll] = await this.knex('payroll')
-            .whereIn('id', id)
-            .del(['id', 'from', 'to', 'employee_id'])
+            .where('id', id)
+            .del(['id'])
         return payroll
     }
 
     getPayroll = async (id) => {
         const [payroll] = await this.knex('payroll')
             .join('employee', 'payroll.employee_id', 'employee.id')
-            .select(['payroll.id', 'payroll.employee_id', 'employee.firstname', 'employee.lastname', 'payroll.from', 'payroll.to', 'payroll.amount', 'payroll.status', 'payroll.reimbursement', 'payroll.allowance', 'payroll.deduction', 'payroll.bonus', 'payroll.overtime', 'payroll.is_reimbursement_calculated', 'payroll.is_allowance_calculated', 'payroll.is_deduction_calculated', 'payroll.is_bonus_calculated', 'payroll.is_overtime_calculated', 'payroll.is_leave_calculated'])
+            .select(['payroll.id', 'payroll.employee_id', 'employee.firstname', 'employee.lastname', 'payroll.from', 'payroll.to', 'payroll.amount', 'payroll.status', 'payroll.reimbursement', 'payroll.allowance', 'payroll.deduction', 'payroll.bonus', 'payroll.overtime', 'payroll.is_reimbursement_calculated', 'payroll.is_allowance_calculated', 'payroll.is_deduction_calculated', 'payroll.is_bonus_calculated', 'payroll.is_overtime_calculated', 'payroll.is_leave_calculated', 'payroll.payday', 'payroll.basic_salary', 'payroll.mpf_deduction'])
             .where('payroll.id', id)
         return payroll
     }
 
-    getAllPayroll = async (page, limit, from, to, text, status, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled) => {
+    getAllPayroll = async (page, limit, from, to, paydayFrom, paydayTo, text, status, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled) => {
         if (!page || page < 0) page = 0;
         if (!limit) limit = 10;
         let currentPage = parseInt(page)
         let currentPageStart = parseInt(page) + 1
         let currentPageEnd = parseInt(page) + parseInt(limit)
         let currentLimit = parseInt(limit)
-        
+
         const employee = await this.knex('employee')
             .select(['id', 'firstname', 'lastname'])
             .where('status', 'available')
@@ -238,7 +241,7 @@ class PayrollService {
             .count()
             .from(queryBuilder => {
                 queryBuilder
-                    .select(['payroll.employee_id', 'payroll.from', 'payroll.to', 'employee.firstname', 'employee.lastname', 'payroll.status'])
+                    .select(['payroll.employee_id', 'payroll.from', 'payroll.to', 'employee.firstname', 'employee.lastname', 'payroll.status', 'payroll.payday'])
                     .from('payroll')
                     .join('employee', 'payroll.employee_id', 'employee.id')
                     .modify(queryBuilder => {
@@ -261,7 +264,6 @@ class PayrollService {
                             queryBuilder.where('payroll.amount', '<=', amountTo)
                         }
                         if (employee_id) {
-                            console.log(employee_id)
                             queryBuilder.where('payroll.employee_id', employee_id)
                         }
                         if (isReimbursementCaled) {
@@ -282,13 +284,19 @@ class PayrollService {
                         if (isLeaveCaled) {
                             queryBuilder.where('payroll.is_leave_calculated', isLeaveCaled)
                         }
+                        if (paydayFrom) {
+                            queryBuilder.where('payroll.payday', '>=', paydayFrom)
+                        }
+                        if (paydayTo) {
+                            queryBuilder.where('payroll.payday', '<=', paydayTo)
+                        }
                     })
                     .as('count')
             })
 
         const payroll = await this.knex('payroll')
             .join('employee', 'payroll.employee_id', 'employee.id')
-            .select(['payroll.id', 'payroll.employee_id', 'employee.firstname', 'employee.lastname', 'payroll.from', 'payroll.to', 'payroll.amount', 'payroll.status'])
+            .select(['payroll.id', 'payroll.employee_id', 'employee.firstname', 'employee.lastname', 'payroll.from', 'payroll.to', 'payroll.payday', 'payroll.amount', 'payroll.status',])
             .limit(currentLimit)
             .offset(currentPage)
             .orderBy('payroll.id')
@@ -312,8 +320,6 @@ class PayrollService {
                     queryBuilder.where('payroll.amount', '<=', amountTo)
                 }
                 if (employee_id) {
-                    console.log(employee_id)
-                    console.log(typeof employee_id)
                     queryBuilder.where('payroll.employee_id', employee_id)
                 }
                 if (isReimbursementCaled) {
@@ -334,6 +340,12 @@ class PayrollService {
                 if (isLeaveCaled) {
                     queryBuilder.where('payroll.is_leave_calculated', isLeaveCaled)
                 }
+                if (paydayFrom) {
+                    queryBuilder.where('payroll.payday', '>=', paydayFrom)
+                }
+                if (paydayTo) {
+                    queryBuilder.where('payroll.payday', '<=', paydayTo)
+                }
             })
 
         if (currentPageEnd >= count.count) {
@@ -344,12 +356,29 @@ class PayrollService {
     }
 
     updatePayroll = async (id, status) => {
-        if (!Array.isArray(id)) id = [id]
         const [payroll] = await this.knex('payroll')
-            .whereIn('id', id)
+            .where('id', id)
             .update({
                 status: status
-            }, ['id', 'from', 'to', 'status'])
+            }, ['id'])
+        return payroll
+    }
+
+    batchUpdatePayroll = async (id, status) => {
+        if (!Array.isArray(id)) id = [id];
+        let update = {};
+        if (status) update.status = status
+        const payroll = await this.knex('payroll')
+            .whereIn('id', id)
+            .update(update)
+        return payroll
+    }
+
+    batchDeletePayroll = async (id) => {
+        if (!Array.isArray(id)) id = [id];
+        const payroll = await this.knex('payroll')
+            .whereIn('id', id)
+            .del()
         return payroll
     }
 }

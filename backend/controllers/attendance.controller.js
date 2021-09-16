@@ -71,9 +71,8 @@ class AttendanceController {
 
     getAllAttendance = async (req, res) => {
         try {
-            const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit } = req.query
-            const query = await this.AttendanceService.getAllAttendance(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit);
-
+            const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employee_id } = req.query
+            const query = await this.AttendanceService.getAllAttendance(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employee_id);
             return res.status(200).json({
                 attendance: query.attendance,
                 employeeList: query.employeeList,
@@ -147,6 +146,12 @@ class AttendanceController {
                 })
             }
 
+            if (check_in >= check_out) {
+                return res.status(400).json({
+                    error: 'Check in time cannot be greater than or equal to the check out time!'
+                })
+            }
+
             const overlaps = await this.AttendanceService.checkForConflicts(employee_id, date)
             if (overlaps.length > 0) {
                 const overlappedRecords = overlaps.map(el => {
@@ -162,6 +167,7 @@ class AttendanceController {
                     error: `Overlapped Attendance: ${overlappedRecords.map(el => `ID: ${el.id} Date: ${el.date} Employee ID: ${el.employee_id}`)}`
                 })
             }
+            
             const attendance = await this.AttendanceService.createAttendance(employee_id, date, check_in, check_out, status)
             return res.status(200).json({
                 success: `Successfully created attendance record ${attendance.id} for Employee ${attendance.employee_id}`,
@@ -211,22 +217,6 @@ class AttendanceController {
             const attendance = await this.AttendanceService.batchUpdateAttendance(id, check_in, check_out, status)
             return res.status(200).json({
                 success: 'Successfully batch updated attendance record.'
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    getMonthlyAttendanceByEmployee = async (req, res) => {
-        try {
-            const { employeeId } = req.params
-            const { month, year } = req.query
-            const attendance = await this.AttendanceService.getMonthlyAttendanceByEmployee(employeeId, month, year)
-            return res.status(200).json({
-                attendance: attendance
             })
         } catch (err) {
             console.log(err)

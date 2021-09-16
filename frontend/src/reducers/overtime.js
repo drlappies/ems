@@ -95,7 +95,8 @@ const overtimeReducer = (state = initialState, action) => {
         case RESET_SELECTED:
             return {
                 ...state,
-                selectedRecord: action.payload.selectedRecord
+                selectedRecord: action.payload.selectedRecord,
+                isAllSelected: action.payload.isAllSelected
             }
         case TOGGLE_UPDATING:
             return {
@@ -158,7 +159,8 @@ const overtimeReducer = (state = initialState, action) => {
         case ADD_ALL_TO_SELECTED:
             return {
                 ...state,
-                selectedRecord: action.payload.selectedRecord
+                selectedRecord: action.payload.selectedRecord,
+                isAllSelected: action.payload.isAllSelected
             }
         case FETCH_OVERTIME_BY_FILTER:
             return {
@@ -231,7 +233,8 @@ const overtimeReducer = (state = initialState, action) => {
                 pageLength: action.payload.pageLength,
                 employeeList: action.payload.employeeList,
                 currentLimit: action.payload.currentLimit,
-                selectedRecord: action.payload.selectedRecord
+                selectedRecord: action.payload.selectedRecord,
+                isAllSelected: action.payload.isAllSelected
             }
         default:
             return state

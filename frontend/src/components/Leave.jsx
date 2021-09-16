@@ -35,16 +35,17 @@ function Leave() {
                         <textarea id="applyReason" name="applyReason" value={leave.applyReason} onChange={(e) => dispatch(updateLeave(e))}></textarea>
                     </Form.Field>
                     <Form.Field>
-                        <label htmlFor="applyType">Leave Type <small>(Current Days of Annual Leave Left: {leave.employeeAL})</small></label>
+                        <label htmlFor="applyType">Leave Type</label>
                         <select id="applyType" name="applyType" value={leave.applyType} onChange={(e) => dispatch(updateLeave(e))} >
+                            <option value="">Select a type</option>
                             <option value="sick_leave">Sick Leave</option>
                             <option value="no_pay_leave">No Pay Leave</option>
-                            <option value="annual_leave">Annual Leave</option>
                         </select>
                     </Form.Field>
                     <Form.Field>
                         <label htmlFor="applySpan">Span</label>
                         <select id="applySpan" name="applySpan" value={leave.applySpan} onChange={(e) => dispatch(updateLeave(e))} >
+                            <option value="">Selecy a dayspan</option>
                             <option value="half_day">Half Day</option>
                             <option value="full_day">Full Day</option>
                         </select>

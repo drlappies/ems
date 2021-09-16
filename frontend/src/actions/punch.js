@@ -8,12 +8,11 @@ export const timeInThunk = (employeeId) => {
             const body = {
                 employeeId: employeeId
             }
-            const res = await axios.post('/attendance/time-in', body, {
+            const res = await axios.post('/api/attendance/checkin', body, {
                 headers: {
                     'jwt': window.localStorage.getItem('jwt')
                 }
             })
-            console.log(res)
             dispatch({
                 type: CHECK_IN,
                 payload: {
@@ -34,7 +33,7 @@ export const timeOutThunk = (employeeId) => {
             const body = {
                 employeeId: employeeId
             }
-            const res = await axios.post('/attendance/time-out', body, {
+            const res = await axios.post('/api/attendance/checkout', body, {
                 headers: {
                     'jwt': window.localStorage.getItem('jwt')
                 }
@@ -55,7 +54,7 @@ export const timeOutThunk = (employeeId) => {
 export const fetchPunchStatusThunk = (employeeId) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get(`/attendance/${employeeId}`, {
+            const res = await axios.get(`/api/attendance/status/${employeeId}`, {
                 headers: {
                     'jwt': window.localStorage.getItem('jwt')
                 }

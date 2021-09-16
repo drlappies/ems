@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { fetchAttendance, fetchNext, fetchPrevious, deleteAttendance, updateAttendance, createAttendance, handleUpdateAttendance, resetQuery, toggleUpdating, toggleCreating, toggleFiltering, toggleBatchUpdating, toggleBatchDeleting, toggleDeleting, updateRow, fetchAttendanceByQuery, toggleSelect, toggleSelectAll, updateBatchAttendance, batchDeleteAttendance } from '../actions/attendance';
 import { useSelector, useDispatch } from 'react-redux';
-import { Table, Grid, Form, Button, Header, Input, Label } from 'semantic-ui-react'
+import { Table, Grid, Form, Button, Header } from 'semantic-ui-react'
 import TableHeader from './TableHeader';
 import TableFooter from './TableFooter';
 import TableBody from './TableBody';
@@ -37,7 +37,7 @@ function AttendanceHistory() {
                         <TableHeader
                             header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Date', 'Time in', 'Time out', 'Status', 'Actions']}
                             checkName={"isAllSelected"}
-                            checkValue={attendance.isAllSelected}
+                            isChecked={attendance.isAllSelected}
                             checkFunc={(e) => dispatch(toggleSelectAll(e, attendance.record))}
                         />
                         <TableBody
@@ -60,7 +60,7 @@ function AttendanceHistory() {
                             pageEnd={attendance.currentPageEnd}
                             entriesName={"currentLimit"}
                             entriesNum={attendance.currentLimit}
-                            entriesFunc={(e, newLimit) => dispatch(updateRow(attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo, attendance.currentPage, newLimit.value))}
+                            entriesFunc={(e) => dispatch(updateRow(attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo, attendance.currentPage, e.target.value))}
                         />
                     </Table>
                 </Grid.Row>
@@ -133,7 +133,7 @@ function AttendanceHistory() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleCreating(attendance.isCreating))}
                 configSecondaryAction={"Create"}
-                configSecondaryFunc={() => dispatch(createAttendance(attendance.employeeId, attendance.attendanceDate, attendance.attendanceCheckout, attendance.attendanceCheckin, attendance.attendanceStatus, attendance.currentPage, attendance.currentLimit, attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo))}
+                configSecondaryFunc={() => dispatch(createAttendance(attendance.employeeId, attendance.attendanceDate, attendance.attendanceCheckin, attendance.attendanceCheckout, attendance.attendanceStatus, attendance.currentPage, attendance.currentLimit, attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo))}
                 configSecondaryColor={"green"}
             >
                 <Form>
@@ -178,7 +178,7 @@ function AttendanceHistory() {
                 configSecondaryFunc={() => dispatch(resetQuery(attendance.currentPage, attendance.currentLimit))}
                 configTertiaryAction={"Search"}
                 configTertiaryColor={"green"}
-                configTertiaryFunc={() => dispatch(fetchAttendanceByQuery(attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo, attendance.currentPage, attendance.currentLimit))}
+                configTertiaryFunc={() => dispatch(fetchAttendanceByQuery(attendance.queryText, attendance.queryStatus, attendance.queryDateFrom, attendance.queryDateTo, attendance.queryCheckinFrom, attendance.queryCheckinTo, attendance.queryCheckoutFrom, attendance.queryCheckoutTo, attendance.currentPage, attendance.currentLimit, attendance.queryEmployeeId))}
             >
                 <Form>
                     <Form.Field>
@@ -186,9 +186,18 @@ function AttendanceHistory() {
                         <input id="queryText" name="queryText" value={attendance.queryText} onChange={(e) => dispatch(handleUpdateAttendance(e))} />
                     </Form.Field>
                     <Form.Field>
+                        <label htmlFor="queryEmployeeId">Employee</label>
+                        <select id="queryEmployeeId" name="queryEmployeeId" value={attendance.queryEmployeeId} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
+                            <option value="">Any employee</option>
+                            {attendance.employeeList.map((el, i) =>
+                                <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
+                            )}
+                        </select>
+                    </Form.Field>
+                    <Form.Field>
                         <label htmlFor="queryStatus">Status</label>
                         <select id="queryStatus" name="queryStatus" value={attendance.queryStatus} onChange={(e) => dispatch(handleUpdateAttendance(e))}>
-                            <option value="" hidden>Status</option>
+                            <option value="">Any status</option>
                             <option value="on_time">On Time</option>
                             <option value="late">Late</option>
                         </select>

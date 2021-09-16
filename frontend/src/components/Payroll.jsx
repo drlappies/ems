@@ -1,16 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { useSelector, useDispatch } from 'react-redux'
-import { fetchPayroll, updatePayroll, generatePayroll, fetchNextPayrollPage, fetchPreviousPayrollPage, toggleCreating, toggleViewing, toggleDeleting, handleDelete, toggleBatchUpdating, handleSelect, handleBatchDelete, handleBatchUpdate, toggleBatchDeleting, handleEntriesChange, toggleFiltering, resetQuery, handleSearch, toggleUpdating, handleUpdate, handleSelectAll } from '../actions/payroll';
+import { fetchPayroll, updatePayroll, generatePayroll, fetchNextPayrollPage, fetchPreviousPayrollPage, toggleCreating, toggleViewing, toggleDeleting, handleDelete, toggleBatchUpdating, handleSelect, handleBatchDelete, handleBatchUpdate, toggleBatchDeleting, handleEntriesChange, toggleFiltering, resetQuery, handleSearch, toggleUpdating, handleUpdate, handleSelectAll, togglePrinting } from '../actions/payroll';
 import { Grid, Button, Header, Table, Form } from 'semantic-ui-react'
 import TableHeader from './TableHeader'
 import TableBody from './TableBody'
 import TableFooter from './TableFooter'
 import Config from './Config'
+import Payslip from './Payslip'
 import '../css/main.css'
 
 function Payroll() {
+    const componentRef = useRef();
     const dispatch = useDispatch()
     const payroll = useSelector(state => state.payroll)
+    const auth = useSelector(state => state.auth)
+    const handlePrint = useReactToPrint({
+        content: () => componentRef.current,
+    });
 
     useEffect(() => {
         dispatch(fetchPayroll())
@@ -36,8 +43,9 @@ function Payroll() {
                     <Grid.Column>
                         <Table celled compact selectable size="small">
                             <TableHeader
-                                header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Payroll Period From', 'To', 'Total Amount', 'Status', 'Actions']}
+                                header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Payroll Period From', 'To', 'Payday', 'Total Amount', 'Status', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, payroll.record))}
+                                isChecked={payroll.isAllSelected}
                             />
                             <TableBody
                                 data={payroll.record}
@@ -54,14 +62,14 @@ function Payroll() {
                                 checkedRows={payroll.selectedRecord}
                             />
                             <TableFooter
-                                colSpan={10}
+                                colSpan={11}
                                 pageStart={payroll.currentPageStart}
                                 pageEnd={payroll.currentPageEnd}
                                 pageTotal={payroll.pageLength}
-                                onNext={() => dispatch(fetchNextPayrollPage(payroll.currentLimit, payroll.currentPage, payroll.pageLength))}
-                                onPrevious={() => dispatch(fetchPreviousPayrollPage(payroll.currentLimit, payroll.currentPage))}
+                                onNext={() => dispatch(fetchNextPayrollPage(payroll.currentLimit, payroll.currentPage, payroll.pageLength, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
+                                onPrevious={() => dispatch(fetchPreviousPayrollPage(payroll.currentLimit, payroll.currentPage, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
                                 entriesNum={payroll.currentLimit}
-                                entriesFunc={(e, result) => dispatch(handleEntriesChange(result.value, payroll.currentPage))}
+                                entriesFunc={(e) => dispatch(handleEntriesChange(e.target.value, payroll.currentPage, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
                             />
                         </Table>
                     </Grid.Column>
@@ -72,18 +80,24 @@ function Payroll() {
                 configType={"Payroll Details"}
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleViewing())}
+                configSecondaryAction={"Payslip"}
+                configSecondaryFunc={() => dispatch(togglePrinting(payroll.isPrinting))}
+                configSecondaryColor={"green"}
             >
                 <p><strong>Payroll id:</strong> {payroll.payrollId}</p>
                 <p><strong>Employee id:</strong> {payroll.employeeId}</p>
                 <p><strong>Employee Firstname:</strong> {payroll.firstname}</p>
                 <p><strong>Employee Lastname:</strong> {payroll.lastname}</p>
                 <p><strong>Payoll Period:</strong> From {new Date(payroll.from).getFullYear()}-{new Date(payroll.from).getMonth() + 1}-{new Date(payroll.from).getDate()} to {new Date(payroll.to).getFullYear()}-{new Date(payroll.to).getMonth() + 1}-{new Date(payroll.to).getDate()}</p>
-                <p><strong>Payroll Amount:</strong> {payroll.amount}</p>
+                <p><strong>Payday:</strong> {new Date(payroll.payday).getFullYear()}-{new Date(payroll.payday).getMonth() + 1}-{new Date(payroll.payday).getDate()}</p>
+                <p><strong>Basic Salary:</strong> {payroll.basicSalary}</p>
+                <p><strong>Total Amount:</strong> {payroll.amount}</p>
                 <p><strong>Overtime Pay:</strong> {payroll.overtime}</p>
                 <p><strong>Reimbursement:</strong> {payroll.reimbursement}</p>
                 <p><strong>Allowance:</strong> {payroll.allowance}</p>
                 <p><strong>Bonus:</strong> {payroll.bonus}</p>
                 <p><strong>Deduction:</strong> {payroll.deduction}</p>
+                <p><strong>MPF (Employee Voluntary):</strong> {payroll.mpfDeduction}</p>
             </Config>
             <Config
                 isConfigOpen={payroll.isCreating}
@@ -91,14 +105,14 @@ function Payroll() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleCreating(payroll.isCreating))}
                 configSecondaryAction={"Generate Payroll"}
-                configSecondaryFunc={() => dispatch(generatePayroll(payroll.employeeId, payroll.starting, payroll.ending, payroll.isOTcaled, payroll.isLeaveCaled, payroll.isDeductCaled, payroll.isBonusCaled, payroll.isAllowanceCaled, payroll.isReimbursementCaled))}
+                configSecondaryFunc={() => dispatch(generatePayroll(payroll.employeeId, payroll.starting, payroll.ending, payroll.payday, payroll.isOTcaled, payroll.isLeaveCaled, payroll.isDeductCaled, payroll.isBonusCaled, payroll.isAllowanceCaled, payroll.isReimbursementCaled, payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
                 configSecondaryColor={'green'}
             >
                 <Form>
                     <Form.Field>
                         <label htmlFor="employeeId">Employee</label>
-                        <select id="employeeId" name="employeeId" onChange={(e) => dispatch(updatePayroll(e))}>
-                            <option value="" selected hidden>Select Employee</option>
+                        <select id="employeeId" name="employeeId" value={payroll.employeeId} onChange={(e) => dispatch(updatePayroll(e))}>
+                            <option value="">Select employee</option>
                             {payroll.employeeList.map((el, i) =>
                                 <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
                             )}
@@ -111,6 +125,10 @@ function Payroll() {
                     <Form.Field>
                         <label htmlFor="ending">To</label>
                         <input id="ending" name="ending" type="date" onChange={(e) => dispatch(updatePayroll(e))} />
+                    </Form.Field>
+                    <Form.Field>
+                        <label htmlFor="payday">Payday</label>
+                        <input type="date" id="payday" name="payday" onChange={(e) => dispatch(updatePayroll(e))} />
                     </Form.Field>
                     <Form.Field>
                         <label htmlFor="isOTcaled">Calculate Employee Overtime Pay?</label>
@@ -144,7 +162,7 @@ function Payroll() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleDeleting())}
                 configSecondaryAction={"Delete"}
-                configSecondaryFunc={() => dispatch(handleDelete(payroll.payrollId))}
+                configSecondaryFunc={() => dispatch(handleDelete(payroll.payrollId, payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
                 configSecondaryColor={'red'}
             >
                 <p><strong>Are you sure to delete the following payroll record?</strong></p>
@@ -171,7 +189,7 @@ function Payroll() {
                 configPrimaryFunc={() => dispatch(toggleBatchUpdating(payroll.isBatchUpdating))}
                 configSecondaryAction={"Update"}
                 configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(handleBatchUpdate(payroll.selectedRecord, payroll.updateBatchPayrollStatus))}
+                configSecondaryFunc={() => dispatch(handleBatchUpdate(payroll.selectedRecord, payroll.updateBatchPayrollStatus, payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
             >
                 <Form>
                     <Form.Field>
@@ -207,7 +225,7 @@ function Payroll() {
                 configSecondaryFunc={() => dispatch(resetQuery(payroll.currentPage, payroll.currentLimit))}
                 configTertiaryColor={"green"}
                 configTertiaryAction={"Search"}
-                configTertiaryFunc={() => dispatch(handleSearch(payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
+                configTertiaryFunc={() => dispatch(handleSearch(payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryPaydayFrom, payroll.queryPaydayTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
             >
                 <Form>
                     <Grid>
@@ -224,7 +242,7 @@ function Payroll() {
                                 <Form.Field>
                                     <label htmlFor="queryEmployeeId">Employee</label>
                                     <select id="queryEmployeeId" name="queryEmployeeId" value={payroll.queryEmployeeId} onChange={(e) => dispatch(updatePayroll(e))}>
-                                        <option value="" hidden>Employee</option>
+                                        <option value="">Any employee</option>
                                         {payroll.employeeList.map((el, i) =>
                                             <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
                                         )}
@@ -237,7 +255,7 @@ function Payroll() {
                                 <Form.Field>
                                     <label htmlFor="queryStatus">Status</label>
                                     <select id="queryStatus" name="queryStatus" value={payroll.queryStatus} onChange={(e) => dispatch(updatePayroll(e))}>
-                                        <option value="" hidden>Status</option>
+                                        <option value="">Any status</option>
                                         <option value="pending">Pending</option>
                                         <option value="confirmed">Confirmed</option>
                                     </select>
@@ -261,6 +279,20 @@ function Payroll() {
                         <Grid.Row columns="2">
                             <Grid.Column>
                                 <Form.Field>
+                                    <label htmlFor="queryPaydayFrom">Payday From</label>
+                                    <input type="date" id="queryPaydayFrom" name="queryPaydayFrom" value={payroll.queryPaydayFrom} onChange={(e) => dispatch(updatePayroll(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label htmlFor="queryPaydayTo">Payday To</label>
+                                    <input type="date" id="queryPaydayTo" name="queryPaydayTo" value={payroll.queryPaydayTo} onChange={(e) => dispatch(updatePayroll(e))} />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row columns="2">
+                            <Grid.Column>
+                                <Form.Field>
                                     <label htmlFor="queryAmountFrom">Amount From </label>
                                     <input id="queryAmountFrom" name="queryAmountFrom" type="number" value={payroll.queryAmountFrom} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
@@ -276,19 +308,19 @@ function Payroll() {
                             <Grid.Column>
                                 <Form.Field>
                                     <label htmlFor="queryIsReimbursementCaled">Is Reimbursement Calculated?</label>
-                                    <input id="queryIsReimbursementCaled" name="queryIsReimbursementCaled" type="checkbox" value={payroll.queryIsReimbursementCaled} onChange={(e) => dispatch(updatePayroll(e))} />
+                                    <input id="queryIsReimbursementCaled" name="queryIsReimbursementCaled" type="checkbox" checked={payroll.queryIsReimbursementCaled} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
                                     <label htmlFor="queryIsAllowanceCaled">Is Allowance Calculated?</label>
-                                    <input id="queryIsAllowanceCaled" name="queryIsAllowanceCaled" type="checkbox" value={payroll.queryIsAllowanceCaled} onChange={(e) => dispatch(updatePayroll(e))} />
+                                    <input id="queryIsAllowanceCaled" name="queryIsAllowanceCaled" type="checkbox" checked={payroll.queryIsAllowanceCaled} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
                                     <label htmlFor="queryIsDeductionCaled">Is Deduction Calculated?</label>
-                                    <input id="queryIsDeductionCaled" name="queryIsDeductionCaled" type="checkbox" value={payroll.queryIsDeductionCaled} onChange={(e) => dispatch(updatePayroll(e))} />
+                                    <input id="queryIsDeductionCaled" name="queryIsDeductionCaled" type="checkbox" checked={payroll.queryIsDeductionCaled} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
                         </Grid.Row>
@@ -296,19 +328,19 @@ function Payroll() {
                             <Grid.Column>
                                 <Form.Field>
                                     <label htmlFor="queryIsBonusCaled">Is Bonus Calculated?</label>
-                                    <input id="queryIsBonusCaled" name="queryIsBonusCaled" type="checkbox" value={payroll.queryIsBonusCaled} onChange={(e) => dispatch(updatePayroll(e))} />
+                                    <input id="queryIsBonusCaled" name="queryIsBonusCaled" type="checkbox" checked={payroll.queryIsBonusCaled} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
                                     <label htmlFor="queryIsOvertimeCaled">Is Overtime Calculated?</label>
-                                    <input id="queryIsOvertimeCaled" name="queryIsOvertimeCaled" type="checkbox" value={payroll.queryIsOvertimeCaled} onChange={(e) => dispatch(updatePayroll(e))} />
+                                    <input id="queryIsOvertimeCaled" name="queryIsOvertimeCaled" type="checkbox" checked={payroll.queryIsOvertimeCaled} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
                                 <Form.Field>
                                     <label htmlFor="queryIsLeaveCaled">Is Leave Calculated?</label>
-                                    <input id="queryIsLeaveCaled" name="queryIsLeaveCaled" type="checkbox" value={payroll.queryIsLeaveCaled} onChange={(e) => dispatch(updatePayroll(e))} />
+                                    <input id="queryIsLeaveCaled" name="queryIsLeaveCaled" type="checkbox" checked={payroll.queryIsLeaveCaled} onChange={(e) => dispatch(updatePayroll(e))} />
                                 </Form.Field>
                             </Grid.Column>
                         </Grid.Row>
@@ -322,7 +354,7 @@ function Payroll() {
                 configPrimaryFunc={() => dispatch(toggleUpdating())}
                 configSecondaryAction={"Update"}
                 configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(handleUpdate(payroll.payrollId, payroll.status))}
+                configSecondaryFunc={() => dispatch(handleUpdate(payroll.payrollId, payroll.status, payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
             >
                 <p><strong>Payroll ID:</strong> {payroll.payrollId}</p>
                 <p><strong>Employee ID:</strong> {payroll.employeeId}</p>
@@ -352,6 +384,36 @@ function Payroll() {
                         </select>
                     </Form.Field>
                 </Form>
+            </Config>
+            <Config
+                isConfigOpen={payroll.isPrinting}
+                configPrimaryAction={"Cancel"}
+                configType={"Generate Payslip"}
+                configPrimaryFunc={() => dispatch(togglePrinting(payroll.isPrinting))}
+                configSecondaryAction={"Print"}
+                configSecondaryColor={"green"}
+                configSecondaryFunc={handlePrint}
+            >
+                <Payslip
+                    ref={componentRef}
+                    payrollId={payroll.payrollId}
+                    employeeId={payroll.employeeId}
+                    employeeFirstname={payroll.firstname}
+                    employeeLastname={payroll.lastname}
+                    payrollFrom={payroll.from}
+                    payrollTo={payroll.to}
+                    payday={payroll.payday}
+                    basicAmount={payroll.basicSalary}
+                    totalAmount={payroll.amount}
+                    overtimeAmount={payroll.overtime}
+                    reimbursementAmount={payroll.reimbursement}
+                    allowanceAmount={payroll.allowance}
+                    mpf={payroll.mpfDeduction}
+                    bonusAmount={payroll.bonus}
+                    deductionAmount={payroll.deduction}
+                    approvalFirstname={auth.firstname}
+                    approvalLastname={auth.lastname}
+                />
             </Config>
         </div >
     )

@@ -58,7 +58,7 @@ function Bonus() {
                                 onNext={() => dispatch(fetchNextBonusPage(bonus.currentPage, bonus.currentLimit, bonus.pageLength, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
                                 onPrevious={() => dispatch(fetchPreviousBonusPage(bonus.currentPage, bonus.currentLimit, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
                                 entriesNum={bonus.currentLimit}
-                                entriesFunc={(e, result) => dispatch(fetchBonusByEntries(bonus.currentPage, result.value, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
+                                entriesFunc={(e) => dispatch(fetchBonusByEntries(bonus.currentPage, e.target.value, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
                             />
                         </Table>
                     </Grid.Column>

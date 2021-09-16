@@ -27,7 +27,6 @@ function Employee() {
         }
     })
 
-
     return (
         <div className="record">
             <Grid>
@@ -36,8 +35,8 @@ function Employee() {
                 </Grid.Row>
                 <Grid.Row columns="1">
                     <Grid.Column textAlign="right">
-                        <Button size="tiny" color="blue" onClick={() => dispatch(toggleBatchUpdating(employee.isBatchUpdating))}>Batch Updating</Button>
-                        <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(employee.isBatchDeleting))}>Batch Delete</Button>
+                        <Button size="tiny" color="blue" disabled={employee.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchUpdating(employee.isBatchUpdating))}>Batch Update</Button>
+                        <Button size="tiny" color="red" disabled={employee.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(employee.isBatchDeleting))}>Batch Delete</Button>
                         <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(employee.isFiltering))}>Filter</Button>
                         <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(employee.isCreating))}>Create Employee</Button>
                     </Grid.Column>
@@ -71,7 +70,7 @@ function Employee() {
                                 onNext={() => dispatch(fetchNextEmployeePage(employee.currentPage, employee.currentLimit, employee.pageCount, employee.queryText, employee.queryPosition, employee.queryDepartment, employee.queryJoinFrom, employee.queryJoinTo, employee.queryStatus))}
                                 onPrevious={() => dispatch(fetchPreviousEmployeePage(employee.currentPage, employee.currentLimit, employee.queryText, employee.queryPosition, employee.queryDepartment, employee.queryJoinFrom, employee.queryJoinTo, employee.queryStatus))}
                                 entriesNum={employee.currentLimit}
-                                entriesFunc={(e, result) => dispatch(fetchEmployeeByEntries(employee.currentPage, result.value, employee.queryText, employee.queryPosition, employee.queryDepartment, employee.queryJoinFrom, employee.queryJoinTo, employee.queryStatus))}
+                                entriesFunc={(e) => dispatch(fetchEmployeeByEntries(employee.currentPage, e.target.value, employee.queryText, employee.queryPosition, employee.queryDepartment, employee.queryJoinFrom, employee.queryJoinTo, employee.queryStatus))}
                             />
                         </Table>
                     </Grid.Column>
@@ -108,7 +107,7 @@ function Employee() {
                     configPrimaryFunc={() => dispatch(toggleUpdating())}
                     configSecondaryAction={"Update"}
                     configSecondaryColor={"green"}
-                    configSecondaryFunc={() => dispatch(confirmEmployeeUpdate(employee.employeeId, employee.employeeDepartmentId, employee.employeePositionId, employee.employeeFirstname, employee.employeeLastname, employee.employeeAddress, employee.employeeNumber, employee.employeeContactPerson, employee.employeeNumber, employee.employeeOnboardDate, employee.employeeStatus, employee.employeeOT, employee.employeeOTpay, employee.employeeSalary, employee.employeeStartHour, employee.employeeEndHour, employee.employeeRole, employee.employeeUsername, employee.employeePassword, employee.employeeAL))}
+                    configSecondaryFunc={() => dispatch(confirmEmployeeUpdate(employee.employeeId, employee.employeeDepartmentId, employee.employeePositionId, employee.employeeFirstname, employee.employeeLastname, employee.employeeAddress, employee.employeeNumber, employee.employeeContactPerson, employee.employeeNumber, employee.employeeOnboardDate, employee.employeeStatus, employee.employeeOT, employee.employeeOTpay, employee.employeeSalary, employee.employeeStartHour, employee.employeeEndHour, employee.employeeRole, employee.employeeUsername, employee.employeePassword, employee.employeeAL, employee.queryText, employee.queryPosition, employee.queryDepartment, employee.queryJoinFrom, employee.queryJoinTo, employee.queryStatus, employee.currentPage, employee.currentLimit))}
                 >
                     <Form>
                         <Grid>
@@ -172,13 +171,23 @@ function Employee() {
                                     </Form.Field>
                                 </Grid.Column>
                             </Grid.Row>
-                            <Grid.Row>
+                            <Grid.Row columns="2">
                                 <Grid.Column>
                                     <Form.Field>
                                         <label htmlFor="employeeRole">Role</label>
                                         <select value={employee.employeeRole} id="employeeRole" name="employeeRole" onChange={(e) => dispatch(updateSpecificEmployee(e))}>
                                             <option value="employee">Employee</option>
                                             <option value="admin">Admin</option>
+                                        </select>
+                                    </Form.Field>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Form.Field>
+                                        <label htmlFor="employeeStatus">Status</label>
+                                        <select value={employee.employeeStatus} id="employeeStatus" name="employeeStatus" onChange={(e) => dispatch(updateSpecificEmployee(e))}>
+                                            <option value="available">Available</option>
+                                            <option value="unavailable">Unavailable</option>
+                                            <option value="temporarily_unavailable">Temporarily Unavailable</option>
                                         </select>
                                     </Form.Field>
                                 </Grid.Column>
@@ -217,7 +226,7 @@ function Employee() {
                                 <Grid.Column>
                                     <Form.Field>
                                         <label htmlFor="employeeSalary">Monthly Salary</label>
-                                        <input id="employeeSalary" name="employeeSalary" value={employee.employeeSalary} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                                        <input id="employeeSalary" name="employeeSalary" value={employee.employeeSalary} type="number" onChange={(e) => dispatch(updateSpecificEmployee(e))} />
                                     </Form.Field>
                                 </Grid.Column>
                             </Grid.Row>
@@ -267,7 +276,7 @@ function Employee() {
                     configPrimaryFunc={() => dispatch(toggleDeleting())}
                     configSecondaryAction={"Delete"}
                     configSecondaryColor={"red"}
-                    configSecondaryFunc={() => dispatch(deleteEmployee(employee.employeeId))}
+                    configSecondaryFunc={() => dispatch(deleteEmployee(employee.employeeId, employee.currentPage, employee.currentLimit, employee.queryText, employee.queryPosition, employee.queryDepartment, employee.queryJoinFrom, employee.queryJoinTo, employee.queryStatus))}
                 >
                     <p><strong>Are you sure to delete the following employee record?</strong></p>
                     <p><strong>ID: </strong>{employee.employeeId}</p>
@@ -284,7 +293,7 @@ function Employee() {
                     configPrimaryFunc={() => dispatch(toggleCreating(employee.isCreating))}
                     configSecondaryAction={"Create"}
                     configSecondaryColor={"green"}
-                    configSecondaryFunc={() => dispatch(createEmployee(employee.employeeUsername, employee.employeePassword, employee.employeeRole, employee.employeeFirstname, employee.employeeLastname, employee.employeeAddress, employee.employeeNumber, employee.employeeContactPerson, employee.employeeContactNumber, employee.employeeOnboardDate, employee.employeeSalary, employee.employeeStartHour, employee.employeeEndHour, employee.employeePositionId, employee.employeeDepartmentId, employee.employeeOTpay, employee.employeeOT))}
+                    configSecondaryFunc={() => dispatch(createEmployee(employee.employeeUsername, employee.employeePassword, employee.employeeRole, employee.employeeFirstname, employee.employeeLastname, employee.employeeAddress, employee.employeeNumber, employee.employeeContactPerson, employee.employeeContactNumber, employee.employeeOnboardDate, employee.employeeSalary, employee.employeeStartHour, employee.employeeEndHour, employee.employeePositionId, employee.employeeDepartmentId, employee.employeeOTpay, employee.employeeOT, employee.currentPage, employee.currentLimit, employee.queryText, employee.queryPosition, employee.queryDepartment, employee.queryJoinFrom, employee.queryJoinTo, employee.queryStatus))}
                 >
                     <Form>
                         <Grid>
@@ -345,6 +354,7 @@ function Employee() {
                                     <Form.Field>
                                         <label htmlFor="employeeRole">Role</label>
                                         <select value={employee.employeeRole} id="employeeRole" name="employeeRole" onChange={(e) => dispatch(updateSpecificEmployee(e))}>
+                                            <option value="">Select a account role</option>
                                             <option value="employee">Employee</option>
                                             <option value="admin">Admin</option>
                                         </select>
@@ -391,7 +401,7 @@ function Employee() {
                                 <Grid.Column>
                                     <Form.Field>
                                         <label htmlFor="employeeSalary">Monthly Salary</label>
-                                        <input id="employeeSalary" name="employeeSalary" value={employee.employeeSalary} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                                        <input id="employeeSalary" name="employeeSalary" value={employee.employeeSalary} type="number" onChange={(e) => dispatch(updateSpecificEmployee(e))} />
                                     </Form.Field>
                                 </Grid.Column>
                             </Grid.Row>
@@ -444,7 +454,7 @@ function Employee() {
                         <Grid.Row>
                             <Grid.Column>
                                 <Form.Field>
-                                    <label htmlFor="queryText">Contains</label>
+                                    <label htmlFor="queryText">Keywords</label>
                                     <input id="queryText" name="queryText" value={employee.queryText} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
                                 </Form.Field>
                             </Grid.Column>
@@ -454,7 +464,7 @@ function Employee() {
                                 <Form.Field>
                                     <label htmlFor="queryPosition">Position</label>
                                     <select id="queryPosition" name="queryPosition" value={employee.queryPosition} onChange={(e) => dispatch(updateSpecificEmployee(e))}>
-                                        <option value="" hidden>Position</option>
+                                        <option value="">Any position</option>
                                         {employee.positions.map((el, i) =>
                                             <option key={i} value={el.id}>{el.post}</option>
                                         )}
@@ -465,7 +475,7 @@ function Employee() {
                                 <Form.Field>
                                     <label htmlFor="queryDepartment">Department</label>
                                     <select id="queryDepartment" name="queryDepartment" value={employee.queryDepartment} onChange={(e) => dispatch(updateSpecificEmployee(e))} >
-                                        <option value="" hidden>Department</option>
+                                        <option value="">Any department</option>
                                         {employee.departments.map((el, i) =>
                                             <option key={i} value={el.id}>{el.name}</option>
                                         )}
@@ -492,7 +502,7 @@ function Employee() {
                                 <Form.Field>
                                     <label htmlFor="queryStatus">Status</label>
                                     <select id="queryStatus" name="queryStatus" value={employee.queryStatus} onChange={(e) => dispatch(updateSpecificEmployee(e))}>
-                                        <option value="" hidden>Status</option>
+                                        <option value="">Any status</option>
                                         <option value="available">Available</option>
                                         <option value="unavailable">Unavailable</option>
                                         <option value="temporarily_unavailable">Temporarily Unavailable</option>
@@ -510,7 +520,7 @@ function Employee() {
                 configPrimaryFunc={() => dispatch(toggleBatchUpdating(employee.isBatchUpdating))}
                 configSecondaryAction={"Batch Update"}
                 configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(batchUpdateEmployee(employee.selectedRecord, employee.batchUpdateStartHour, employee.batchUpdateEndHour, employee.batchUpdateStatus, employee.batchUpdateRole, employee.batchUpdateOTentitlement, employee.batchUpdateOTHourlyPay, employee.batchUpdateMonthlySalary))}
+                configSecondaryFunc={() => dispatch(batchUpdateEmployee(employee.selectedRecord, employee.batchUpdateStartHour, employee.batchUpdateEndHour, employee.batchUpdateStatus, employee.batchUpdateRole, employee.batchUpdateOTentitlement, employee.batchUpdateOTHourlyPay, employee.batchUpdateMonthlySalary, employee.currentPage, employee.currentLimit, employee.queryText, employee.queryPosition, employee.queryDepartment, employee.queryJoinFrom, employee.queryJoinTo, employee.queryStatus))}
             >
                 <Form>
                     <Grid>
@@ -518,7 +528,7 @@ function Employee() {
                             <Grid.Column>
                                 <Form.Field>
                                     <label htmlFor="batchUpdateStartHour">Working Hour (From)</label>
-                                    <input type="time" step="1" id="batchUpdateStartHour" name="batchUpdateStartHour" value={employee.batchUpdateStatus} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
+                                    <input type="time" step="1" id="batchUpdateStartHour" name="batchUpdateStartHour" value={employee.batchUpdateStartHour} onChange={(e) => dispatch(updateSpecificEmployee(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column>
@@ -533,7 +543,7 @@ function Employee() {
                                 <Form.Field>
                                     <label htmlFor="batchUpdateStatus">Status</label>
                                     <select id="batchUpdateStatus" name="batchUpdateStatus" value={employee.batchUpdateStatus} onChange={(e) => dispatch(updateSpecificEmployee(e))}>
-                                        <option value="" hidden>Status</option>
+                                        <option value="">Select a status</option>
                                         <option value="available">Available</option>
                                         <option value="unavailable">Unavailable</option>
                                         <option value="temporarily_unavailable">Temporarily Unavailable</option>
@@ -543,8 +553,8 @@ function Employee() {
                             <Grid.Column>
                                 <Form.Field>
                                     <label htmlFor="batchUpdateRole">Role</label>
-                                    <select id="batchUpdateRole" name="batchUpdateRole">
-                                        <option value="" hidden>Role</option>
+                                    <select id="batchUpdateRole" name="batchUpdateRole" value={employee.batchUpdateRole} onChange={(e) => dispatch(updateSpecificEmployee(e))}>
+                                        <option value="">Select a role</option>
                                         <option value="employee">Employee</option>
                                         <option value="admin">Admin</option>
                                     </select>
@@ -583,7 +593,7 @@ function Employee() {
                 configPrimaryFunc={() => dispatch(toggleBatchDeleting(employee.isBatchDeleting))}
                 configSecondaryAction={"Batch Delete"}
                 configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(batchDeleteEmployee(employee.selectedRecord))}
+                configSecondaryFunc={() => dispatch(batchDeleteEmployee(employee.selectedRecord, employee.currentPage, employee.currentLimit, employee.queryText, employee.queryPosition, employee.queryDepartment, employee.queryJoinFrom, employee.queryJoinTo, employee.queryStatus))}
             >
                 {employee.selectedRecord.map((el, i) =>
                     <p key={i}><strong>ID: {el}</strong></p>

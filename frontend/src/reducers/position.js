@@ -1,4 +1,4 @@
-import { FETCH_POSITION, FETCH_SPECIFIC_POSITION, RESET_POSITION, UPDATE_POSITION, DELETE_POSITION, TOGGLE_POSITION_CREATING, ADD_TO_POSITION_SELECTED, REMOVE_FROM_POSITION_SELECTED, ADD_ALL_TO_POSITION_SELECTED, REMOVE_ALL_FROM_POSITION_SELECTED, TOGGLE_POSITION_BATCH_DELETING, TOGGLE_POSITION_UPDATING, TOGGLE_POSITION_DELETING, TOGGLE_POSITION_FILTERING, RESET_POSITION_QUERY, FETCH_POSITION_BY_QUERY } from "../types/position"
+import { FETCH_POSITION, FETCH_SPECIFIC_POSITION, RESET_POSITION, UPDATE_POSITION, DELETE_POSITION, TOGGLE_POSITION_CREATING, ADD_TO_POSITION_SELECTED, REMOVE_FROM_POSITION_SELECTED, ADD_ALL_TO_POSITION_SELECTED, REMOVE_ALL_FROM_POSITION_SELECTED, TOGGLE_POSITION_BATCH_DELETING, TOGGLE_POSITION_UPDATING, TOGGLE_POSITION_DELETING, TOGGLE_POSITION_FILTERING, RESET_POSITION_QUERY, FETCH_POSITION_BY_QUERY, UPDATE_POSITION_RECORD, BATCH_DELETE_POSITION, CREATE_POSITION } from "../types/position"
 
 const initialState = {
     record: [],
@@ -15,7 +15,8 @@ const initialState = {
     isBatchDeleting: false,
     isDeleting: false,
     queryText: "",
-    isFiltering: false
+    isFiltering: false,
+    isUpdating: false
 }
 
 const positionReducer = (state = initialState, action) => {
@@ -50,7 +51,13 @@ const positionReducer = (state = initialState, action) => {
         case DELETE_POSITION:
             return {
                 ...state,
-                record: state.record.filter(el => el.id !== action.payload.positionId)
+                isDeleting: action.payload.isDeleting,
+                record: action.payload.record,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit
             }
         case TOGGLE_POSITION_CREATING:
             return {
@@ -117,6 +124,39 @@ const positionReducer = (state = initialState, action) => {
             return {
                 ...state,
                 isFiltering: false,
+                record: action.payload.record,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit
+            }
+        case UPDATE_POSITION_RECORD:
+            return {
+                ...state,
+                isUpdating: action.payload.isUpdating,
+                record: action.payload.record,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit
+            }
+        case BATCH_DELETE_POSITION:
+            return {
+                ...state,
+                isBatchDeleting: action.payload.isBatchDeleting,
+                record: action.payload.record,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit
+            }
+        case CREATE_POSITION:
+            return {
+                ...state,
+                isCreating: action.payload.isCreating,
                 record: action.payload.record,
                 currentPage: action.payload.currentPage,
                 currentPageStart: action.payload.currentPageStart,

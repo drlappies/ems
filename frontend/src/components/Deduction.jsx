@@ -58,7 +58,7 @@ function Deduction() {
                                 onNext={() => dispatch(fetchNextDeductionPage(deduction.currentPage, deduction.currentLimit, deduction.pageLength, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
                                 onPrevious={() => dispatch(fetchPreviousDeductionPage(deduction.currentPage, deduction.currentLimit, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
                                 entriesNum={deduction.currentLimit}
-                                entriesFunc={(e, result) => dispatch(fetchDeductionByEntries(deduction.currentPage, result.value, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
+                                entriesFunc={(e) => dispatch(fetchDeductionByEntries(deduction.currentPage, e.target.value, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
                             />
                         </Table>
                     </Grid.Column>

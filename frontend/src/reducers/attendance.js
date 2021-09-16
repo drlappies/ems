@@ -1,4 +1,4 @@
-import { FETCH_ATTENDANCE, UPDATE_ATTENDANCE, FETCH_SPECIFIC_ATTENDANCE, RESET_ATTENDANCE, ADD_SELECTED, REMOVE_SELECTED, RESET_SELECTED, RESET_QUERY, UPDATE_ROW, ADD_ALL_SELECTED, TOGGLE_UPDATING, TOGGLE_CREATING, TOGGLE_FILTERING, TOGGLE_BATCH_DELETING, TOGGLE_DELETING, TOGGLE_BATCH_UPDATING, DELETE_ATTENDANCE, BATCH_DELETE_ATTENDANCE, UPDATE_ATTENDANCE_RECORD, BATCH_UPDATE_ATTENDANCE, CREATE_ATTENDANCE, FETCH_ATTENDANCE_BY_FILTER } from '../types/attendance'
+import { FETCH_ATTENDANCE, DELETE_ATTENDANCE, UPDATE_ATTENDANCE, ADD_TO_ATTENDANCE_SELECTED, REMOVE_FROM_ATTENDANCE_SELECTED, RESET_ATTENDANCE_SELECTED, ADD_ALL_TO_ATTENDANCE_SELECTED, UPDATE_ATTENDANCE_ROW, TOGGLE_ATTENDANCE_UPDATING, TOGGLE_ATTENDANCE_CREATING, TOGGLE_ATTENDANCE_DELETING, TOGGLE_ATTENDANCE_FILTERING, TOGGLE_ATTENDANCE_BATCH_DELETING, TOGGLE_ATTENDANCE_BATCH_UPDATING, BATCH_DELETE_ATTENDANCE, UPDATE_ATTENDANCE_RECORD, BATCH_UPDATE_ATTENDANCE, CREATE_ATTENDANCE, FETCH_ATTENDANCE_BY_FILTER, RESET_ATTENDANCE_QUERY } from '../types/attendance'
 
 const initialState = {
     record: [],
@@ -17,6 +17,7 @@ const initialState = {
     queryCheckinTo: "",
     queryCheckoutFrom: "",
     queryCheckoutTo: "",
+    queryEmployeeId: "",
     attendanceId: "",
     employeeId: "",
     employeeFirstname: "",
@@ -28,13 +29,13 @@ const initialState = {
     updateAttendanceCheckin: "",
     updateAttendanceCheckout: "",
     updateAttendanceStatus: "",
-    isAllSelected: false,
+    isAttendanceAllSelected: false,
     isUpdating: false,
     isCreating: false,
     isFiltering: false,
     isBatchDeleting: false,
     isBatchUpdating: false,
-    isDeleting: false
+    isDeleting: false,
 }
 
 const attendanceReducer = (state = initialState, action) => {
@@ -54,49 +55,23 @@ const attendanceReducer = (state = initialState, action) => {
                 ...state,
                 [action.payload.name]: action.payload.value
             }
-        case FETCH_SPECIFIC_ATTENDANCE:
-            return {
-                ...state,
-                attendanceId: action.payload.attendanceId,
-                employeeId: action.payload.employeeId,
-                employeeFirstname: action.payload.employeeFirstname,
-                employeeLastname: action.payload.employeeLastname,
-                attendanceCheckin: action.payload.attendanceCheckin,
-                attendanceCheckout: action.payload.attendanceCheckout,
-                attendanceStatus: action.payload.attendanceStatus,
-                attendanceDate: action.payload.attendanceDate
-            }
-        case RESET_ATTENDANCE:
-            return {
-                ...state,
-                attendanceId: "",
-                employeeId: "",
-                employeeFirstname: "",
-                employeeLastname: "",
-                attendanceCheckin: "",
-                attendanceCheckout: "",
-                attendanceStatus: "",
-                attendanceDate: "",
-                updateAttendanceCheckin: "",
-                updateAttendanceCheckout: "",
-                updateAttendanceStatus: ""
-            }
-        case ADD_SELECTED:
+        case ADD_TO_ATTENDANCE_SELECTED:
             return {
                 ...state,
                 selectedRecord: [...state.selectedRecord, action.payload.id]
             }
-        case REMOVE_SELECTED:
+        case REMOVE_FROM_ATTENDANCE_SELECTED:
             return {
                 ...state,
                 selectedRecord: state.selectedRecord.filter(el => el !== action.payload.id)
             }
-        case RESET_SELECTED:
+        case RESET_ATTENDANCE_SELECTED:
             return {
                 ...state,
-                selectedRecord: action.payload.selectedRecord
+                selectedRecord: action.payload.selectedRecord,
+                isAttendanceAllSelected: action.payload.isAttendanceAllSelected
             }
-        case RESET_QUERY:
+        case RESET_ATTENDANCE_QUERY:
             return {
                 ...state,
                 isFiltering: action.payload.isFiltering,
@@ -108,15 +83,16 @@ const attendanceReducer = (state = initialState, action) => {
                 queryCheckinTo: action.payload.queryCheckinTo,
                 queryCheckoutFrom: action.payload.queryCheckoutFrom,
                 queryCheckoutTo: action.payload.queryCheckoutTo,
+                queryEmployeeId: action.payload.queryEmployeeId,
                 record: action.payload.record,
                 pageLength: action.payload.count,
                 currentPage: action.payload.page,
                 currentPageStart: action.payload.pageStart,
                 currentPageEnd: action.payload.pageEnd,
                 employeeList: action.payload.employeeList,
-                currentLimit: action.payload.currentLimit
+                currentLimit: action.payload.currentLimit,
             }
-        case UPDATE_ROW:
+        case UPDATE_ATTENDANCE_ROW:
             return {
                 ...state,
                 record: action.payload.record,
@@ -127,12 +103,13 @@ const attendanceReducer = (state = initialState, action) => {
                 employeeList: action.payload.employeeList,
                 currentLimit: action.payload.currentLimit,
             }
-        case ADD_ALL_SELECTED:
+        case ADD_ALL_TO_ATTENDANCE_SELECTED:
             return {
                 ...state,
-                selectedRecord: action.payload.selectedRecord
+                selectedRecord: action.payload.selectedRecord,
+                isAttendanceAllSelected: action.payload.isAttendanceAllSelected
             }
-        case TOGGLE_UPDATING:
+        case TOGGLE_ATTENDANCE_UPDATING:
             return {
                 ...state,
                 isUpdating: !state.isUpdating,
@@ -145,12 +122,12 @@ const attendanceReducer = (state = initialState, action) => {
                 attendanceStatus: action.payload.attendanceStatus,
                 attendanceDate: action.payload.attendanceDate
             }
-        case TOGGLE_CREATING:
+        case TOGGLE_ATTENDANCE_CREATING:
             return {
                 ...state,
                 isCreating: action.payload.isCreating
             }
-        case TOGGLE_DELETING:
+        case TOGGLE_ATTENDANCE_DELETING:
             return {
                 ...state,
                 isDeleting: action.payload.isDeleting,
@@ -163,17 +140,17 @@ const attendanceReducer = (state = initialState, action) => {
                 attendanceStatus: action.payload.attendanceStatus,
                 attendanceDate: action.payload.attendanceDate
             }
-        case TOGGLE_FILTERING:
+        case TOGGLE_ATTENDANCE_FILTERING:
             return {
                 ...state,
                 isFiltering: action.payload.isFiltering
             }
-        case TOGGLE_BATCH_DELETING:
+        case TOGGLE_ATTENDANCE_BATCH_DELETING:
             return {
                 ...state,
                 isBatchDeleting: action.payload.isBatchDeleting
             }
-        case TOGGLE_BATCH_UPDATING:
+        case TOGGLE_ATTENDANCE_BATCH_UPDATING:
             return {
                 ...state,
                 isBatchUpdating: action.payload.isBatchUpdating,
@@ -204,7 +181,8 @@ const attendanceReducer = (state = initialState, action) => {
                 currentPageEnd: action.payload.pageEnd,
                 employeeList: action.payload.employeeList,
                 currentLimit: action.payload.currentLimit,
-                selectedRecord: action.payload.selectedRecord
+                selectedRecord: action.payload.selectedRecord,
+                isAllSelected: action.payload.isAllSelected
             }
         case UPDATE_ATTENDANCE_RECORD:
             return {

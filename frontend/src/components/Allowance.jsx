@@ -61,7 +61,7 @@ function Allowance() {
                                 onNext={() => dispatch(gotoNextAllowancePage(allowance.currentPage, allowance.pageLength, allowance.currentLimit, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
                                 onPrevious={() => dispatch(gotoPreviousAllowancePage(allowance.currentPage, allowance.currentLimit, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
                                 entriesNum={allowance.currentLimit}
-                                entriesFunc={(e, result) => dispatch(handleEntriesChange(result.value, allowance.currentPage, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
+                                entriesFunc={(e) => dispatch(handleEntriesChange(e.target.value, allowance.currentPage, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
                             />
                         </Table>
                     </Grid.Column>

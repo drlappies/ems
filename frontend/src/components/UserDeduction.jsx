@@ -18,7 +18,7 @@ function UserDeduction() {
 
     const fetchDeductionRecord = useCallback(async () => {
         try {
-            const res = await axios.get('/deduction', {
+            const res = await axios.get('/api/deduction', {
                 params: {
                     employee_id: auth.id
                 }
@@ -42,7 +42,7 @@ function UserDeduction() {
     const next = useCallback(async () => {
         try {
             if (state.currentOffset + state.currentLimit >= state.currentLimit) return;
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/api/deduction', {
                 params: {
                     employee_id: auth.id,
                     page: state.currentOffset + state.currentLimit,
@@ -68,7 +68,7 @@ function UserDeduction() {
     const prev = useCallback(async () => {
         try {
             if (state.currentOffset <= 0) return;
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/api/deduction', {
                 params: {
                     employee_id: auth.id,
                     page: state.currentOffset - state.currentLimit,

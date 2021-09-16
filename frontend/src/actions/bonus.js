@@ -5,7 +5,7 @@ import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 export const fetchBonus = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/bonus')
+            const res = await axios.get('/api/bonus')
             dispatch({
                 type: FETCH_BONUS,
                 payload: {
@@ -28,7 +28,7 @@ export const fetchNextBonusPage = (currentPage, currentLimit, pageLength, queryT
     return async (dispatch) => {
         try {
             if (currentPage + currentLimit > pageLength) return;
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/api/bonus', {
                 params: {
                     page: currentPage + currentLimit,
                     limit: currentLimit,
@@ -61,7 +61,7 @@ export const fetchPreviousBonusPage = (currentPage, currentLimit, queryText, que
     return async (dispatch) => {
         try {
             if (currentPage <= 0) return;
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/api/bonus', {
                 params: {
                     page: currentPage + currentLimit,
                     limit: currentLimit,
@@ -99,9 +99,9 @@ export const confirmBonusUpdate = (id, employeeId, reason, date, amount, current
                 date: date,
                 amount: amount
             }
-            const res = await axios.put(`/bonus/${id}`, body)
+            const res = await axios.put(`/api/bonus/${id}`, body)
             dispatch(popSuccessMessage(res.data.success))
-            const res2 = await axios.get('/bonus', {
+            const res2 = await axios.get('/api/bonus', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -147,10 +147,10 @@ export const updateBonus = (e, result) => {
 export const deleteBonus = (id, currentPage, currentLimit, queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/bonus/${id}`)
+            const res = await axios.delete(`/api/bonus/${id}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/bonus', {
+            const res2 = await axios.get('/api/bonus', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -197,10 +197,10 @@ export const createBonus = (employeeId, reason, amount, date, currentPage, curre
                 amount: amount,
                 date: date
             }
-            const res = await axios.post('/bonus', body)
+            const res = await axios.post('/api/bonus', body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/bonus', {
+            const res2 = await axios.get('/api/bonus', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -234,7 +234,7 @@ export const createBonus = (employeeId, reason, amount, date, currentPage, curre
 export const fetchBonusByEntries = (currentPage, currentLimit, queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/api/bonus', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -268,7 +268,7 @@ export const toggleUpdating = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/bonus/${id}`)
+            if (id) res = await axios.get(`/api/bonus/${id}`)
             dispatch({
                 type: TOGGLE_BONUS_UPDATING,
                 payload: {
@@ -313,7 +313,7 @@ export const toggleFiltering = (isFiltering) => {
 export const fetchBonusByFilter = (queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo, queryEmployeeId) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/api/bonus', {
                 params: {
                     text: queryText,
                     dateFrom: queryDateFrom,
@@ -346,7 +346,7 @@ export const fetchBonusByFilter = (queryText, queryDateFrom, queryDateTo, queryA
 export const resetBonusFilter = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/bonus')
+            const res = await axios.get('/api/bonus')
             dispatch({
                 type: RESET_BONUS_FILTER,
                 payload: {
@@ -410,10 +410,10 @@ export const batchUpdateBonus = (selectedRecord, updateEmployeeId, updateDate, u
                 amount: updateAmount,
             }
 
-            const res = await axios.put('/bonus', body)
+            const res = await axios.put('/api/bonus', body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/bonus', {
+            const res2 = await axios.get('/api/bonus', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -463,10 +463,10 @@ export const toggleBatchDeleting = (isBatchDeleting) => {
 export const batchDeleteBonus = (selectedRecord, currentPage, currentLimit, queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/bonus/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`/api/bonus/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/bonus', {
+            const res2 = await axios.get('/api/bonus', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -502,7 +502,7 @@ export const toggleDeleting = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/bonus/${id}`)
+            if (id) res = await axios.get(`/api/bonus/${id}`)
             dispatch({
                 type: TOGGLE_BONUS_DELETING,
                 payload: {

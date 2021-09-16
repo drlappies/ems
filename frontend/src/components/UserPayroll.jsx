@@ -25,7 +25,7 @@ function UserPayroll() {
 
     const fetchEmployeePayroll = useCallback(async () => {
         try {
-            const res = await axios.get('/payroll', {
+            const res = await axios.get('/api/payroll', {
                 params: {
                     employee_id: auth.id,
                 }
@@ -49,7 +49,7 @@ function UserPayroll() {
     const fetchNextEmployeePayroll = useCallback(async () => {
         try {
             if (state.currentPage + state.currentLimit > state.currentLimit) return;
-            const res = await axios.get('/payroll', {
+            const res = await axios.get('/api/payroll', {
                 params: {
                     employee_id: auth.id,
                     page: state.currentPage + state.currentLimit,
@@ -75,7 +75,7 @@ function UserPayroll() {
     const fetchPrevEmployeePayroll = useCallback(async () => {
         try {
             if (state.currentPage <= 0) return;
-            const res = await axios.get('payroll', {
+            const res = await axios.get('/api/payroll', {
                 params: {
                     employee_id: auth.id,
                     page: state.currentPage - state.currentLimit,

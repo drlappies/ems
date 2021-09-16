@@ -1,4 +1,4 @@
-import { SUCCESS, ERROR, DISMISS, SIDEBAR } from "../types/ui"
+import { SUCCESS, ERROR, DISMISS, SIDEBAR, RESET } from "../types/ui"
 
 const initialState = {
     message: '',
@@ -31,6 +31,13 @@ const uiReducer = (state = initialState, action) => {
             return {
                 ...state,
                 sidebar: !state.sidebar
+            }
+        case RESET:
+            return {
+                message: '',
+                type: '',
+                visible: false,
+                sidebar: false
             }
         default:
             return state

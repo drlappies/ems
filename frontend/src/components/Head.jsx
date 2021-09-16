@@ -10,6 +10,8 @@ function Head() {
     const dispatch = useDispatch()
     const history = useHistory()
     const auth = useSelector(state => state.auth)
+
+    if (!auth.isAuthenticated) return null
     return (
         <div className="head">
             <Menu inverted size="large" attached="top">
@@ -17,12 +19,6 @@ function Head() {
                     Menu
                 </Menu.Item>
                 <Menu.Menu position='right'>
-                    <Menu.Item>
-                        Current User: {auth.firstname} {auth.lastname}
-                    </Menu.Item>
-                    <Menu.Item>
-                        Role: {auth.role}
-                    </Menu.Item>
                     <Menu.Item onClick={() => dispatch(logoutThunk(history))}>
                         Logout
                     </Menu.Item>

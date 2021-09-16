@@ -1,4 +1,4 @@
-import { SUCCESS, ERROR, DISMISS, SIDEBAR } from "../types/ui"
+import { SUCCESS, ERROR, DISMISS, SIDEBAR, RESET } from "../types/ui"
 
 export const popMessage = (message, type) => {
     return (dispatch) => {
@@ -29,16 +29,18 @@ export const popErrorMessage = (message) => {
 
 export const dismissMessage = () => {
     return (dispatch) => {
-        dispatch({
-            type: DISMISS
-        })
+        dispatch({ type: DISMISS })
     }
 }
 
 export const toggleSidebar = () => {
     return (dispatch) => {
-        dispatch({
-            type: SIDEBAR
-        })
+        dispatch({ type: SIDEBAR })
+    }
+}
+
+export const resetUI = () => {
+    return (dispatch) => {
+        dispatch({ type: RESET })
     }
 }

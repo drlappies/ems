@@ -1,4 +1,4 @@
-import { ADD_TO_DEPARTMENT_SELECTED, FETCH_DEPARTMENT, UPDATE_DEPARTMENT, CONFIRM_DEPARTMENT_UPDATE, RESET_DEPARTMENT, TOGGLE_CREATE_DEPARTMENT, TOGGLE_DEPARTMENT_FILTERING, RESET_DEPARTMENT_QUERY, FETCH_DEPARTMENT_BY_QUERY, TOGGLE_DEPARTMENT_UPDATING, TOGGLE_DEPARTMENT_DELETING, DELETE_DEPARTMENT, ADD_ALL_TO_DEPARTMENT_SELECTED, REMOVE_FROM_DEPARTMENT_SELECTED, REMOVE_ALL_FROM_DEPARTMENT_SELECTED, TOGGLE_DEPARTMENT_BATCH_DELETING, BATCH_DELETE_DEPARTMENT } from "../types/department"
+import { ADD_TO_DEPARTMENT_SELECTED, FETCH_DEPARTMENT, UPDATE_DEPARTMENT, CONFIRM_DEPARTMENT_UPDATE, RESET_DEPARTMENT, TOGGLE_CREATE_DEPARTMENT, TOGGLE_DEPARTMENT_FILTERING, RESET_DEPARTMENT_QUERY, FETCH_DEPARTMENT_BY_QUERY, TOGGLE_DEPARTMENT_UPDATING, TOGGLE_DEPARTMENT_DELETING, DELETE_DEPARTMENT, ADD_ALL_TO_DEPARTMENT_SELECTED, REMOVE_FROM_DEPARTMENT_SELECTED, REMOVE_ALL_FROM_DEPARTMENT_SELECTED, TOGGLE_DEPARTMENT_BATCH_DELETING, BATCH_DELETE_DEPARTMENT, UPDATE_DEPARTMENT_RECORD, CREATE_DEPARTMENT } from "../types/department"
 
 const initialState = {
     record: [],
@@ -135,6 +135,47 @@ const departmentReducer = (state = initialState, action) => {
                 currentPageEnd: action.payload.currentPageEnd,
                 currentPage: action.payload.currentPage,
                 currentLimit: action.payload.currentLimit
+            }
+        case UPDATE_DEPARTMENT_RECORD:
+            return {
+                ...state,
+                isUpdating: action.payload.isUpdating,
+                record: action.payload.record,
+                pageLength: action.payload.pageLength,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                currentPage: action.payload.currentPage,
+                currentLimit: action.payload.currentLimit,
+                departmentId: action.payload.departmentId,
+                departmentName: action.payload.departmentName,
+                departmentDesc: action.payload.departmentDesc,
+            }
+        case DELETE_DEPARTMENT:
+            return {
+                ...state,
+                isDeleting: action.payload.isDeleting,
+                record: action.payload.record,
+                pageLength: action.payload.pageLength,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                currentPage: action.payload.currentPage,
+                currentLimit: action.payload.currentLimit,
+                departmentId: action.payload.departmentId,
+                departmentName: action.payload.departmentName,
+                departmentDesc: action.payload.departmentDesc,
+            }
+        case CREATE_DEPARTMENT:
+            return {
+                ...state,
+                isCreating: action.payload.isCreating,
+                record: action.payload.record,
+                pageLength: action.payload.pageLength,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                currentPage: action.payload.currentPage,
+                currentLimit: action.payload.currentLimit,
+                createDepartmentName: action.payload.createDepartmentName,
+                createDepartmentDesc: action.payload.createDepartmentDesc
             }
         default:
             return state

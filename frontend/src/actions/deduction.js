@@ -5,7 +5,7 @@ import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 export const fetchDeduction = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/deduction')
+            const res = await axios.get('/api/deduction')
             dispatch({
                 type: FETCH_DEDUCTION,
                 payload: {
@@ -47,10 +47,10 @@ export const confirmDeductionUpdate = (deductionId, employeeId, reason, amount, 
                 amount: amount,
                 date: date
             }
-            const res = await axios.put(`/deduction/${deductionId}`, body)
+            const res = await axios.put(`/api/deduction/${deductionId}`, body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/deduction', {
+            const res2 = await axios.get('/api/deduction', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -90,10 +90,10 @@ export const confirmDeductionUpdate = (deductionId, employeeId, reason, amount, 
 export const deleteDeduction = (id, currentPage, currentLimit, queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/deduction/${id}`)
+            const res = await axios.delete(`/api/deduction/${id}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/deduction', {
+            const res2 = await axios.get('/api/deduction', {
                 page: currentPage + currentLimit,
                 limit: currentLimit,
                 dateFrom: queryDateFrom,
@@ -137,10 +137,10 @@ export const createDeduction = (employeeId, reason, amount, date, currentPage, c
                 amount: amount,
                 date: date,
             }
-            const res = await axios.post('/deduction', body)
+            const res = await axios.post('/api/deduction', body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/deduction', {
+            const res2 = await axios.get('/api/deduction', {
                 page: currentPage + currentLimit,
                 limit: currentLimit,
                 dateFrom: queryDateFrom,
@@ -176,7 +176,7 @@ export const fetchNextDeductionPage = (currentPage, currentLimit, pageLength, qu
     return async (dispatch) => {
         try {
             if (currentPage + currentLimit > pageLength) return;
-            const res = await axios.get('/deduction', {
+            const res = await axios.get('/api/deduction', {
                 page: currentPage + currentLimit,
                 limit: currentLimit,
                 dateFrom: queryDateFrom,
@@ -208,7 +208,7 @@ export const fetchPreviousDeductionPage = (currentPage, currentLimit, queryText,
     return async (dispatch) => {
         try {
             if (currentPage <= 0) return;
-            const res = await axios.get('/deduction', {
+            const res = await axios.get('/api/deduction', {
                 params: {
                     page: currentPage - currentLimit,
                     limit: currentLimit,
@@ -241,7 +241,7 @@ export const fetchPreviousDeductionPage = (currentPage, currentLimit, queryText,
 export const fetchDeductionByEntries = (currentPage, currentLimit, queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/deduction', {
+            const res = await axios.get('/api/deduction', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -275,7 +275,7 @@ export const toggleUpdating = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/deduction/${id}`)
+            if (id) res = await axios.get(`/api/deduction/${id}`)
             dispatch({
                 type: TOGGLE_DEDUCTION_UPDATING,
                 payload: {
@@ -299,7 +299,7 @@ export const toggleDeleting = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/deduction/${id}`)
+            if (id) res = await axios.get(`/api/deduction/${id}`)
             dispatch({
                 type: TOGGLE_DEDUCTION_DELETING,
                 payload: {
@@ -344,7 +344,7 @@ export const toggleFiltering = (isFiltering) => {
 export const fetchDeductionByFilter = (queryText, queryDateFrom, queryDateTo, queryAmountFrom, queryAmountTo, queryEmployeeId) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/deduction', {
+            const res = await axios.get('/api/deduction', {
                 params: {
                     text: queryText,
                     dateFrom: queryDateFrom,
@@ -377,7 +377,7 @@ export const fetchDeductionByFilter = (queryText, queryDateFrom, queryDateTo, qu
 export const resetDeductionFilter = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/deduction')
+            const res = await axios.get('/api/deduction')
             dispatch({
                 type: RESET_DEDUCTION_FILTER,
                 payload: {
@@ -451,10 +451,10 @@ export const batchUpdateDeduction = (selectedRecord, updateEmployeeId, updateDat
                 reason: updateReason,
                 amount: updateAmount
             }
-            const res = await axios.put('/deduction', body)
+            const res = await axios.put('/api/deduction', body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/deduction', {
+            const res2 = await axios.get('/api/deduction', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,

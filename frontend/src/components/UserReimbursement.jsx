@@ -18,7 +18,7 @@ function UserReimbursement() {
 
     const fetchReimbursementRecord = useCallback(async () => {
         try {
-            const res = await axios.get('/reimbursement', {
+            const res = await axios.get('/api/reimbursement', {
                 params: {
                     employee_id: auth.id
                 }
@@ -42,7 +42,7 @@ function UserReimbursement() {
     const fetchNextReimbursementRecord = useCallback(async () => {
         try {
             if (state.currentPage + state.currentLimit >= state.currentLimit) return;
-            const res = await axios.get('/reimbursement', {
+            const res = await axios.get('/api/reimbursement', {
                 params: {
                     employee_id: auth.id,
                     page: state.currentPage + state.currentLimit,
@@ -68,7 +68,7 @@ function UserReimbursement() {
     const fetchPrevReimbursementRecord = useCallback(async () => {
         try {
             if (state.currentPage <= 0) return;
-            const res = await axios.get('/reimbursement', {
+            const res = await axios.get('/api/reimbursement', {
                 params: {
                     employee_id: auth.id,
                     page: state.currentPage - state.currentLimit,

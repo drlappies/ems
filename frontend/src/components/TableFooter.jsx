@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Menu, Icon, Dropdown } from 'semantic-ui-react';
+import { Table, Menu, Icon } from 'semantic-ui-react';
 
 function TableFooter(props) {
     const { pageStart, pageEnd, pageTotal, onPrevious, onNext, colSpan, entriesNum, entriesFunc, entriesName } = props
@@ -10,21 +10,14 @@ function TableFooter(props) {
                 <Table.HeaderCell colSpan={colSpan}>
                     <Menu floated='right' pagination>
                         <Menu.Item>
-                            <Dropdown
-                                selection
-                                compact
-                                name={entriesName}
-                                value={entriesNum}
-                                onChange={entriesFunc}
-                                options={[
-                                    { key: "10", value: 10, text: "10" },
-                                    { key: "25", value: 25, text: "25" },
-                                    { key: "50", value: 50, text: "50" },
-                                    { key: "100", value: 100, text: "100" },
-                                    { key: "250", value: 250, text: "250" },
-                                    { key: "500", value: 500, text: "500" }
-                                ]}
-                            />
+                            <select onChange={entriesFunc} value={entriesNum} name={entriesName}>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="250">250</option>
+                                <option value="500">500</option>
+                            </select>
                         </Menu.Item>
                         <Menu.Item>
                             {pageStart} - {pageEnd} of {pageTotal}

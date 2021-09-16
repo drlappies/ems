@@ -18,7 +18,7 @@ function UserBonus() {
 
     const fetchBonusRecord = useCallback(async () => {
         try {
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/api/bonus', {
                 params: {
                     employee_id: auth.id
                 }
@@ -42,7 +42,7 @@ function UserBonus() {
     const next = useCallback(async () => {
         try {
             if (state.currentOffset + state.currentLimit >= state.currentLimit) return;
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/api/bonus', {
                 params: {
                     employee_id: auth.id,
                     page: state.currentOffset + state.currentLimit,
@@ -68,7 +68,7 @@ function UserBonus() {
     const prev = useCallback(async () => {
         try {
             if (state.currentOffset <= 0) return;
-            const res = await axios.get('/bonus', {
+            const res = await axios.get('/api/bonus', {
                 params: {
                     employee_id: auth.id,
                     page: state.currentOffset - state.currentLimit,

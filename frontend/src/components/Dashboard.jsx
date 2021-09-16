@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react'
 import Metric from './Metric'
-import Chart from './Chart'
-import { Grid, Container } from 'semantic-ui-react'
+import { Grid } from 'semantic-ui-react'
 import axios from 'axios'
 
 function Dashboard() {
@@ -16,21 +15,16 @@ function Dashboard() {
 
     const fetchMetrics = useCallback(async () => {
         try {
-            const res = await axios.all([
-                axios.get('/employee'),
-                axios.get('/department'),
-                axios.get('/reimbursement?status=pending'),
-                axios.get('/attendance/rate'),
-                axios.get('/leave/rate')
-            ])
+            const res = await axios.get('/api/dashboard')
             setState(prevState => {
                 return {
                     ...prevState,
-                    employee: res[0].data.length,
-                    departments: res[1].data.length,
-                    reimbursement: res[2].data.length,
-                    onTimeRate: res[3].data.rate,
-                    leaveRate: res[4].data.rate
+                    employee: res.data.metric[0].employee_count,
+                    positions: res.data.metric[0].positions_count,
+                    departments: res.data.metric[0].departments_count,
+                    reimbursement: res.data.metric[0].pending_reimbursement_count,
+                    onTimeRate: Math.round(res.data.metric[0].on_time_attendance_count / res.data.metric[0].attendance_count * 100 * 100) / 100,
+                    leaveRate: Math.round(res.data.metric[0].approved_leave_count / res.data.metric[0].attendance_count * 100 * 100) / 100,
                 }
             })
         } catch (err) {
@@ -43,64 +37,56 @@ function Dashboard() {
     }, [fetchMetrics])
 
     return (
-        <Container>
-            <Grid container relaxed>
-                <Grid.Row columns="3">
-                    <Grid.Column>
-                        <Metric
-                            color="teal"
-                            label="Employee Number"
-                            number={state.employee}
-                        />
-                    </Grid.Column >
-                    <Grid.Column >
-                        <Metric
-                            color="orange"
-                            label="Department Number"
-                            number={state.departments}
-                        />
-                    </Grid.Column >
-                    <Grid.Column >
-                        <Metric
-                            color="olive"
-                            label="Position Number"
-                            number={state.positions}
-                        />
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row columns="3">
-                    <Grid.Column >
-                        <Metric
-                            color="pink"
-                            label="Pending Reimbursements"
-                            number={state.reimbursement}
-                        />
-                    </Grid.Column>
-                    <Grid.Column >
-                        <Metric
-                            color="green"
-                            label="Employee on-time rate"
-                            number={`${state.onTimeRate}%`}
-                        />
-                    </Grid.Column>
-                    <Grid.Column >
-                        <Metric
-                            color="red"
-                            label="Employee leave rate"
-                            number={`${state.leaveRate}%`}
-                        />
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row columns="1">
-                    <Grid.Column>
-                        <Chart
-                            header="Employee on-time rate"
-                            subheader="past 6 months"
-                        />
-                    </Grid.Column>
-                </Grid.Row>
-            </Grid >
-        </Container>
+        <Grid container relaxed>
+            <Grid.Row></Grid.Row>
+            <Grid.Row></Grid.Row>
+            <Grid.Row columns="3">
+                <Grid.Column>
+                    <Metric
+                        color="teal"
+                        label="Employees"
+                        number={state.employee}
+                    />
+                </Grid.Column >
+                <Grid.Column >
+                    <Metric
+                        color="orange"
+                        label="Departments"
+                        number={state.departments}
+                    />
+                </Grid.Column >
+                <Grid.Column >
+                    <Metric
+                        color="olive"
+                        label="Positions"
+                        number={state.positions}
+                    />
+                </Grid.Column>
+            </Grid.Row>
+            <Grid.Row columns="3">
+                <Grid.Column >
+                    <Metric
+                        color="pink"
+                        label="Pending Reimbursements"
+                        number={state.reimbursement}
+                    />
+                </Grid.Column>
+                <Grid.Column >
+                    <Metric
+                        color="green"
+                        label="Employee on-time rate"
+                        number={`${state.onTimeRate}%`}
+                    />
+                </Grid.Column>
+                <Grid.Column >
+                    <Metric
+                        color="red"
+                        label="Employee leave rate"
+                        number={`${state.leaveRate}%`}
+                    />
+                </Grid.Column>
+            </Grid.Row>
+        </Grid >
     )
 }
 

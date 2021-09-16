@@ -43,11 +43,88 @@
 }
 
 .record {
-    margin: 5% 2.5% 5% 2.5%
+    margin-top: 65px;
+    margin-left: 25px;
+    margin-right: 25px;
 }
 
 .head {
     position: absolute;
     width: 100%;
     z-index: 999
+}
+
+.calendar-container {
+    height: 555px;
+}
+
+.calendar {
+    width: 100%;
+}
+
+.calendar-date {
+    height: 70px;
+    width: 100px;
+    background-color: lightgray;
+    text-align: end;
+    vertical-align: bottom;
+}
+
+.payroll-container {
+    height: 555px;
+}
+
+.payroll-table {
+    width: 100%;
+    border: 1px grey solid;
+}
+
+.payroll-row {
+    text-align: center;
+    border: 1px grey solid;
+}
+
+.payroll-data {
+    border: 1px grey solid;
+}
+
+.payroll-table-body {
+    overflow-y: scroll;
+}
+
+.payslip {
+    width: 100%;
+    border: 1px grey solid;
+    height: 100vh;
+    padding: 30px;
+    overflow-y: scroll;
+}
+
+.payslip-heading {
+    font-size: 35px;
+    font-weight: bold;
+}
+
+.payslip-subheading {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.payslip-subcontainer {
+    text-align: center;
+}
+
+.payslip-signature-box {
+    height: 200px;
+    width: 200px;
+}
+
+.payslip-signature-area {
+    position: absolute;
+    bottom: 0;
+    left: 1px;
+}
+
+.payslip-signature {
+    font-weight: bold;
 }

@@ -4,16 +4,16 @@ class dashboardService {
     }
 
     getMetric = async () => {
-        const metric = await this.knex
-            .unionAll([
-                this.knex.select().from('employee').where('status', 'available').count(),
-                this.knex.select().from('positions').count(),
-                this.knex.select().from('departments').count(),
-                this.knex.select().from('reimbursement').where('status', 'pending').count(),
-                this.knex.select().from('attendance').where('status', 'on_time').count(),
-                this.knex.select().from('leave').where('status', 'approved').count(),
-                this.knex.select().from('attendance').count(),
-            ])
+        const metric = await this.knex.select([
+            this.knex('employee').where('status', 'available').count().as('employee_count'),
+            this.knex('positions').count('id').as('positions_count'),
+            this.knex('departments').count('id').as('departments_count'),
+            this.knex('reimbursement').where('status', 'pending').count('id').as('pending_reimbursement_count'),
+            this.knex('attendance').where('status', 'on_time').count('id').as('on_time_attendance_count'),
+            this.knex('leave').where('status', 'approved').count('id').as('approved_leave_count'),
+            this.knex('attendance').count('id').as('attendance_count'),
+        ])
+
         return metric
     }
 }

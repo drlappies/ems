@@ -1,18 +1,11 @@
-import { REMOVE_FROM_DEPARTMENT_SELECTED, FETCH_DEPARTMENT, UPDATE_DEPARTMENT, CONFIRM_DEPARTMENT_UPDATE, DELETE_DEPARTMENT, RESET_DEPARTMENT, TOGGLE_CREATE_DEPARTMENT, TOGGLE_DEPARTMENT_FILTERING, RESET_DEPARTMENT_QUERY, FETCH_DEPARTMENT_BY_QUERY, TOGGLE_DEPARTMENT_UPDATING, TOGGLE_DEPARTMENT_DELETING, ADD_TO_DEPARTMENT_SELECTED, REMOVE_ALL_FROM_DEPARTMENT_SELECTED, ADD_ALL_TO_DEPARTMENT_SELECTED, TOGGLE_DEPARTMENT_BATCH_DELETING, BATCH_DELETE_DEPARTMENT } from "../types/department"
+import { REMOVE_FROM_DEPARTMENT_SELECTED, FETCH_DEPARTMENT, UPDATE_DEPARTMENT, CONFIRM_DEPARTMENT_UPDATE, DELETE_DEPARTMENT, RESET_DEPARTMENT, TOGGLE_CREATE_DEPARTMENT, TOGGLE_DEPARTMENT_FILTERING, RESET_DEPARTMENT_QUERY, FETCH_DEPARTMENT_BY_QUERY, TOGGLE_DEPARTMENT_UPDATING, TOGGLE_DEPARTMENT_DELETING, ADD_TO_DEPARTMENT_SELECTED, REMOVE_ALL_FROM_DEPARTMENT_SELECTED, ADD_ALL_TO_DEPARTMENT_SELECTED, TOGGLE_DEPARTMENT_BATCH_DELETING, BATCH_DELETE_DEPARTMENT, UPDATE_DEPARTMENT_RECORD, CREATE_DEPARTMENT } from "../types/department"
 import axios from 'axios'
 import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 
-export const fetchDepartment = (page, limit, text) => {
+export const fetchDepartment = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/department', {
-                params: {
-                    page: page,
-                    limit: limit,
-                    text: text
-                }
-            })
-
+            const res = await axios.get('/api/department')
             dispatch({
                 type: FETCH_DEPARTMENT,
                 payload: {
@@ -43,22 +36,36 @@ export const updateDepartment = (e) => {
     }
 }
 
-export const confirmDepartmentUpdate = (id, name, description) => {
+export const confirmDepartmentUpdate = (id, name, description, page, limit, queryDepartmentName) => {
     return async (dispatch) => {
         try {
             const body = {
                 name: name,
                 description: description
             }
-            const res = await axios.put(`/department/${id}`, body)
+            const res = await axios.put(`/api/department/${id}`, body)
             dispatch(popSuccessMessage(res.data.success))
+
+            const res2 = await axios.get('/api/department', {
+                params: {
+                    page: page,
+                    limit: limit,
+                    text: queryDepartmentName
+                }
+            })
             dispatch({
-                type: CONFIRM_DEPARTMENT_UPDATE,
+                type: UPDATE_DEPARTMENT_RECORD,
                 payload: {
-                    id: res.data.id,
-                    name: res.data.name,
-                    desc: res.data.desc,
-                    isUpdating: false
+                    isUpdating: false,
+                    departmentId: "",
+                    departmentName: "",
+                    departmentDesc: "",
+                    record: res2.data.dept,
+                    pageLength: res2.data.count,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    currentLimit: res2.data.currentLimit
                 }
             })
         } catch (err) {
@@ -67,18 +74,33 @@ export const confirmDepartmentUpdate = (id, name, description) => {
     }
 }
 
-export const deleteDepartment = (id) => {
+export const deleteDepartment = (id, page, limit, queryDepartmentName) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/department/${id}`)
-            dispatch({
-                type: DELETE_DEPARTMENT,
-                payload: {
-                    id: res.data.dept.id
+            const res = await axios.delete(`/api/department/${id}`)
+            dispatch(popSuccessMessage(res.data.success))
+
+            const res2 = await axios.get('/api/department', {
+                params: {
+                    page: page,
+                    limit: limit,
+                    text: queryDepartmentName
                 }
             })
             dispatch({
-                type: RESET_DEPARTMENT
+                type: DELETE_DEPARTMENT,
+                payload: {
+                    isDeleting: false,
+                    record: res2.data.dept,
+                    pageLength: res2.data.count,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    currentLimit: res2.data.currentLimit,
+                    departmentId: "",
+                    departmentName: "",
+                    departmentDesc: "",
+                }
             })
         } catch (err) {
             console.log(err)
@@ -90,7 +112,7 @@ export const gotoNextDepartmentPage = (page, limit, pageCount, queryDepartmentNa
     return async (dispatch) => {
         try {
             if (page + limit >= pageCount) return;
-            const res = await axios.get('/department', {
+            const res = await axios.get('/api/department', {
                 params: {
                     page: page + limit,
                     limit: limit,
@@ -118,7 +140,7 @@ export const gotoPreviousDepartmentPage = (page, limit, queryDepartmentName) => 
     return async (dispatch) => {
         try {
             if (page <= 0) return;
-            const res = await axios.get('/department', {
+            const res = await axios.get('/api/department', {
                 params: {
                     page: page - limit,
                     limit: limit,
@@ -154,24 +176,37 @@ export const toggleCreating = (isCreating) => {
     }
 }
 
-export const handleCreate = (departmentName, departmentDesc) => {
+export const handleCreate = (departmentName, departmentDesc, page, limit, queryDepartmentName) => {
     return async (dispatch) => {
         try {
             const body = {
                 name: departmentName,
                 desc: departmentDesc
             }
-            const res = await axios.post('/department', body)
+            const res = await axios.post('/api/department', body)
             dispatch(popSuccessMessage(res.data.success))
+
+            const res2 = await axios.get('/api/department', {
+                params: {
+                    page: page,
+                    limit: limit,
+                    text: queryDepartmentName
+                }
+            })
             dispatch({
-                type: TOGGLE_CREATE_DEPARTMENT,
+                type: CREATE_DEPARTMENT,
                 payload: {
                     isCreating: false,
+                    record: res2.data.dept,
+                    pageLength: res2.data.count,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    currentLimit: res2.data.currentLimit,
                     createDepartmentName: "",
                     createDepartmentDesc: ""
                 }
             })
-            dispatch(fetchDepartment())
         } catch (err) {
             dispatch(popErrorMessage(err.response.data.error))
         }
@@ -182,7 +217,7 @@ export const fetchDepartmentsByEntries = (limit, currentPage, queryDepartmentNam
     return async (dispatch) => {
         try {
             console.log(limit, currentPage, queryDepartmentName)
-            const res = await axios.get('/department', {
+            const res = await axios.get('/api/department', {
                 params: {
                     page: currentPage,
                     limit: limit,
@@ -221,7 +256,7 @@ export const toggleFiltering = (isFiltering) => {
 export const resetDepartmentQuery = (page, limit) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/department', {
+            const res = await axios.get('/api/department', {
                 params: {
                     page: page,
                     limit: limit
@@ -249,7 +284,7 @@ export const resetDepartmentQuery = (page, limit) => {
 export const fetchDepartmentByQuery = (queryDepartmentName) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/department', {
+            const res = await axios.get('/api/department', {
                 params: {
                     text: queryDepartmentName
                 }
@@ -276,7 +311,7 @@ export const toggleUpdating = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/department/${id}`)
+            if (id) res = await axios.get(`/api/department/${id}`)
             dispatch({
                 type: TOGGLE_DEPARTMENT_UPDATING,
                 payload: {
@@ -296,7 +331,7 @@ export const toggleDeleting = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/department/${id}`)
+            if (id) res = await axios.get(`/api/department/${id}`)
             dispatch({
                 type: TOGGLE_DEPARTMENT_DELETING,
                 payload: {
@@ -315,7 +350,7 @@ export const toggleDeleting = (id) => {
 export const handleDelete = (id, currentPage, currentLimit, queryDepartmentName) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/department/${id}`)
+            const res = await axios.delete(`/api/department/${id}`)
             dispatch(popSuccessMessage(res.data.success))
 
             dispatch({
@@ -328,7 +363,7 @@ export const handleDelete = (id, currentPage, currentLimit, queryDepartmentName)
                 }
             })
 
-            const res2 = await axios.get('/department', {
+            const res2 = await axios.get('/api/department', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -391,10 +426,10 @@ export const handleBatchDelete = (selectedRecord, currentPage, currentLimit, que
     return async (dispatch) => {
         try {
 
-            const res = await axios.delete(`/department/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`/api/department/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/department', {
+            const res2 = await axios.get('/api/department', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,

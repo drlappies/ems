@@ -36,7 +36,7 @@ function OvertimeHistory() {
                             <TableHeader
                                 header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Time in', 'Time out', 'Date', 'Status', 'Actions']}
                                 checkName={"selectAll"}
-                                checkValue={overtime.isAllSelected}
+                                isChecked={overtime.isAllSelected}
                                 checkFunc={(e) => dispatch(toggleSelectAll(e, overtime.overtimeRecord))}
                             />
                             <TableBody
@@ -57,7 +57,7 @@ function OvertimeHistory() {
                                 pageTotal={overtime.pageLength}
                                 entriesName={"currentLimit"}
                                 entriesNum={overtime.currentLimit}
-                                entriesFunc={(e, result) => dispatch(fetchOvertimeRecordByEntries(result.value, overtime.currentPage, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
+                                entriesFunc={(e) => dispatch(fetchOvertimeRecordByEntries(e.target.value, overtime.currentPage, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
                                 onNext={() => dispatch(fetchNextOvertimeRecord(overtime.currentPage, overtime.pageLength, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
                                 onPrevious={() => dispatch(fetchPreviousOvertimeRecord(overtime.currentPage, overtime.currentLimit, overtime.queryText, overtime.queryStatus, overtime.queryDateFrom, overtime.queryDateTo, overtime.queryCheckinFrom, overtime.queryCheckinTo, overtime.queryCheckoutFrom, overtime.queryCheckoutTo))}
                             />
@@ -173,16 +173,16 @@ function OvertimeHistory() {
                     <Form.Field>
                         <label htmlFor="queryEmployeeId">Employee</label>
                         <select id="queryEmployeeId" name="queryEmployeeId" value={overtime.queryEmployeeId} onChange={(e) => dispatch(updateOvertime(e))}>
-                            <option value="">Employee</option>
+                            <option value="">Any employee</option>
                             {overtime.employeeList.map((el, i) =>
                                 <option key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</option>
                             )}
                         </select>
                     </Form.Field>
                     <Form.Field>
-                        <label htmlFor="queryStatus">Status:</label>
+                        <label htmlFor="queryStatus">Status</label>
                         <select id="queryStatus" name="queryStatus" value={overtime.queryStatus} onChange={(e) => dispatch(updateOvertime(e))}>
-                            <option value="" hidden>Status</option>
+                            <option value="">Any status</option>
                             <option value="pending">Pending</option>
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
@@ -192,7 +192,7 @@ function OvertimeHistory() {
                         <Grid.Row columns="2">
                             <Grid.Column width="8">
                                 <Form.Field>
-                                    <label htmlFor="queryDateFrom">Date from:</label>
+                                    <label htmlFor="queryDateFrom">Date from</label>
                                     <input
                                         type="date"
                                         id="queryDateFrom"
@@ -204,7 +204,7 @@ function OvertimeHistory() {
                             </Grid.Column>
                             <Grid.Column width="8">
                                 <Form.Field>
-                                    <label htmlFor="queryDateTo">Date to:</label>
+                                    <label htmlFor="queryDateTo">Date to</label>
                                     <input
                                         type="date"
                                         id="queryDateTo"
@@ -218,13 +218,13 @@ function OvertimeHistory() {
                         <Grid.Row columns="2">
                             <Grid.Column width="8">
                                 <Form.Field>
-                                    <label htmlFor="queryCheckinFrom">Check In From:</label>
+                                    <label htmlFor="queryCheckinFrom">Check In From</label>
                                     <input type="time" step="1" id="queryCheckinFrom" name="queryCheckinFrom" value={overtime.queryCheckinFrom} onChange={(e) => dispatch(updateOvertime(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column width="8">
                                 <Form.Field>
-                                    <label htmlFor="queryCheckinTo">Check In To:</label>
+                                    <label htmlFor="queryCheckinTo">Check In To</label>
                                     <input type="time" step="1" id="queryCheckinTo" name="queryCheckinTo" value={overtime.queryCheckinTo} onChange={(e) => dispatch(updateOvertime(e))} />
                                 </Form.Field>
                             </Grid.Column>
@@ -232,13 +232,13 @@ function OvertimeHistory() {
                         <Grid.Row columns="2">
                             <Grid.Column width="8">
                                 <Form.Field>
-                                    <label htmlFor="queryCheckoutFrom">Check Out From:</label>
+                                    <label htmlFor="queryCheckoutFrom">Check Out From</label>
                                     <input type="time" step="1" id="queryCheckoutFrom" name="queryCheckoutFrom" value={overtime.queryCheckoutFrom} onChange={(e) => dispatch(updateOvertime(e))} />
                                 </Form.Field>
                             </Grid.Column>
                             <Grid.Column width="8">
                                 <Form.Field>
-                                    <label htmlFor="queryCheckoutTo">Check Out To:</label>
+                                    <label htmlFor="queryCheckoutTo">Check Out To</label>
                                     <input type="time" step="1" id="queryCheckoutTo" name="queryCheckoutTo" value={overtime.queryCheckoutTo} onChange={(e) => dispatch(updateOvertime(e))} />
                                 </Form.Field>
                             </Grid.Column>

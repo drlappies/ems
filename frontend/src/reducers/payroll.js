@@ -1,4 +1,4 @@
-import { FETCH_PAYROLL, UPDATE_PAYROLL, RESET_PAYROLL, TOGGLE_PAYROLL_CREATING, TOGGLE_PAYROLL_VIEWING, TOGGLE_PAYROLL_DELETING, TOGGLE_PAYROLL_BATCH_UPDATING, ADD_TO_PAYROLL_SELECTED, REMOVE_FROM_PAYROLL_SELECTED, RESET_PAYROLL_SELECTED, TOGGLE_PAYROLL_BATCH_DELETING, TOGGLE_PAYROLL_FILTERTING, RESET_PAYROLL_QUERY, TOGGLE_PAYROLL_UPDATING, ADD_ALL_TO_PAYROLL_SELECTED } from "../types/payroll"
+import { FETCH_PAYROLL, UPDATE_PAYROLL, TOGGLE_PAYROLL_CREATING, TOGGLE_PAYROLL_VIEWING, TOGGLE_PAYROLL_DELETING, TOGGLE_PAYROLL_BATCH_UPDATING, ADD_TO_PAYROLL_SELECTED, REMOVE_FROM_PAYROLL_SELECTED, RESET_PAYROLL_SELECTED, TOGGLE_PAYROLL_BATCH_DELETING, TOGGLE_PAYROLL_FILTERTING, RESET_PAYROLL_QUERY, TOGGLE_PAYROLL_UPDATING, ADD_ALL_TO_PAYROLL_SELECTED, GENERATE_PAYROLL, DELETE_PAYROLL, BATCH_DELETE_PAYROLL, BATCH_UPDATE_PAYROLL, UPDATE_PAYROLL_RECORD, TOGGLE_PAYROLL_PRINTING } from "../types/payroll"
 
 const initialState = {
     record: [],
@@ -21,6 +21,7 @@ const initialState = {
     overtime: "",
     status: "",
     firstname: "",
+    basicSalary: "",
     lastname: "",
     payrollId: "",
     employeeId: "",
@@ -37,12 +38,14 @@ const initialState = {
     queryAmountFrom: "",
     queryAmountTo: "",
     queryEmployeeId: "",
-    queryIsReimbursementCaled: false,
-    queryIsAllowanceCaled: false,
-    queryIsDeductionCaled: false,
-    queryIsBonusCaled: false,
-    queryIsOvertimeCaled: false,
-    queryIsLeaveCaled: false,
+    queryIsReimbursementCaled: true,
+    queryIsAllowanceCaled: true,
+    queryIsDeductionCaled: true,
+    queryIsBonusCaled: true,
+    queryIsOvertimeCaled: true,
+    queryIsLeaveCaled: true,
+    queryPaydayFrom: "",
+    queryPaydayTo: "",
     selectedRecord: [],
     isCreating: false,
     isDeleting: false,
@@ -51,8 +54,12 @@ const initialState = {
     isUpdating: false,
     isBatchDeleting: false,
     isBatchUpdating: false,
+    isAllSelected: false,
     updateBatchPayrollStatus: "pending",
-    currentLimit: 10
+    currentLimit: 10,
+    isPrinting: false,
+    payday: "",
+    mpfDeduction: ""
 }
 
 const payrollReducer = (state = initialState, action) => {
@@ -73,19 +80,6 @@ const payrollReducer = (state = initialState, action) => {
             return {
                 ...state,
                 [action.payload.name]: action.payload.value
-            }
-        case RESET_PAYROLL:
-            return {
-                ...state,
-                employeeId: "",
-                starting: "",
-                ending: "",
-                isOTcaled: false,
-                isLeaveCaled: false,
-                isDeductCaled: false,
-                isBonusCaled: false,
-                isAllowanceCaled: false,
-                isReimbursementCaled: false,
             }
         case TOGGLE_PAYROLL_CREATING:
             return {
@@ -117,7 +111,10 @@ const payrollReducer = (state = initialState, action) => {
                 firstname: action.payload.firstname,
                 lastname: action.payload.lastname,
                 payrollId: action.payload.payrollId,
-                employeeId: action.payload.employeeId
+                employeeId: action.payload.employeeId,
+                payday: action.payload.payday,
+                basicSalary: action.payload.basicSalary,
+                mpfDeduction: action.payload.mpfDeduction
             }
         case TOGGLE_PAYROLL_DELETING:
             return {
@@ -165,28 +162,32 @@ const payrollReducer = (state = initialState, action) => {
         case RESET_PAYROLL_SELECTED:
             return {
                 ...state,
-                selectedRecord: []
+                selectedRecord: action.payload.selectedRecord,
+                isAllSelected: action.payload.isAllSelected
             }
         case ADD_ALL_TO_PAYROLL_SELECTED:
             return {
                 ...state,
-                selectedRecord: action.payload.selectedRecord
+                selectedRecord: action.payload.selectedRecord,
+                isAllSelected: action.payload.isAllSelected
             }
         case RESET_PAYROLL_QUERY:
             return {
                 ...state,
-                queryFrom: "",
-                queryTo: "",
-                queryText: "",
-                queryStatus: "",
-                queryAmountFrom: "",
-                queryAmountTo: "",
-                queryIsReimbursementCaled: false,
-                queryIsAllowanceCaled: false,
-                queryIsDeductionCaled: false,
-                queryIsBonusCaled: false,
-                queryIsOvertimeCaled: false,
-                queryIsLeaveCaled: false,
+                queryFrom: action.payload.queryFrom,
+                queryTo: action.payload.queryTo,
+                queryText: action.payload.queryText,
+                queryStatus: action.payload.queryStatus,
+                queryAmountFrom: action.payload.queryAmountFrom,
+                queryAmountTo: action.payload.queryAmountTo,
+                queryPaydayFrom: action.payload.queryPaydayFrom,
+                queryPaydayTo: action.payload.queryPaydayTo,
+                queryIsReimbursementCaled: action.payload.queryIsReimbursementCaled,
+                queryIsAllowanceCaled: action.payload.queryIsAllowanceCaled,
+                queryIsDeductionCaled: action.payload.queryIsDeductionCaled,
+                queryIsBonusCaled: action.payload.queryIsBonusCaled,
+                queryIsOvertimeCaled: action.payload.queryIsOvertimeCaled,
+                queryIsLeaveCaled: action.payload.queryIsLeaveCaled,
                 record: action.payload.record,
                 employeeList: action.payload.employeeList,
                 unselectedEmployee: action.payload.unselectedEmployee,
@@ -219,6 +220,106 @@ const payrollReducer = (state = initialState, action) => {
                 isBonusCaled: action.payload.isBonusCaled,
                 isOTcaled: action.payload.isOTcaled,
                 isLeaveCaled: action.payload.isLeaveCaled
+            }
+        case GENERATE_PAYROLL:
+            return {
+                ...state,
+                isCreating: action.payload.isCreating,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                unselectedEmployee: action.payload.unselectedEmployee,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
+                employeeId: action.payload.employeeId,
+                starting: action.payload.starting,
+                ending: action.payload.ending,
+                isOTcaled: action.payload.isOTcaled,
+                isLeaveCaled: action.payload.isLeaveCaled,
+                isDeductCaled: action.payload.isDeductCaled,
+                isBonusCaled: action.payload.isBonusCaled,
+                isAllowanceCaled: action.payload.isAllowanceCaled,
+                isReimbursementCaled: action.payload.isReimbursementCaled
+            }
+        case DELETE_PAYROLL:
+            return {
+                ...state,
+                isDeleting: action.payload.isDeleting,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                unselectedEmployee: action.payload.unselectedEmployee,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
+            }
+        case BATCH_DELETE_PAYROLL:
+            return {
+                ...state,
+                isBatchDeleting: action.payload.isBatchDeleting,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                unselectedEmployee: action.payload.unselectedEmployee,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
+                selectedRecord: action.payload.selectedRecord,
+                isAllSelected: action.payload.isAllSelected
+            }
+        case BATCH_UPDATE_PAYROLL:
+            return {
+                ...state,
+                isBatchUpdating: action.payload.isBatchUpdating,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                unselectedEmployee: action.payload.unselectedEmployee,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
+            }
+        case UPDATE_PAYROLL_RECORD:
+            return {
+                ...state,
+                isUpdating: action.payload.isUpdating,
+                record: action.payload.record,
+                employeeList: action.payload.employeeList,
+                unselectedEmployee: action.payload.unselectedEmployee,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                pageLength: action.payload.pageLength,
+                currentLimit: action.payload.currentLimit,
+                from: action.payload.from,
+                to: action.payload.to,
+                amount: action.payload.amount,
+                reimbursement: action.payload.reimbursement,
+                allowance: action.payload.allowance,
+                deduction: action.payload.deduction,
+                bonus: action.payload.bonus,
+                overtime: action.payload.overtime,
+                status: action.payload.status,
+                firstname: action.payload.firstname,
+                lastname: action.payload.lastname,
+                payrollId: action.payload.payrollId,
+                employeeId: action.payload.employeeId,
+                isReimbursementCaled: action.payload.isReimbursementCaled,
+                isAllowanceCaled: action.payload.isAllowanceCaled,
+                isDeductCaled: action.payload.isDeductCaled,
+                isBonusCaled: action.payload.isBonusCaled,
+                isOTcaled: action.payload.isOTcaled,
+                isLeaveCaled: action.payload.isLeaveCaled
+            }
+        case TOGGLE_PAYROLL_PRINTING:
+            return {
+                ...state,
+                isPrinting: action.payload.isPrinting
             }
         default:
             return state

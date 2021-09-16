@@ -26,7 +26,7 @@ class LeaveService {
             .count()
             .from(queryBuilder => {
                 queryBuilder
-                    .select(['employee.firstname', 'employee.lastname', 'leave.reason', 'leave.from', 'leave.to', 'leave.type', 'leave.status'])
+                    .select(['employee.firstname', 'employee.lastname', 'leave.reason', 'leave.from', 'leave.to', 'leave.type', 'leave.duration', 'leave.status',])
                     .from('leave')
                     .join('employee', 'leave.employee_id', 'employee.id')
                     .modify(queryBuilder => {
@@ -54,7 +54,7 @@ class LeaveService {
 
         const leave = await this.knex('leave')
             .join('employee', 'leave.employee_id', 'employee.id')
-            .select(['leave.id', 'leave.employee_id', 'employee.firstname', 'employee.lastname', 'leave.from', 'leave.to', 'leave.type', 'leave.status'])
+            .select(['leave.id', 'leave.employee_id', 'employee.firstname', 'employee.lastname', 'leave.from', 'leave.to', 'leave.type', 'leave.duration', 'leave.status'])
             .limit(currentLimit)
             .offset(currentPage)
             .orderBy('id')
@@ -101,15 +101,13 @@ class LeaveService {
     }
 
     updateLeave = async (ids, duration, type, status) => {
-        const update = {}
-        if (duration) update.duration = duration;
-        if (type) update.type = type;
-        if (status) update.status = status;
-
         const [leave] = await this.knex('leave')
-            .select()
             .whereIn('id', ids)
-            .update(update, ['id'])
+            .update({
+                duration: duration,
+                type: type,
+                status: status
+            }, ['id'])
         return leave
     }
 

@@ -61,10 +61,12 @@ function Calendar(props) {
     const years = yearSelect(new Date().getFullYear())
 
     const fetchMonthlyAttendance = useCallback(async () => {
-        const res = await axios.get(`/attendance/record/${auth.id}`, {
+        const res = await axios.get('/api/attendance', {
             params: {
-                month: state.currentMonth,
-                year: state.currentYear
+                limit: 31,
+                employee_id: auth.id,
+                dateFrom: `${new Date(state.currentYear, state.currentMonth, 1).getFullYear()}-${new Date(state.currentYear, state.currentMonth, 1).getMonth() + 1}-${new Date(state.currentYear, state.currentMonth, 1).getDate()}`,
+                dateTo: `${new Date(state.currentYear, state.currentMonth + 1, 0).getFullYear()}-${new Date(state.currentYear, state.currentMonth + 1, 0).getMonth() + 1}-${new Date(state.currentYear, state.currentMonth + 1, 0).getDate()}`
             }
         })
         setState(prevState => {

@@ -26,7 +26,7 @@ function Position() {
                 </Grid.Row>
                 <Grid.Row columns="1">
                     <Grid.Column textAlign="right">
-                        <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(position.isBatchDeleting))}>Batch Delete</Button>
+                        <Button size="tiny" color="red" disabled={position.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(position.isBatchDeleting))}>Batch Delete</Button>
                         <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(position.isFiltering))}>Filter</Button>
                         <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(position.isCreating))}>Create Position</Button>
                     </Grid.Column>
@@ -56,7 +56,7 @@ function Position() {
                                 pageTotal={position.pageLength}
                                 onNext={() => dispatch(gotoNextPositionPage(position.currentPage, position.pageLength, position.currentLimit, position.queryText))}
                                 onPrevious={() => dispatch(gotoPreviousPositionPage(position.currentPage, position.currentLimit, position.queryText))}
-                                entriesFunc={(e, result) => dispatch(fetchByEntries(result.value, position.currentPage, position.pageLength, position.queryText))}
+                                entriesFunc={(e) => dispatch(fetchByEntries(e.target.value, position.currentPage, position.pageLength, position.queryText))}
                                 entriesNum={position.currentLimit}
                             />
                         </Table>
@@ -69,7 +69,7 @@ function Position() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleUpdating())}
                 configSecondaryAction={"Update"}
-                configSecondaryFunc={() => dispatch(confirmPositionUpdate(position.positionId, position.positionName))}
+                configSecondaryFunc={() => dispatch(confirmPositionUpdate(position.positionId, position.positionName, position.currentPage, position.currentLimit, position.queryText))}
                 configSecondaryColor={"green"}
             >
                 <Form>
@@ -102,7 +102,7 @@ function Position() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleCreating(position.isCreating))}
                 configSecondaryAction={"Create"}
-                configSecondaryFunc={() => dispatch(createPosition(position.createPositionName))}
+                configSecondaryFunc={() => dispatch(createPosition(position.createPositionName, position.currentPage, position.currentLimit, position.queryText))}
                 configSecondaryColor={"green"}
             >
                 <Form>
@@ -119,7 +119,7 @@ function Position() {
                 configPrimaryFunc={() => dispatch(toggleBatchDeleting(position.isBatchDeleting))}
                 configSecondaryAction={"Batch Delete"}
                 configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(batchDeletePosition(position.selectedRecord))}
+                configSecondaryFunc={() => dispatch(batchDeletePosition(position.selectedRecord, position.currentPage, position.currentLimit, position.queryText))}
             >
                 <p><strong>Are you sure to delete the following records?</strong></p>
                 {position.selectedRecord.map((el, i) =>
@@ -151,7 +151,7 @@ function Position() {
                     </Grid>
                 </Form>
             </Config>
-        </div>
+        </div >
     )
 }
 

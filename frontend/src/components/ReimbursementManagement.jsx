@@ -60,7 +60,7 @@ function ReimbursementManagement() {
                                 onNext={() => dispatch(gotoNextReimbursementPage(reimbursement.currentPage, reimbursement.currentLimit, reimbursement.pageLength, reimbursement.queryText, reimbursement.queryAmountFrom, reimbursement.queryAmountTo, reimbursement.queryDateFrom, reimbursement.queryDateTo, reimbursement.queryStatus))}
                                 onPrevious={() => dispatch(gotoPreviousReimbursementPage(reimbursement.currentPage, reimbursement.currentLimit, reimbursement.queryText, reimbursement.queryAmountFrom, reimbursement.queryAmountTo, reimbursement.queryDateFrom, reimbursement.queryDateTo, reimbursement.queryStatus))}
                                 entriesNum={reimbursement.currentLimit}
-                                entriesFunc={(e, result) => dispatch(fetchReimbursementByEntries(reimbursement.currentPage, result.value, reimbursement.queryText, reimbursement.queryAmountFrom, reimbursement.queryAmountTo, reimbursement.queryDateFrom, reimbursement.queryDateTo, reimbursement.queryStatus))}
+                                entriesFunc={(e) => dispatch(fetchReimbursementByEntries(reimbursement.currentPage, e.target.value, reimbursement.queryText, reimbursement.queryAmountFrom, reimbursement.queryAmountTo, reimbursement.queryDateFrom, reimbursement.queryDateTo, reimbursement.queryStatus))}
                             />
                         </Table>
                     </Grid.Column>

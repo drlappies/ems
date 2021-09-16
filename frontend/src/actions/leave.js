@@ -1,11 +1,11 @@
-import { DELETE_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, RESET_LEAVE, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_CREATING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, APPLY_LEAVE, CREATE_LEAVE, BATCH_DELETE_LEAVE, CONFIRM_UPDATE_LEAVE, BATCH_UPDATE_LEAVE } from "../types/leave";
+import { DELETE_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_CREATING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, APPLY_LEAVE, CREATE_LEAVE, BATCH_DELETE_LEAVE, CONFIRM_UPDATE_LEAVE, BATCH_UPDATE_LEAVE } from "../types/leave";
 import axios from 'axios'
 import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 
 export const fetchEmployeeAl = (id) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get(`/employee/${id}`)
+            const res = await axios.get(`/api/employee/${id}`)
             dispatch({
                 type: FETCH_EMPLOYEE_AL,
                 payload: {
@@ -42,7 +42,7 @@ export const applyLeave = (employeeId, reason, from, to, type, duration) => {
                 duration: duration,
                 type: type
             }
-            const res = await axios.post('/leave', body)
+            const res = await axios.post('/api/leave', body)
             dispatch(popSuccessMessage(res.data.success))
             dispatch({
                 type: APPLY_LEAVE,
@@ -72,10 +72,10 @@ export const createLeave = (employeeId, reason, from, to, type, duration, curren
                 duration: duration,
                 type: type
             }
-            const res = await axios.post('/leave', body)
+            const res = await axios.post('/api/leave', body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/leave', {
+            const res2 = await axios.get('/api/leave', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -115,7 +115,7 @@ export const createLeave = (employeeId, reason, from, to, type, duration, curren
 export const fetchLeave = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/leave')
+            const res = await axios.get('/api/leave')
             dispatch({
                 type: FETCH_LEAVE,
                 payload: {
@@ -137,7 +137,7 @@ export const fetchLeave = () => {
 export const fetchSpecificLeave = (id) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get(`/leave/${id}`)
+            const res = await axios.get(`/api/leave/${id}`)
             dispatch({
                 type: FETCH_SPECIFIC_LEAVE,
                 payload: {
@@ -169,10 +169,10 @@ export const confirmLeaveUpdate = (leaveId, duration, type, status, currentPage,
                 status: status,
                 ids: leaveId
             }
-            const res = await axios.put('/leave', body)
+            const res = await axios.put('/api/leave', body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/leave', {
+            const res2 = await axios.get('/api/leave', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -213,9 +213,9 @@ export const confirmBatchLeaveUpdate = (leaveId, duration, type, status, current
                 type: type,
                 status: status
             }
-            const res = await axios.put('/leave', body)
+            const res = await axios.put('/api/leave', body)
             dispatch(popSuccessMessage(res.data.success))
-            const res2 = await axios.get('/leave', {
+            const res2 = await axios.get('/api/leave', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -249,9 +249,9 @@ export const confirmBatchLeaveUpdate = (leaveId, duration, type, status, current
 export const toggleBatchDeleting = (isBatchDeleting) => {
     return async (dispatch) => {
         if (isBatchDeleting) {
-            window.history.replaceState(null, null, '/leave/management')
+            window.history.replaceState(null, null, '/api/leave/management')
         } else {
-            window.history.replaceState(null, null, '/leave/management/batchdelete')
+            window.history.replaceState(null, null, '/api/leave/management/batchdelete')
         }
         dispatch({
             type: TOGGLE_LEAVE_BATCH_DELETING,
@@ -265,9 +265,9 @@ export const toggleBatchDeleting = (isBatchDeleting) => {
 export const deleteLeave = (leaveId, currentPage, currentLimit, queryText, queryFrom, queryTo, queryType, queryStatus) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/leave/?ids=${leaveId}`)
+            const res = await axios.delete(`/api/leave/?ids=${leaveId}`)
             dispatch(popSuccessMessage(res.data.success))
-            const res2 = await axios.get('/leave', {
+            const res2 = await axios.get('/api/leave', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -301,9 +301,9 @@ export const deleteLeave = (leaveId, currentPage, currentLimit, queryText, query
 export const batchDeleteLeave = (leaveId, currentPage, currentLimit, queryText, queryFrom, queryTo, queryType, queryStatus) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/leave/${leaveId.map((el, i) => i === 0 ? `?ids=${el}` : `&ids=${el}`).join("")}`)
+            const res = await axios.delete(`/api/leave/${leaveId.map((el, i) => i === 0 ? `?ids=${el}` : `&ids=${el}`).join("")}`)
             dispatch(popSuccessMessage(res.data.success))
-            const res2 = await axios.get('/leave', {
+            const res2 = await axios.get('/api/leave', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -326,6 +326,8 @@ export const batchDeleteLeave = (leaveId, currentPage, currentLimit, queryText, 
                     currentPageEnd: res2.data.currentPageEnd,
                     pageLength: res2.data.pageLength,
                     currentLimit: res2.data.currentLimit,
+                    isAllSelected: false,
+                    selectedRecord: []
                 }
             })
         } catch (err) {
@@ -339,7 +341,7 @@ export const toggleViewing = (id) => {
         try {
             let res;
             if (id) {
-                res = await axios.get(`/leave/${id}`)
+                res = await axios.get(`/api/leave/${id}`)
                 window.history.replaceState(null, null, `/leave/management/${id}/details`)
             } else {
                 window.history.replaceState(null, null, `/leave/management`)
@@ -371,7 +373,7 @@ export const toggleUpdating = (id) => {
         try {
             let res;
             if (id) {
-                res = await axios.get(`/leave/${id}`)
+                res = await axios.get(`/api/leave/${id}`)
                 window.history.replaceState(null, null, `/leave/management/${id}/update`)
             } else {
                 window.history.replaceState(null, null, '/leave/management')
@@ -499,7 +501,8 @@ export const handleSelectAll = (e, rows) => {
         dispatch({
             type: e.target.checked ? ADD_ALL_TO_LEAVE_SELECTED : RESET_LEAVE_SELECTED,
             payload: {
-                id: e.target.checked ? rows = rows.map(el => el.id.toString()) : []
+                id: e.target.checked ? rows = rows.map(el => el.id.toString()) : [],
+                isAllSelected: e.target.checked
             }
         })
     }
@@ -508,7 +511,7 @@ export const handleSelectAll = (e, rows) => {
 export const resetQuery = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/leave')
+            const res = await axios.get('/api/leave')
             dispatch({
                 type: RESET_QUERY,
                 payload: {
@@ -527,16 +530,17 @@ export const resetQuery = () => {
     }
 }
 
-export const fetchLeaveByQuery = (queryText, queryFrom, queryTo, queryType, queryStatus) => {
+export const fetchLeaveByQuery = (queryText, queryFrom, queryTo, queryType, queryStatus, queryEmployeeId) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/leave', {
+            const res = await axios.get('/api/leave', {
                 params: {
                     text: queryText,
                     from: queryFrom,
                     to: queryTo,
                     type: queryType,
-                    status: queryStatus
+                    status: queryStatus,
+                    employee_id: queryEmployeeId
                 }
             })
 
@@ -563,7 +567,7 @@ export const fetchNextLeaveRecord = (currentPage, pageLength, currentLimit, quer
     return async (dispatch) => {
         try {
             if (currentPage + currentLimit >= pageLength) return;
-            const res = await axios.get('/leave', {
+            const res = await axios.get('/api/leave', {
                 params: {
                     page: currentPage + currentLimit,
                     limit: currentLimit,
@@ -597,7 +601,7 @@ export const fetchPreviousLeaveRecord = (currentPage, currentLimit, queryText, q
     return async (dispatch) => {
         try {
             if (currentPage <= 0) return;
-            const res = await axios.get('/leave', {
+            const res = await axios.get('/api/leave', {
                 params: {
                     page: currentPage - currentLimit,
                     limit: currentLimit,
@@ -630,7 +634,7 @@ export const fetchPreviousLeaveRecord = (currentPage, currentLimit, queryText, q
 export const handleEntriesChange = (queryText, queryFrom, queryTo, queryType, queryStatus, currentPage, newLimit) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/leave', {
+            const res = await axios.get('/api/leave', {
                 params: {
                     page: currentPage,
                     limit: newLimit,

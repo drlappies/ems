@@ -41,35 +41,6 @@ class AttendanceService extends EmployeeService {
         return attendance
     }
 
-    createSpecificTimeIn = async (employeeId, checkInTime, checkOutTime, checkInDate) => {
-        const employee = await this.getEmployee(employeeId);
-        let status;
-        if (checkInTime > employee.start_hour) {
-            status = 'late'
-        } else {
-            status = 'on_time'
-        }
-        const [attendance] = await this.knex('attendance').insert({
-            employee_id: employeeId,
-            check_in: checkInTime,
-            check_out: checkOutTime,
-            date: checkInDate,
-            status: status
-        }).returning(['check_in', 'date'])
-        return attendance
-    }
-
-    createSpecificTimeOut = async (employeeId, checkOutTime, checkInDate) => {
-        const [attendance] = await this.knex('attendance')
-            .where('employee_id', employeeId)
-            .andWhere('date', checkInDate)
-            .whereNull('check_out')
-            .update({
-                check_out: checkOutTime
-            }, ['check_out', 'date'])
-        return attendance
-    }
-
     checkIfSpecificAlreadyTimedIn = async (employeeId, checkInDate) => {
         const attendance = await this.knex.select()
             .from('attendance')
@@ -117,7 +88,7 @@ class AttendanceService extends EmployeeService {
         return attendance
     }
 
-    getAllAttendance = async (text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit) => {
+    getAllAttendance = async (text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employee_id) => {
         if (!page || page < 0) page = 0;
         if (!limit) limit = 10;
         let pageStart = parseInt(page) + 1;
@@ -157,6 +128,9 @@ class AttendanceService extends EmployeeService {
                         if (status) {
                             queryBuilder.where('attendance.status', status)
                         }
+                        if (employee_id) {
+                            queryBuilder.where('attendance.employee_id', employee_id)
+                        }
                     })
                     .as('count')
             })
@@ -192,6 +166,9 @@ class AttendanceService extends EmployeeService {
                 if (status) {
                     queryBuilder.where('attendance.status', status)
                 }
+                if (employee_id) {
+                    queryBuilder.where('attendance.employee_id', employee_id)
+                }
             })
 
         const employee = await this.knex('employee')
@@ -203,14 +180,6 @@ class AttendanceService extends EmployeeService {
         }
 
         return { attendance: attendance, count: count, currentPage: currentPage, pageStart: pageStart, pageEnd: pageEnd, employeeList: employee, currentLimit: currentLimit }
-    }
-
-    getOnTimeRate = async (startingDate, endingDate) => {
-        const [attendance] = await this.knex('attendance').count('status')
-        const [on_time] = await this.knex('attendance').count('status').where('status', 'on_time')
-        const rate = Math.round((on_time.count / attendance.count) * 100)
-
-        return { rate: rate }
     }
 
     deleteAttendance = async (id) => {

@@ -5,21 +5,28 @@ class PayrollController {
 
     createPayroll = async (req, res) => {
         try {
-            const { employee_id, starting_date, ending_date, isDeductCaled, isBonusCaled, isAllowanceCaled, isOTcaled, isReimbursementCaled, isLeaveCaled } = req.body;
+            const { employee_id, starting_date, ending_date, payday, isDeductCaled, isBonusCaled, isAllowanceCaled, isOTcaled, isReimbursementCaled, isLeaveCaled } = req.body;
             if (!employee_id || !starting_date || !ending_date) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
             }
+
+            if (starting_date > ending_date) {
+                return res.status(400).json({
+                    error: 'Starting date of a payroll period cannot be later than its ending date!'
+                })
+            }
+
             const isOverlapped = await this.PayrollService.checkIfPayrollOverlapped(employee_id, starting_date, ending_date);
             if (isOverlapped.length >= 1) {
                 return res.status(400).json({
-                    error: 'Payroll period overlapped.'
+                    error: `Payroll period overlapped, conflict found at record ID: ${isOverlapped[0].id}`
                 })
             }
-            const payroll = await this.PayrollService.createPayroll(employee_id, starting_date, ending_date, isDeductCaled, isBonusCaled, isAllowanceCaled, isOTcaled, isReimbursementCaled, isLeaveCaled);
+            const payroll = await this.PayrollService.createPayroll(employee_id, starting_date, ending_date, payday, isDeductCaled, isBonusCaled, isAllowanceCaled, isOTcaled, isReimbursementCaled, isLeaveCaled);
             return res.status(200).json({
-                success: 'Successfully created payroll.'
+                success: `Successfully created payroll record ID: ${payroll.id}`
             })
         } catch (err) {
             console.log(err)
@@ -31,10 +38,10 @@ class PayrollController {
 
     deletePayroll = async (req, res) => {
         try {
-            const { id } = req.query;
+            const { id } = req.params;
             const payroll = await this.PayrollService.deletePayroll(id);
             return res.status(200).json({
-                success: 'Successfully deleted payroll'
+                success: `Successfully deleted payroll record ID: ${payroll.id}`
             })
         } catch (err) {
             console.log(err)
@@ -64,9 +71,8 @@ class PayrollController {
 
     getAllPayroll = async (req, res) => {
         try {
-            const { page, from, to, text, status, limit, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled } = req.query
-            console.log(page, from, to, text, status, limit, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled)
-            const payroll = await this.PayrollService.getAllPayroll(page, limit, from, to, text, status, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled);
+            const { page, from, to, text, status, limit, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled, paydayFrom, paydayTo } = req.query
+            const payroll = await this.PayrollService.getAllPayroll(page, limit, from, to, paydayFrom, paydayTo, text, status, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled);
             return res.status(200).json({
                 payroll: payroll.payroll,
                 employee: payroll.employee,
@@ -86,8 +92,8 @@ class PayrollController {
 
     updatePayroll = async (req, res) => {
         try {
-            const { id, status } = req.body
-
+            const { id } = req.params;
+            const { status } = req.body;
             if (!id || !status) {
                 return res.status(401).json({
                     error: 'Missing required fields.'
@@ -96,7 +102,37 @@ class PayrollController {
 
             const payroll = await this.PayrollService.updatePayroll(id, status);
             return res.status(200).json({
-                success: 'Successfully updated payroll.'
+                success: `Successfully updated payroll record ID: ${payroll.id}`
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    batchUpdatePayroll = async (req, res) => {
+        try {
+            const { id, status } = req.body;
+            const payroll = await this.PayrollService.batchUpdatePayroll(id, status)
+            return res.status(200).json({
+                success: 'Successfully batch updated payroll.'
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    batchDeletePayroll = async (req, res) => {
+        try {
+            const { id } = req.query;
+            const payroll = await this.PayrollService.batchDeletePayroll(id)
+            return res.status(200).json({
+                success: 'Successfully batch deleted payroll record.'
             })
         } catch (err) {
             console.log(err)

@@ -1,4 +1,4 @@
-import { TOGGLE_EMPLOYEE_BATCH_DELETING, FETCH_EMPLOYEE, FETCH_SPECIFIC_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, RESET_EMPLOYEE, TOGGLE_EMPLOYEE_CREATING, TOGGLE_EMPLOYEE_VIEWING, TOGGLE_EMPLOYEE_UPDATING, TOGGLE_EMPLOYEE_DELETING, TOGGLE_EMPLOYEE_FILTERING, RESET_EMPLOYEE_QUERY, ADD_TO_EMPLOYEE_SELECTED, REMOVE_FROM_EMPLOYEE_SELECTED, ADD_ALL_EMPLOYEE_SELECTED, REMOVE_ALL_EMPLOYEE_SELECTED, TOGGLE_EMPLOYEE_BATCH_UPDATING } from '../types/employee'
+import { TOGGLE_EMPLOYEE_BATCH_DELETING, FETCH_EMPLOYEE, FETCH_SPECIFIC_EMPLOYEE, UPDATE_SPECIFIC_EMPLOYEE, RESET_EMPLOYEE, TOGGLE_EMPLOYEE_CREATING, TOGGLE_EMPLOYEE_VIEWING, TOGGLE_EMPLOYEE_UPDATING, TOGGLE_EMPLOYEE_DELETING, TOGGLE_EMPLOYEE_FILTERING, RESET_EMPLOYEE_QUERY, ADD_TO_EMPLOYEE_SELECTED, REMOVE_FROM_EMPLOYEE_SELECTED, ADD_ALL_EMPLOYEE_SELECTED, REMOVE_ALL_EMPLOYEE_SELECTED, TOGGLE_EMPLOYEE_BATCH_UPDATING, UPDATE_EMPLOYEE, DELETE_EMPLOYEE, CREATE_EMPLOYEE, BATCH_UPDATE_EMPLOYEE, BATCH_DELETE_EMPLOYEE } from '../types/employee'
 
 const initialState = {
     record: [],
@@ -257,6 +257,140 @@ const employeeReducer = (state = initialState, action) => {
             return {
                 ...state,
                 isBatchDeleting: action.payload.isBatchDeleting
+            }
+        case UPDATE_EMPLOYEE:
+            return {
+                ...state,
+                isUpdating: action.payload.isUpdating,
+                employeeId: action.payload.employeeId,
+                employeeFirstname: action.payload.employeeFirstname,
+                employeeLastname: action.payload.employeeLastname,
+                employeeAddress: action.payload.employeeAddress,
+                employeePosition: action.payload.employeePosition,
+                employeePositionId: action.payload.employeePositionId,
+                employeeDepartment: action.payload.employeeDepartment,
+                employeeDepartmentId: action.payload.employeeDepartmentId,
+                employeeNumber: action.payload.employeeNumber,
+                employeeContactPerson: action.payload.employeeContactPerson,
+                employeeContactNumber: action.payload.employeeContactNumber,
+                employeeOnboardDate: action.payload.employeeOnboardDate,
+                employeeRole: action.payload.employeeRole,
+                employeeSalary: action.payload.employeeSalary,
+                employeeOT: action.payload.employeeOT,
+                employeeOTpay: action.payload.employeeOTpay,
+                employeeStatus: action.payload.employeeStatus,
+                employeeStartHour: action.payload.employeeStartHour,
+                employeeEndHour: action.payload.employeeEndHour,
+                employeeAl: action.payload.employeeAl,
+                record: action.payload.record,
+                count: action.payload.count,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                currentLimit: action.payload.currentLimit,
+                positions: action.payload.positions,
+                departments: action.payload.departments
+            }
+        case DELETE_EMPLOYEE:
+            return {
+                ...state,
+                isDeleting: action.payload.isDeleting,
+                employeeId: action.payload.employeeId,
+                employeeFirstname: action.payload.employeeFirstname,
+                employeeLastname: action.payload.employeeLastname,
+                employeeAddress: action.payload.employeeAddress,
+                employeePosition: action.payload.employeePosition,
+                employeePositionId: action.payload.employeePositionId,
+                employeeDepartment: action.payload.employeeDepartment,
+                employeeDepartmentId: action.payload.employeeDepartmentId,
+                employeeNumber: action.payload.employeeNumber,
+                employeeContactPerson: action.payload.employeeContactPerson,
+                employeeContactNumber: action.payload.employeeContactNumber,
+                employeeOnboardDate: action.payload.employeeOnboardDate,
+                employeeRole: action.payload.employeeRole,
+                employeeSalary: action.payload.employeeSalary,
+                employeeOT: action.payload.employeeOT,
+                employeeOTpay: action.payload.employeeOTpay,
+                employeeStatus: action.payload.employeeStatus,
+                employeeStartHour: action.payload.employeeStartHour,
+                employeeEndHour: action.payload.employeeEndHour,
+                employeeAl: action.payload.employeeAl,
+                record: action.payload.record,
+                count: action.payload.count,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                currentLimit: action.payload.currentLimit,
+                positions: action.payload.positions,
+                departments: action.payload.departments
+            }
+        case CREATE_EMPLOYEE:
+            return {
+                ...state,
+                isCreating: action.payload.isCreating,
+                employeeId: action.payload.employeeId,
+                employeeFirstname: action.payload.employeeFirstname,
+                employeeLastname: action.payload.employeeLastname,
+                employeeAddress: action.payload.employeeAddress,
+                employeePosition: action.payload.employeePosition,
+                employeePositionId: action.payload.employeePositionId,
+                employeeDepartment: action.payload.employeeDepartment,
+                employeeDepartmentId: action.payload.employeeDepartmentId,
+                employeeNumber: action.payload.employeeNumber,
+                employeeContactPerson: action.payload.employeeContactPerson,
+                employeeContactNumber: action.payload.employeeContactNumber,
+                employeeOnboardDate: action.payload.employeeOnboardDate,
+                employeeRole: action.payload.employeeRole,
+                employeeSalary: action.payload.employeeSalary,
+                employeeOT: action.payload.employeeOT,
+                employeeOTpay: action.payload.employeeOTpay,
+                employeeStatus: action.payload.employeeStatus,
+                employeeStartHour: action.payload.employeeStartHour,
+                employeeEndHour: action.payload.employeeEndHour,
+                employeeAl: action.payload.employeeAl,
+                employeeUsername: action.payload.employeeUsername,
+                employeePassword: action.payload.employeePassword,
+                record: action.payload.record,
+                count: action.payload.count,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                currentLimit: action.payload.currentLimit,
+                positions: action.payload.positions,
+                departments: action.payload.departments
+            }
+        case BATCH_UPDATE_EMPLOYEE:
+            return {
+                ...state,
+                isBatchUpdating: action.payload.isBatchUpdating,
+                batchUpdateStatus: action.payload.batchUpdateStatus,
+                batchUpdateRole: action.payload.batchUpdateRole,
+                batchUpdateStartHour: action.payload.batchUpdateStartHour,
+                batchUpdateEndHour: action.payload.batchUpdateEndHour,
+                batchUpdateMonthlySalary: action.payload.batchUpdateMonthlySalary,
+                batchUpdateOTentitlement: action.payload.batchUpdateOTentitlement,
+                batchUpdateOTHourlyPay: action.payload.batchUpdateOTHourlyPay,
+                record: action.payload.record,
+                count: action.payload.count,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                currentLimit: action.payload.currentLimit,
+                positions: action.payload.positions,
+                departments: action.payload.departments
+            }
+        case BATCH_DELETE_EMPLOYEE:
+            return {
+                ...state,
+                isBatchDeleting: action.payload.isBatchDeleting,
+                record: action.payload.record,
+                count: action.payload.count,
+                currentPage: action.payload.currentPage,
+                currentPageStart: action.payload.currentPageStart,
+                currentPageEnd: action.payload.currentPageEnd,
+                currentLimit: action.payload.currentLimit,
+                positions: action.payload.positions,
+                departments: action.payload.departments
             }
         default:
             return state

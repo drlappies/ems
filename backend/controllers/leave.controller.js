@@ -53,6 +53,12 @@ class LeaveController {
                 })
             }
 
+            if (from > to) {
+                return res.status(400).json({
+                    error: 'Leave starting date cannot be greater than its ending date!'
+                })
+            }
+
             const leaveConflict = await this.LeaveService.checkLeaveConflict(employeeId, from, to)
             if (leaveConflict.length >= 1) {
                 return res.status(400).json({
@@ -96,15 +102,6 @@ class LeaveController {
             res.status(200).json({
                 success: `Successfully deleted leave record`
             })
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    leaveRate = async (req, res) => {
-        try {
-            const rate = await this.LeaveService.leaveRate();
-            return res.status(200).json({ rate: rate })
         } catch (err) {
             console.log(err)
             res.status(500).json({

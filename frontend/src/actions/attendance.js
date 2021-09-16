@@ -1,12 +1,11 @@
-import { FETCH_ATTENDANCE, UPDATE_ATTENDANCE, ADD_SELECTED, REMOVE_SELECTED, RESET_SELECTED, RESET_QUERY, ADD_ALL_SELECTED, TOGGLE_UPDATING, TOGGLE_CREATING, TOGGLE_FILTERING, TOGGLE_BATCH_UPDATING, TOGGLE_BATCH_DELETING, TOGGLE_DELETING, UPDATE_ROW, DELETE_ATTENDANCE, BATCH_DELETE_ATTENDANCE, UPDATE_ATTENDANCE_RECORD, BATCH_UPDATE_ATTENDANCE, CREATE_ATTENDANCE, FETCH_ATTENDANCE_BY_FILTER } from '../types/attendance'
+import { FETCH_ATTENDANCE, DELETE_ATTENDANCE, UPDATE_ATTENDANCE, ADD_TO_ATTENDANCE_SELECTED, REMOVE_FROM_ATTENDANCE_SELECTED, RESET_ATTENDANCE_SELECTED, ADD_ALL_TO_ATTENDANCE_SELECTED, UPDATE_ATTENDANCE_ROW, TOGGLE_ATTENDANCE_UPDATING, TOGGLE_ATTENDANCE_CREATING, TOGGLE_ATTENDANCE_DELETING, TOGGLE_ATTENDANCE_FILTERING, TOGGLE_ATTENDANCE_BATCH_DELETING, TOGGLE_ATTENDANCE_BATCH_UPDATING, BATCH_DELETE_ATTENDANCE, UPDATE_ATTENDANCE_RECORD, BATCH_UPDATE_ATTENDANCE, CREATE_ATTENDANCE, FETCH_ATTENDANCE_BY_FILTER, RESET_ATTENDANCE_QUERY } from '../types/attendance'
 import { popErrorMessage, popSuccessMessage } from './ui'
 import axios from 'axios'
-import { ModalActions } from 'semantic-ui-react'
 
 export const fetchAttendance = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/attendance');
+            const res = await axios.get('/api/attendance');
             dispatch({
                 type: FETCH_ATTENDANCE,
                 payload: {
@@ -25,10 +24,10 @@ export const fetchAttendance = () => {
     }
 }
 
-export const fetchAttendanceByQuery = (queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo, currentPage, currentLimit) => {
+export const fetchAttendanceByQuery = (queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo, currentPage, currentLimit, queryEmployeeId) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/attendance', {
+            const res = await axios.get('/api/attendance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -39,7 +38,8 @@ export const fetchAttendanceByQuery = (queryText, queryStatus, queryDateFrom, qu
                     checkinFrom: queryCheckinFrom,
                     checkinTo: queryCheckinTo,
                     checkoutFrom: queryCheckoutFrom,
-                    checkoutTo: queryCheckoutTo
+                    checkoutTo: queryCheckoutTo,
+                    employee_id: queryEmployeeId
                 }
             })
 
@@ -56,8 +56,6 @@ export const fetchAttendanceByQuery = (queryText, queryStatus, queryDateFrom, qu
                     currentLimit: res.data.currentLimit
                 }
             })
-
-            dispatch({ type: TOGGLE_FILTERING })
         } catch (err) {
             console.log(err)
         }
@@ -69,13 +67,13 @@ export const toggleUpdating = (id) => {
         try {
             let res
             if (id) {
-                res = await axios.get(`/attendance/${id}`)
+                res = await axios.get(`/api/attendance/${id}`)
                 window.history.replaceState(null, null, `/attendance/${id}/update`)
             } else {
                 window.history.replaceState(null, null, '/attendance')
             }
             dispatch({
-                type: TOGGLE_UPDATING,
+                type: TOGGLE_ATTENDANCE_UPDATING,
                 payload: {
                     attendanceId: id ? res.data.attendance.id : "",
                     employeeId: id ? res.data.attendance.employee_id : "",
@@ -103,7 +101,7 @@ export const toggleCreating = (isCreating) => {
         }
 
         dispatch({
-            type: TOGGLE_CREATING,
+            type: TOGGLE_ATTENDANCE_CREATING,
             payload: {
                 isCreating: !isCreating
             }
@@ -120,7 +118,7 @@ export const toggleFiltering = (isFiltering) => {
         }
 
         dispatch({
-            type: TOGGLE_FILTERING,
+            type: TOGGLE_ATTENDANCE_FILTERING,
             payload: {
                 isFiltering: !isFiltering
             }
@@ -137,7 +135,7 @@ export const toggleBatchUpdating = (isBatchUpdating) => {
         }
 
         dispatch({
-            type: TOGGLE_BATCH_UPDATING,
+            type: TOGGLE_ATTENDANCE_BATCH_UPDATING,
             payload: {
                 isBatchUpdating: !isBatchUpdating,
                 updateAttendanceCheckin: "",
@@ -157,7 +155,7 @@ export const toggleBatchDeleting = (isBatchDeleting) => {
         }
 
         dispatch({
-            type: TOGGLE_BATCH_DELETING,
+            type: TOGGLE_ATTENDANCE_BATCH_DELETING,
             payload: {
                 isBatchDeleting: !isBatchDeleting
             }
@@ -170,13 +168,13 @@ export const toggleDeleting = (id) => {
         try {
             let res
             if (id) {
-                res = await axios.get(`/attendance/${id}`)
+                res = await axios.get(`/api/attendance/${id}`)
                 window.history.replaceState(null, null, `/attendance/${id}/delete`)
             } else {
                 window.history.replaceState(null, null, '/attendance')
             }
             dispatch({
-                type: TOGGLE_DELETING,
+                type: TOGGLE_ATTENDANCE_DELETING,
                 payload: {
                     isDeleting: id ? true : false,
                     attendanceId: id ? res.data.attendance.id : "",
@@ -199,7 +197,7 @@ export const fetchNext = (page, pageLength, limit, queryText, queryStatus, query
     return async (dispatch) => {
         try {
             if (page + limit >= pageLength) return;
-            const res = await axios.get('/attendance', {
+            const res = await axios.get('/api/attendance', {
                 params: {
                     page: page + limit,
                     limit: limit,
@@ -236,7 +234,7 @@ export const fetchPrevious = (page, limit, queryText, queryStatus, queryDateFrom
     return async (dispatch) => {
         try {
             if (page <= 0) return;
-            const res = await axios.get('/attendance', {
+            const res = await axios.get('/api/attendance', {
                 params: {
                     page: page - limit,
                     limit: limit,
@@ -270,10 +268,10 @@ export const fetchPrevious = (page, limit, queryText, queryStatus, queryDateFrom
 export const deleteAttendance = (id, currentPage, currentLimit, queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/attendance/${id}`)
+            const res = await axios.delete(`/api/attendance/${id}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/attendance', {
+            const res2 = await axios.get('/api/attendance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -310,10 +308,9 @@ export const deleteAttendance = (id, currentPage, currentLimit, queryText, query
 export const batchDeleteAttendance = (id, currentPage, currentLimit, queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo) => {
     return async (dispatch) => {
         try {
-            console.log(id)
-            const res = await axios.delete(`/attendance/${id.map((el, i) => i === 0 ? `?id=${el}&` : `id=${el}&`).join("")}`)
+            const res = await axios.delete(`/api/attendance/${id.map((el, i) => i === 0 ? `?id=${el}&` : `id=${el}&`).join("")}`)
             dispatch(popSuccessMessage(res.data.success))
-            const res2 = await axios.get('/attendance', {
+            const res2 = await axios.get('/api/attendance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -338,7 +335,8 @@ export const batchDeleteAttendance = (id, currentPage, currentLimit, queryText, 
                     pageEnd: res2.data.pageEnd,
                     employeeList: res2.data.employeeList,
                     currentLimit: res2.data.currentLimit,
-                    selectedRecord: []
+                    selectedRecord: [],
+                    isAttendanceAllSelected: false
                 }
             })
             window.history.replaceState(null, null, '/attendance')
@@ -357,9 +355,9 @@ export const updateAttendance = (id, check_in, check_out, status, currentPage, c
                 check_out: check_out,
                 status: status,
             }
-            const res = await axios.put(`/attendance/${id}`, body)
+            const res = await axios.put(`/api/attendance/${id}`, body)
             dispatch(popSuccessMessage(res.data.success))
-            const res2 = await axios.get('/attendance', {
+            const res2 = await axios.get('/api/attendance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -401,9 +399,9 @@ export const updateBatchAttendance = (id, check_in, check_out, status, currentPa
                 status: status,
                 id: id
             }
-            const res = await axios.put('/attendance', body)
+            const res = await axios.put('/api/attendance', body)
             dispatch(popSuccessMessage(res.data.success))
-            const res2 = await axios.get('/attendance', {
+            const res2 = await axios.get('/api/attendance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -446,9 +444,9 @@ export const createAttendance = (employee_id, date, check_in, check_out, status,
                 check_out: check_out,
                 status: status
             }
-            const res = await axios.post('/attendance', body)
+            const res = await axios.post('/api/attendance', body)
             dispatch(popSuccessMessage(res.data.success))
-            const res2 = await axios.get('/attendance', {
+            const res2 = await axios.get('/api/attendance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -481,10 +479,10 @@ export const createAttendance = (employee_id, date, check_in, check_out, status,
     }
 }
 
-export const handleUpdateAttendance = (e, result) => {
+export const handleUpdateAttendance = (e) => {
     return async (dispatch) => {
         try {
-            let { name, value } = result || e.target
+            let { name, value } = e.target
             if (e.target.type === 'checkbox') value = e.target.checked
             dispatch({
                 type: UPDATE_ATTENDANCE,
@@ -502,7 +500,7 @@ export const handleUpdateAttendance = (e, result) => {
 export const toggleSelect = (e) => {
     return (dispatch) => {
         dispatch({
-            type: e.target.checked ? ADD_SELECTED : REMOVE_SELECTED,
+            type: e.target.checked ? ADD_TO_ATTENDANCE_SELECTED : REMOVE_FROM_ATTENDANCE_SELECTED,
             payload: {
                 id: e.target.name
             }
@@ -513,9 +511,10 @@ export const toggleSelect = (e) => {
 export const toggleSelectAll = (e, entries) => {
     return (dispatch) => {
         dispatch({
-            type: e.target.checked ? ADD_ALL_SELECTED : RESET_SELECTED,
+            type: e.target.checked ? ADD_ALL_TO_ATTENDANCE_SELECTED : RESET_ATTENDANCE_SELECTED,
             payload: {
-                selectedRecord: e.target.checked ? entries = entries.map(el => el.id.toString()) : []
+                selectedRecord: e.target.checked ? entries = entries.map(el => el.id.toString()) : [],
+                isAttendanceAllSelected: e.target.checked
             }
         })
     }
@@ -524,14 +523,14 @@ export const toggleSelectAll = (e, entries) => {
 export const resetQuery = (page, limit) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/attendance', {
+            const res = await axios.get('/api/attendance', {
                 params: {
                     page: page,
                     limit: limit
                 }
             })
             dispatch({
-                type: RESET_QUERY,
+                type: RESET_ATTENDANCE_QUERY,
                 payload: {
                     isFiltering: false,
                     record: res.data.attendance,
@@ -549,6 +548,7 @@ export const resetQuery = (page, limit) => {
                     queryCheckinTo: "",
                     queryCheckoutFrom: "",
                     queryCheckoutTo: "",
+                    queryEmployeeId: ""
                 }
             })
         } catch (err) {
@@ -560,7 +560,7 @@ export const resetQuery = (page, limit) => {
 export const updateRow = (queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo, currentPage, newLimit) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/attendance', {
+            const res = await axios.get('/api/attendance', {
                 params: {
                     page: currentPage,
                     limit: newLimit,
@@ -575,7 +575,7 @@ export const updateRow = (queryText, queryStatus, queryDateFrom, queryDateTo, qu
                 }
             })
             dispatch({
-                type: UPDATE_ROW,
+                type: UPDATE_ATTENDANCE_ROW,
                 payload: {
                     record: res.data.attendance,
                     count: res.data.count.count,

@@ -61,7 +61,7 @@ function UserLeave() {
     const years = useMemo(() => yearSelect(new Date().getFullYear()), [])
 
     const fetchMonthlyLeave = useCallback(async () => {
-        const res = await axios.get('/leave', {
+        const res = await axios.get('/api/leave', {
             params: {
                 employee_id: auth.id,
                 from: `${new Date(state.currentYear, state.currentMonth, 1).getFullYear()}-${new Date(state.currentYear, state.currentMonth, 1).getMonth() + 1}-${new Date(state.currentYear, state.currentMonth, 1).getDate()}`,

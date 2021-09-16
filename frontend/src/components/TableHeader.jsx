@@ -2,13 +2,13 @@ import React from 'react';
 import { Table } from 'semantic-ui-react'
 
 function TableHeader(props) {
-    const { header, checkFunc, checkName, checkValue } = props
+    const { header, checkFunc, checkName, isChecked } = props
 
     return (
         <Table.Header>
             <Table.Row>
                 <Table.HeaderCell>
-                    <input type="checkbox" name={checkName} value={checkValue} onChange={checkFunc} />
+                    <input type="checkbox" name={checkName} checked={isChecked} onChange={checkFunc} />
                 </Table.HeaderCell>
                 {header ? header.map((el, i) =>
                     <Table.HeaderCell key={i}>

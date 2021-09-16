@@ -28,17 +28,22 @@ class LoginController {
             }
             const payload = {
                 id: user.id,
-                dept: user.dept_id,
-                post: user.post_id,
-                username: user.username,
-                firstname: user.firstname,
-                lastname: user.lastname,
+                department: user.name,
+                position: user.position,
                 address: user.address,
                 phone_number: user.phone_number,
                 emergency_contact_person: user.emergency_contact_person,
                 emergency_contact_number: user.emergency_contact_number,
+                onboard_date: user.onboard_date,
                 role: user.role,
-                ot_entitled: user.ot_pay_entitled,
+                start_hour: user.start_hour,
+                end_hour: user.end_hour,
+                ot_pay_entitled: user.ot_pay_entitled,
+                ot_hourly_salary: user.ot_hourly_salary,
+                annual_leave_count: user.annual_leave_count,
+                username: user.username,
+                firstname: user.firstname,
+                lastname: user.lastname
             }
             const token = jwt.sign(payload, process.env.JWT_SECRET)
             return res.status(200).json({

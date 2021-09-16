@@ -5,7 +5,7 @@ import { popSuccessMessage, popErrorMessage } from '../actions/ui'
 export const fetchReimbursement = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/reimbursement')
+            const res = await axios.get('/api/reimbursement')
             dispatch({
                 type: FETCH_REIMBURSEMENT,
                 payload: {
@@ -27,7 +27,7 @@ export const fetchReimbursement = () => {
 export const fetchReimbursementByEntries = (currentPage, currentLimit, queryText, queryAmountFrom, queryAmountTo, queryDateFrom, queryDateTo, queryStatus) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/reimbursement', {
+            const res = await axios.get('/api/reimbursement', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -66,7 +66,7 @@ export const updateReimbursement = (id, reason, date, amount, status) => {
                 date: date,
                 amount: amount
             }
-            const res = await axios.put(`/reimbursement/${id}`, body)
+            const res = await axios.put(`/api/reimbursement/${id}`, body)
             dispatch(popSuccessMessage(res.data.success))
 
             dispatch({
@@ -91,7 +91,7 @@ export const gotoNextReimbursementPage = (currentPage, currentLimit, pageCount, 
     return async (dispatch) => {
         try {
             if (currentPage + currentLimit >= pageCount) return;
-            const res = await axios.get('/reimbursement', {
+            const res = await axios.get('/api/reimbursement', {
                 params: {
                     page: currentPage + currentLimit,
                     limit: currentLimit,
@@ -125,7 +125,7 @@ export const gotoPreviousReimbursementPage = (currentPage, currentLimit, queryTe
     return async (dispatch) => {
         try {
             if (currentPage <= 0) return;
-            const res = await axios.get('/reimbursement', {
+            const res = await axios.get('/api/reimbursement', {
                 params: {
                     page: currentPage - currentLimit,
                     limit: currentLimit,
@@ -187,11 +187,11 @@ export const createReimbursement = (employeeId, date, amount, reason, currentPag
                 reason: reason
             }
 
-            const res = await axios.post('/reimbursement', body)
+            const res = await axios.post('/api/reimbursement', body)
 
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/reimbursement', {
+            const res2 = await axios.get('/api/reimbursement', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -226,7 +226,7 @@ export const toggleUpdating = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/reimbursement/${id}`);
+            if (id) res = await axios.get(`/api/reimbursement/${id}`);
             dispatch({
                 type: TOGGLE_REIMBURSEMENT_UPDATING,
                 payload: {
@@ -251,7 +251,7 @@ export const toggleDeleting = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/reimbursement/${id}`);
+            if (id) res = await axios.get(`/api/reimbursement/${id}`);
             dispatch({
                 type: TOGGLE_REIMBURSEMENT_DELETING,
                 payload: {
@@ -275,10 +275,10 @@ export const toggleDeleting = (id) => {
 export const deleteReimbursement = (id, currentPage, currentLimit, queryText, queryAmountFrom, queryAmountTo, queryDateFrom, queryDateTo, queryStatus) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/reimbursement/${id}`)
+            const res = await axios.delete(`/api/reimbursement/${id}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/reimbursement', {
+            const res2 = await axios.get('/api/reimbursement', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -323,7 +323,7 @@ export const toggleFiltering = (isFiltering) => {
 export const fetchReimbursementByQuery = (queryText, queryAmountFrom, queryAmountTo, queryDateFrom, queryDateTo, queryStatus) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/reimbursement', {
+            const res = await axios.get('/api/reimbursement', {
                 params: {
                     text: queryText,
                     amountFrom: queryAmountFrom,
@@ -356,7 +356,7 @@ export const fetchReimbursementByQuery = (queryText, queryAmountFrom, queryAmoun
 export const resetReimbursementQuery = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/reimbursement');
+            const res = await axios.get('/api/reimbursement');
             dispatch({
                 type: RESET_REIMBURSEMENT_QUERY,
                 payload: {
@@ -421,7 +421,7 @@ export const batchUpdateReimbursement = (selectedRecord, updateReimbursementAmou
                 status: updateReimbursementStatus
             }
 
-            const res = await axios.put('/reimbursement', body)
+            const res = await axios.put('/api/reimbursement', body)
             dispatch(popSuccessMessage(res.data.success))
             dispatch({
                 type: BATCH_UPDATE_REIMBURSEMENT,
@@ -454,10 +454,10 @@ export const toggleBatchDeleting = (isBatchDeleting) => {
 export const batchDeleteReimbursement = (selectedRecord, currentPage, currentLimit, queryText, queryAmountFrom, queryAmountTo, queryDateFrom, queryDateTo, queryStatus) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/reimbursement/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`/api/reimbursement/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/reimbursement', {
+            const res2 = await axios.get('/api/reimbursement', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,

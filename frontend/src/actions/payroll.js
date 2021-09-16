@@ -1,11 +1,12 @@
-import { FETCH_PAYROLL, UPDATE_PAYROLL, ADD_TO_PAYROLL_SELECTED, TOGGLE_PAYROLL_CREATING, TOGGLE_PAYROLL_VIEWING, TOGGLE_PAYROLL_DELETING, TOGGLE_PAYROLL_BATCH_UPDATING, REMOVE_FROM_PAYROLL_SELECTED, TOGGLE_PAYROLL_BATCH_DELETING, TOGGLE_PAYROLL_FILTERTING, RESET_PAYROLL_QUERY, TOGGLE_PAYROLL_UPDATING, ADD_ALL_TO_PAYROLL_SELECTED, RESET_PAYROLL_SELECTED } from "../types/payroll";
+import { FETCH_PAYROLL, UPDATE_PAYROLL, ADD_TO_PAYROLL_SELECTED, TOGGLE_PAYROLL_CREATING, TOGGLE_PAYROLL_VIEWING, TOGGLE_PAYROLL_DELETING, TOGGLE_PAYROLL_BATCH_UPDATING, REMOVE_FROM_PAYROLL_SELECTED, TOGGLE_PAYROLL_BATCH_DELETING, TOGGLE_PAYROLL_FILTERTING, RESET_PAYROLL_QUERY, TOGGLE_PAYROLL_UPDATING, ADD_ALL_TO_PAYROLL_SELECTED, RESET_PAYROLL_SELECTED, GENERATE_PAYROLL, DELETE_PAYROLL, BATCH_DELETE_PAYROLL, BATCH_UPDATE_PAYROLL, UPDATE_PAYROLL_RECORD, TOGGLE_PAYROLL_PRINTING } from "../types/payroll";
 import axios from 'axios';
 import { popSuccessMessage, popErrorMessage } from '../actions/ui'
+import { TOGGLE_PRINTING } from "../types/employee";
 
 export const fetchPayroll = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/payroll');
+            const res = await axios.get('/api/payroll');
             dispatch({
                 type: FETCH_PAYROLL,
                 payload: {
@@ -39,13 +40,14 @@ export const updatePayroll = (e, result) => {
     }
 }
 
-export const generatePayroll = (employeeId, starting, ending, isOTcaled, isLeaveCaled, isDeductCaled, isBonusCaled, isAllowanceCaled, isReimbursementCaled) => {
+export const generatePayroll = (employeeId, starting, ending, payday, isOTcaled, isLeaveCaled, isDeductCaled, isBonusCaled, isAllowanceCaled, isReimbursementCaled, page, limit, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
     return async (dispatch) => {
         try {
             const body = {
                 employee_id: employeeId,
                 starting_date: starting,
                 ending_date: ending,
+                payday: payday,
                 isOTcaled: isOTcaled,
                 isLeaveCaled: isLeaveCaled,
                 isDeductCaled: isDeductCaled,
@@ -53,13 +55,39 @@ export const generatePayroll = (employeeId, starting, ending, isOTcaled, isLeave
                 isAllowanceCaled: isAllowanceCaled,
                 isReimbursementCaled: isReimbursementCaled
             }
-            const res = await axios.post('/payroll', body)
+            const res = await axios.post('/api/payroll', body)
             dispatch(popSuccessMessage(res.data.success))
-            dispatch(fetchPayroll())
+            const res2 = await axios.get('/api/payroll', {
+                params: {
+                    page: page,
+                    limit: limit,
+                    from: queryFrom,
+                    to: queryTo,
+                    text: queryText,
+                    status: queryStatus,
+                    amountFrom: queryAmountFrom,
+                    amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId,
+                    isReimbursementCaled: queryIsReimbursementCaled,
+                    isAllowanceCaled: queryIsAllowanceCaled,
+                    isBonusCaled: queryIsBonusCaled,
+                    isDeductCaled: queryIsDeductionCaled,
+                    isOvertimeCaled: queryIsOvertimeCaled,
+                    isLeaveCaled: queryIsLeaveCaled
+                }
+            })
             dispatch({
-                type: TOGGLE_PAYROLL_CREATING,
+                type: GENERATE_PAYROLL,
                 payload: {
                     isCreating: false,
+                    record: res2.data.payroll,
+                    employeeList: res2.data.employee,
+                    unselectedEmployee: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
                     employeeId: "",
                     starting: "",
                     ending: "",
@@ -72,7 +100,7 @@ export const generatePayroll = (employeeId, starting, ending, isOTcaled, isLeave
                 }
             })
         } catch (err) {
-            console.log(err)
+            dispatch(popErrorMessage(err.response.data.error))
         }
     }
 }
@@ -106,7 +134,7 @@ export const toggleViewing = (id) => {
         try {
             let res;
             if (id) {
-                res = await axios.get(`/payroll/${id}`)
+                res = await axios.get(`/api/payroll/${id}`)
                 window.history.replaceState(null, "", `/payroll/${id}/delete`)
             } else {
                 window.history.replaceState(null, "", "/payroll")
@@ -127,7 +155,10 @@ export const toggleViewing = (id) => {
                     firstname: id ? res.data.firstname : "",
                     lastname: id ? res.data.lastname : "",
                     payrollId: id ? res.data.id : "",
-                    employeeId: id ? res.data.employee_id : ""
+                    employeeId: id ? res.data.employee_id : "",
+                    payday: id ? res.data.payday : "",
+                    basicSalary: id ? res.data.basic_salary : "",
+                    mpfDeduction: id ? res.data.mpf_deduction : ""
                 }
             })
         } catch (err) {
@@ -141,7 +172,7 @@ export const toggleDeleting = (id) => {
         try {
             let res;
             if (id) {
-                res = await axios.get(`/payroll/${id}`)
+                res = await axios.get(`/api/payroll/${id}`)
                 window.history.replaceState(null, "", `/payroll/${id}/delete`)
             } else {
                 window.history.replaceState(null, "", "/payroll")
@@ -171,31 +202,44 @@ export const toggleDeleting = (id) => {
     }
 }
 
-export const handleDelete = (id) => {
+export const handleDelete = (id, page, limit, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/payroll/?id=${id}`)
-            dispatch(fetchPayroll())
-            dispatch({
-                type: TOGGLE_PAYROLL_DELETING,
-                payload: {
-                    isDeleting: false,
-                    from: "",
-                    to: "",
-                    amount: "",
-                    reimbursement: "",
-                    allowance: "",
-                    deduction: "",
-                    bonus: "",
-                    overtime: "",
-                    status: "",
-                    firstname: "",
-                    lastname: "",
-                    payrollId: "",
-                    employeeId: ""
+            const res = await axios.delete(`/api/payroll/${id}`)
+            dispatch(popSuccessMessage(res.data.success))
+            const res2 = await axios.get('/api/payroll', {
+                params: {
+                    page: page,
+                    limit: limit,
+                    from: queryFrom,
+                    to: queryTo,
+                    text: queryText,
+                    status: queryStatus,
+                    amountFrom: queryAmountFrom,
+                    amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId,
+                    isReimbursementCaled: queryIsReimbursementCaled,
+                    isAllowanceCaled: queryIsAllowanceCaled,
+                    isBonusCaled: queryIsBonusCaled,
+                    isDeductCaled: queryIsDeductionCaled,
+                    isOvertimeCaled: queryIsOvertimeCaled,
+                    isLeaveCaled: queryIsLeaveCaled
                 }
             })
-            dispatch(popSuccessMessage(res.data.success))
+            dispatch({
+                type: DELETE_PAYROLL,
+                payload: {
+                    isDeleting: false,
+                    record: res2.data.payroll,
+                    employeeList: res2.data.employee,
+                    unselectedEmployee: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
+                }
+            })
         } catch (err) {
             dispatch(popErrorMessage(err.response.data.error))
         }
@@ -226,34 +270,53 @@ export const toggleBatchDeleting = (isBatchDeleting) => {
 
 export const handleSelect = (e) => {
     return (dispatch) => {
-        if (e.target.checked) {
-            dispatch({
-                type: ADD_TO_PAYROLL_SELECTED,
-                payload: {
-                    id: e.target.name
-                }
-            })
-        } else {
-            dispatch({
-                type: REMOVE_FROM_PAYROLL_SELECTED,
-                payload: {
-                    id: e.target.name
-                }
-            })
-        }
+        dispatch({
+            type: e.target.checked ? ADD_TO_PAYROLL_SELECTED : REMOVE_FROM_PAYROLL_SELECTED,
+            payload: {
+                id: e.target.name
+            }
+        })
     }
 }
 
-export const handleBatchDelete = (rows) => {
+export const handleBatchDelete = (rows, page, limit, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/payroll/${rows.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`/api/payroll/${rows.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popSuccessMessage(res.data.success))
-            dispatch(fetchPayroll())
+            const res2 = await axios.get('/api/payroll', {
+                params: {
+                    page: page,
+                    limit: limit,
+                    from: queryFrom,
+                    to: queryTo,
+                    text: queryText,
+                    status: queryStatus,
+                    amountFrom: queryAmountFrom,
+                    amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId,
+                    isReimbursementCaled: queryIsReimbursementCaled,
+                    isAllowanceCaled: queryIsAllowanceCaled,
+                    isBonusCaled: queryIsBonusCaled,
+                    isDeductCaled: queryIsDeductionCaled,
+                    isOvertimeCaled: queryIsOvertimeCaled,
+                    isLeaveCaled: queryIsLeaveCaled
+                }
+            })
             dispatch({
-                type: TOGGLE_PAYROLL_BATCH_DELETING,
+                type: BATCH_DELETE_PAYROLL,
                 payload: {
-                    isBatchDeleting: false
+                    isBatchDeleting: false,
+                    record: res2.data.payroll,
+                    employeeList: res2.data.employee,
+                    unselectedEmployee: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
+                    selectedRecord: [],
+                    isAllSelected: false
                 }
             })
         } catch (err) {
@@ -262,20 +325,46 @@ export const handleBatchDelete = (rows) => {
     }
 }
 
-export const handleBatchUpdate = (rows, status) => {
+export const handleBatchUpdate = (rows, status, page, limit, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
     return async (dispatch) => {
         try {
             const body = {
                 id: rows,
                 status: status
             }
-            const res = await axios.put('/payroll', body)
+            const res = await axios.put('/api/payroll', body)
             dispatch(popSuccessMessage(res.data.success))
-            dispatch(fetchPayroll())
+            const res2 = await axios.get('/api/payroll', {
+                params: {
+                    page: page,
+                    limit: limit,
+                    from: queryFrom,
+                    to: queryTo,
+                    text: queryText,
+                    status: queryStatus,
+                    amountFrom: queryAmountFrom,
+                    amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId,
+                    isReimbursementCaled: queryIsReimbursementCaled,
+                    isAllowanceCaled: queryIsAllowanceCaled,
+                    isBonusCaled: queryIsBonusCaled,
+                    isDeductCaled: queryIsDeductionCaled,
+                    isOvertimeCaled: queryIsOvertimeCaled,
+                    isLeaveCaled: queryIsLeaveCaled
+                }
+            })
             dispatch({
-                type: TOGGLE_PAYROLL_BATCH_UPDATING,
+                type: BATCH_UPDATE_PAYROLL,
                 payload: {
-                    isBatchUpdating: false
+                    isBatchUpdating: false,
+                    record: res2.data.payroll,
+                    employeeList: res2.data.employee,
+                    unselectedEmployee: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
                 }
             })
         } catch (err) {
@@ -284,20 +373,45 @@ export const handleBatchUpdate = (rows, status) => {
     }
 }
 
-export const handleUpdate = (payrollId, status) => {
+export const handleUpdate = (payrollId, status, page, limit, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
     return async (dispatch) => {
         try {
             const body = {
-                id: payrollId,
                 status: status
             }
-            const res = await axios.put('/payroll', body)
+            const res = await axios.put(`/api/payroll/${payrollId}`, body)
             dispatch(popSuccessMessage(res.data.success))
-            dispatch(fetchPayroll())
+            const res2 = await axios.get('/api/payroll', {
+                params: {
+                    page: page,
+                    limit: limit,
+                    from: queryFrom,
+                    to: queryTo,
+                    text: queryText,
+                    status: queryStatus,
+                    amountFrom: queryAmountFrom,
+                    amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId,
+                    isReimbursementCaled: queryIsReimbursementCaled,
+                    isAllowanceCaled: queryIsAllowanceCaled,
+                    isBonusCaled: queryIsBonusCaled,
+                    isDeductCaled: queryIsDeductionCaled,
+                    isOvertimeCaled: queryIsOvertimeCaled,
+                    isLeaveCaled: queryIsLeaveCaled
+                }
+            })
             dispatch({
-                type: TOGGLE_PAYROLL_UPDATING,
+                type: UPDATE_PAYROLL_RECORD,
                 payload: {
                     isUpdating: false,
+                    record: res2.data.payroll,
+                    employeeList: res2.data.employee,
+                    unselectedEmployee: res2.data.employee,
+                    currentPage: res2.data.currentPage,
+                    currentPageStart: res2.data.currentPageStart,
+                    currentPageEnd: res2.data.currentPageEnd,
+                    pageLength: res2.data.pageLength,
+                    currentLimit: res2.data.currentLimit,
                     from: "",
                     to: "",
                     amount: "",
@@ -311,12 +425,12 @@ export const handleUpdate = (payrollId, status) => {
                     lastname: "",
                     payrollId: "",
                     employeeId: "",
-                    isReimbursementCaled: "",
-                    isAllowanceCaled: "",
-                    isDeductCaled: "",
-                    isBonusCaled: "",
-                    isOTcaled: "",
-                    isLeaveCaled: ""
+                    isReimbursementCaled: false,
+                    isAllowanceCaled: false,
+                    isDeductCaled: false,
+                    isBonusCaled: false,
+                    isOTcaled: false,
+                    isLeaveCaled: false
                 }
             })
         } catch (err) {
@@ -325,13 +439,26 @@ export const handleUpdate = (payrollId, status) => {
     }
 }
 
-export const handleEntriesChange = (limit, page) => {
+export const handleEntriesChange = (limit, page, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/payroll', {
+            const res = await axios.get('/api/payroll', {
                 params: {
                     page: page,
-                    limit: limit
+                    limit: limit,
+                    from: queryFrom,
+                    to: queryTo,
+                    text: queryText,
+                    status: queryStatus,
+                    amountFrom: queryAmountFrom,
+                    amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId,
+                    isReimbursementCaled: queryIsReimbursementCaled,
+                    isAllowanceCaled: queryIsAllowanceCaled,
+                    isBonusCaled: queryIsBonusCaled,
+                    isDeductCaled: queryIsDeductionCaled,
+                    isOvertimeCaled: queryIsOvertimeCaled,
+                    isLeaveCaled: queryIsLeaveCaled
                 }
             });
             dispatch({
@@ -353,15 +480,27 @@ export const handleEntriesChange = (limit, page) => {
     }
 }
 
-export const fetchNextPayrollPage = (limit, page, pageLength) => {
+export const fetchNextPayrollPage = (limit, page, pageLength, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
     return async (dispatch) => {
         try {
-            console.log(limit, page, pageLength)
             if (page + limit >= pageLength) return;
-            const res = await axios.get('/payroll', {
+            const res = await axios.get('/api/payroll', {
                 params: {
                     page: page + limit,
-                    limit: limit
+                    limit: limit,
+                    from: queryFrom,
+                    to: queryTo,
+                    text: queryText,
+                    status: queryStatus,
+                    amountFrom: queryAmountFrom,
+                    amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId,
+                    isReimbursementCaled: queryIsReimbursementCaled,
+                    isAllowanceCaled: queryIsAllowanceCaled,
+                    isBonusCaled: queryIsBonusCaled,
+                    isDeductCaled: queryIsDeductionCaled,
+                    isOvertimeCaled: queryIsOvertimeCaled,
+                    isLeaveCaled: queryIsLeaveCaled
                 }
             })
             dispatch({
@@ -383,14 +522,27 @@ export const fetchNextPayrollPage = (limit, page, pageLength) => {
     }
 }
 
-export const fetchPreviousPayrollPage = (limit, page) => {
+export const fetchPreviousPayrollPage = (limit, page, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
     return async (dispatch) => {
         try {
             if (page - limit <= 0) page = 0;
-            const res = await axios.get('/payroll', {
+            const res = await axios.get('/api/payroll', {
                 params: {
                     page: page - limit,
-                    limit: limit
+                    limit: limit,
+                    from: queryFrom,
+                    to: queryTo,
+                    text: queryText,
+                    status: queryStatus,
+                    amountFrom: queryAmountFrom,
+                    amountTo: queryAmountTo,
+                    employee_id: queryEmployeeId,
+                    isReimbursementCaled: queryIsReimbursementCaled,
+                    isAllowanceCaled: queryIsAllowanceCaled,
+                    isBonusCaled: queryIsBonusCaled,
+                    isDeductCaled: queryIsDeductionCaled,
+                    isOvertimeCaled: queryIsOvertimeCaled,
+                    isLeaveCaled: queryIsLeaveCaled
                 }
             })
             dispatch({
@@ -426,7 +578,7 @@ export const toggleFiltering = (isFiltering) => {
 export const resetQuery = (page, limit) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/payroll', {
+            const res = await axios.get('/api/payroll', {
                 params: {
                     page: page,
                     limit: limit
@@ -443,7 +595,21 @@ export const resetQuery = (page, limit) => {
                     currentPageStart: res.data.currentPageStart,
                     currentPageEnd: res.data.currentPageEnd,
                     pageLength: res.data.pageLength,
-                    currentLimit: res.data.currentLimit
+                    currentLimit: res.data.currentLimit,
+                    queryFrom: "",
+                    queryTo: "",
+                    queryText: "",
+                    queryStatus: "",
+                    queryAmountFrom: "",
+                    queryAmountTo: "",
+                    queryPaydayFrom: "",
+                    queryPaydayTo: "",
+                    queryIsReimbursementCaled: true,
+                    queryIsAllowanceCaled: true,
+                    queryIsDeductionCaled: true,
+                    queryIsBonusCaled: true,
+                    queryIsOvertimeCaled: true,
+                    queryIsLeaveCaled: true,
                 }
             })
         } catch (err) {
@@ -452,11 +618,10 @@ export const resetQuery = (page, limit) => {
     }
 }
 
-export const handleSearch = (page, limit, queryFrom, queryTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
-    console.log(queryIsLeaveCaled)
+export const handleSearch = (page, limit, queryFrom, queryTo, queryPaydayFrom, queryPaydayTo, queryText, queryStatus, queryAmountFrom, queryAmountTo, queryEmployeeId, queryIsReimbursementCaled, queryIsAllowanceCaled, queryIsDeductionCaled, queryIsBonusCaled, queryIsOvertimeCaled, queryIsLeaveCaled) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/payroll', {
+            const res = await axios.get('/api/payroll', {
                 params: {
                     page: page,
                     limit: limit,
@@ -466,6 +631,8 @@ export const handleSearch = (page, limit, queryFrom, queryTo, queryText, querySt
                     status: queryStatus,
                     amountFrom: queryAmountFrom,
                     amountTo: queryAmountTo,
+                    paydayFrom: queryPaydayFrom,
+                    paydayTo: queryPaydayTo,
                     employee_id: queryEmployeeId,
                     isReimbursementCaled: queryIsReimbursementCaled,
                     isAllowanceCaled: queryIsAllowanceCaled,
@@ -499,7 +666,7 @@ export const toggleUpdating = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/payroll/${id}`)
+            if (id) res = await axios.get(`/api/payroll/${id}`)
             dispatch({
                 type: TOGGLE_PAYROLL_UPDATING,
                 payload: {
@@ -533,18 +700,23 @@ export const toggleUpdating = (id) => {
 
 export const handleSelectAll = (e, rows) => {
     return (dispatch) => {
-        if (e.target.checked) {
-            rows = rows.map(el => el.id.toString())
-            dispatch({
-                type: ADD_ALL_TO_PAYROLL_SELECTED,
-                payload: {
-                    selectedRecord: rows
-                }
-            })
-        } else {
-            dispatch({
-                type: RESET_PAYROLL_SELECTED
-            })
-        }
+        dispatch({
+            type: e.target.checked ? ADD_ALL_TO_PAYROLL_SELECTED : RESET_PAYROLL_SELECTED,
+            payload: {
+                selectedRecord: e.target.checked ? rows.map(el => el.id.toString()) : [],
+                isAllSelected: e.target.checked
+            }
+        })
+    }
+}
+
+export const togglePrinting = (isPrinting) => {
+    return (dispatch) => {
+        dispatch({
+            type: TOGGLE_PAYROLL_PRINTING,
+            payload: {
+                isPrinting: !isPrinting
+            }
+        })
     }
 }

@@ -1,11 +1,12 @@
 import React from 'react';
 import { Table, Button } from 'semantic-ui-react';
+import '../css/main.css'
 
 function TableBody(props) {
     const { data, primaryFunc, secondaryFunc, primaryAction, secondaryAction, tertiaryAction, tertiaryFunc, primaryActionColor, secondaryActionColor, tertiaryActionColor, cellSize, checkFunc, checkedRows } = props
 
     return (
-        <Table.Body>
+        <Table.Body >
             {data ? data.map((el, i, arr) =>
                 <Table.Row key={i}>
                     <Table.Cell>

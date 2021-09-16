@@ -1,11 +1,11 @@
-import { CREATE_OVERTIME_TIMEIN, FETCH_OVERTIME_STATUS, CREATE_OVERTIME_TIMEOUT, FETCH_OVERTIME_RECORD, TOGGLE_FILTERING, RESET_OVERTIME_RECORD, UPDATE_OVERTIME, ADD_TO_SELECTED, REMOVE_FROM_SELECTED, RESET_SELECTED, TOGGLE_UPDATING, TOGGLE_CREATING, TOGGLE_DELETING, TOGGLE_BATCH_UPDATING, RESET_OVERTIME_QUERY, TOGGLE_BATCH_DELETING, ADD_ALL_TO_SELECTED, FETCH_OVERTIME_BY_FILTER, UPDATE_OVERTIME_RECORD, BATCH_UPDATE_OVERTIME, CREATE_UPDATE, CREATE_OVERTIME, DELETE_OVERTIME, BATCH_DELETE_OVERTIME } from "../types/overtime";
+import { CREATE_OVERTIME_TIMEIN, FETCH_OVERTIME_STATUS, CREATE_OVERTIME_TIMEOUT, FETCH_OVERTIME_RECORD, TOGGLE_FILTERING, UPDATE_OVERTIME, ADD_TO_SELECTED, REMOVE_FROM_SELECTED, RESET_SELECTED, TOGGLE_UPDATING, TOGGLE_CREATING, TOGGLE_DELETING, TOGGLE_BATCH_UPDATING, RESET_OVERTIME_QUERY, TOGGLE_BATCH_DELETING, ADD_ALL_TO_SELECTED, FETCH_OVERTIME_BY_FILTER, UPDATE_OVERTIME_RECORD, BATCH_UPDATE_OVERTIME, CREATE_OVERTIME, DELETE_OVERTIME, BATCH_DELETE_OVERTIME } from "../types/overtime";
 import { popErrorMessage, popSuccessMessage } from "./ui";
 import axios from 'axios'
 
 export const fetchOvertimeStatus = (employee_id) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get(`/overtime/status/${employee_id}`)
+            const res = await axios.get(`/api/overtime/status/${employee_id}`)
             dispatch({
                 type: FETCH_OVERTIME_STATUS,
                 payload: {
@@ -24,7 +24,7 @@ export const toggleUpdating = (id) => {
         try {
             let res;
             if (id) {
-                res = await axios.get(`/overtime/${id}`)
+                res = await axios.get(`/api/overtime/${id}`)
                 window.history.replaceState(null, null, `/overtime/${id}/update`)
             } else {
                 window.history.replaceState(null, null, '/overtime')
@@ -71,7 +71,7 @@ export const toggleDeleting = (id) => {
         try {
             let res;
             if (id) {
-                res = await axios.get(`/overtime/${id}`)
+                res = await axios.get(`/api/overtime/${id}`)
                 window.history.replaceState(null, null, `/overtime/${id}/delete`)
             } else {
                 window.history.replaceState(null, null, '/overtime')
@@ -153,7 +153,7 @@ export const createOvertime = (employee_id) => {
             const body = {
                 employee_id: employee_id
             }
-            const res = await axios.post('/overtime/timein', body)
+            const res = await axios.post('/api/overtime/timein', body)
             dispatch({
                 type: CREATE_OVERTIME_TIMEIN,
                 payload: {
@@ -173,7 +173,7 @@ export const createOvertimeTimeout = (employee_id) => {
             const body = {
                 employee_id: employee_id
             }
-            const res = await axios.post('/overtime/timeout', body)
+            const res = await axios.post('/api/overtime/timeout', body)
             dispatch({
                 type: CREATE_OVERTIME_TIMEOUT,
                 payload: {
@@ -191,7 +191,7 @@ export const fetchNextOvertimeRecord = (currentPage, pageLength, currentLimit, q
     return async (dispatch) => {
         try {
             if (currentPage + currentLimit >= pageLength) return;
-            const res = await axios.get('/overtime', {
+            const res = await axios.get('/api/overtime', {
                 params: {
                     text: queryText,
                     status: queryStatus,
@@ -228,7 +228,7 @@ export const fetchPreviousOvertimeRecord = (currentPage, currentLimit, queryText
     return async (dispatch) => {
         try {
             if (currentPage <= 0) return;
-            const res = await axios.get('/overtime', {
+            const res = await axios.get('/api/overtime', {
                 params: {
                     text: queryText,
                     status: queryStatus,
@@ -263,7 +263,7 @@ export const fetchPreviousOvertimeRecord = (currentPage, currentLimit, queryText
 export const fetchOvertimeRecord = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/overtime')
+            const res = await axios.get('/api/overtime')
             dispatch({
                 type: FETCH_OVERTIME_RECORD,
                 payload: {
@@ -286,7 +286,7 @@ export const fetchOvertimeRecordByEntries = (newLimit, currentPage, queryText, q
     return async (dispatch) => {
         try {
             console.log(newLimit)
-            const res = await axios.get('/overtime', {
+            const res = await axios.get('/api/overtime', {
                 params: {
                     text: queryText,
                     status: queryStatus,
@@ -322,7 +322,7 @@ export const fetchOvertimeRecordByEntries = (newLimit, currentPage, queryText, q
 export const fetchOvertimeRecordByQuery = (queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo, queryEmployeeId) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/overtime', {
+            const res = await axios.get('/api/overtime', {
                 params: {
                     text: queryText,
                     status: queryStatus,
@@ -357,7 +357,7 @@ export const fetchOvertimeRecordByQuery = (queryText, queryStatus, queryDateFrom
 
 export const resetOvertimeQuery = () => {
     return async (dispatch) => {
-        const res = await axios.get('/overtime')
+        const res = await axios.get('/api/overtime')
 
         dispatch({
             type: RESET_OVERTIME_QUERY,
@@ -385,9 +385,9 @@ export const updateOvertimeRecord = (id, from, to, status, currentPage, currentL
                 status: status,
             }
 
-            const res = await axios.put(`/overtime/${id}`, body)
+            const res = await axios.put(`/api/overtime/${id}`, body)
             dispatch(popSuccessMessage(res.data.success))
-            const res2 = await axios.get('/overtime', {
+            const res2 = await axios.get('/api/overtime', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -431,10 +431,10 @@ export const updateBatchOvertimeRecord = (selectedRecord, from, to, status, curr
                 id: selectedRecord
             }
 
-            const res = await axios.put('/overtime', body)
+            const res = await axios.put('/api/overtime', body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/overtime', {
+            const res2 = await axios.get('/api/overtime', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -477,10 +477,10 @@ export const createOvertimeRecord = (employee_id, starting, ending, date, status
                 date: date,
                 status: status ? 'approved' : 'pending'
             }
-            const res = await axios.post('/overtime', body)
+            const res = await axios.post('/api/overtime', body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/overtime', {
+            const res2 = await axios.get('/api/overtime', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -516,10 +516,10 @@ export const createOvertimeRecord = (employee_id, starting, ending, date, status
 export const deleteOvertime = (id, currentPage, currentLimit, queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/overtime/${id}`)
+            const res = await axios.delete(`/api/overtime/${id}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/overtime', {
+            const res2 = await axios.get('/api/overtime', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -556,10 +556,10 @@ export const deleteOvertime = (id, currentPage, currentLimit, queryText, querySt
 export const batchDeleteOvertime = (selectedRecord, currentPage, currentLimit, queryText, queryStatus, queryDateFrom, queryDateTo, queryCheckinFrom, queryCheckinTo, queryCheckoutFrom, queryCheckoutTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/overtime/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`/api/overtime/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/overtime', {
+            const res2 = await axios.get('/api/overtime', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -585,7 +585,8 @@ export const batchDeleteOvertime = (selectedRecord, currentPage, currentLimit, q
                     pageLength: res2.data.pageCount,
                     employeeList: res2.data.employeeList,
                     currentLimit: res2.data.currentLimit,
-                    selectedRecord: []
+                    selectedRecord: [],
+                    isAllSelected: false
                 }
             })
 
@@ -630,7 +631,8 @@ export const toggleSelectAll = (e, entries) => {
         dispatch({
             type: e.target.checked ? ADD_ALL_TO_SELECTED : RESET_SELECTED,
             payload: {
-                selectedRecord: e.target.checked ? entries = entries.map(el => el.id.toString()) : []
+                selectedRecord: e.target.checked ? entries = entries.map(el => el.id.toString()) : [],
+                isAllSelected: e.target.checked
             }
         })
     }

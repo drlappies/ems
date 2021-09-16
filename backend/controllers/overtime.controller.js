@@ -62,20 +62,27 @@ class OvertimeController {
             const { employee_id, date, from, to, status } = req.body;
             if (!employee_id || !date || !from || !to) {
                 return res.status(400).json({
-                    error: 'Missing required fields.'
+                    error: 'Missing required fields!'
                 })
             }
             const currentDate = new Date(new Date().setHours(0, 0, 0, 0))
             if (new Date(date) > currentDate) {
                 return res.status(400).json({
-                    error: 'Cannot time in future dates.'
+                    error: 'Cannot time in future dates!'
                 })
             }
             if (await this.OvertimeService.checkForConflict(employee_id, date)) {
                 return res.status(400).json({
-                    error: 'Already timed in that day'
+                    error: 'Already timed in that day!'
                 })
             }
+
+            if (from >= to) {
+                return res.status(400).json({
+                    error: 'Check in time cannot be greater than or equal to check out time!'
+                })
+            }
+            
             const overtime = await this.OvertimeService.createOvertime(employee_id, date, from, to, status)
             return res.status(200).json({
                 success: `Succsesfully created specific overtime record on ${overtime[0].date.getFullYear()}-${overtime[0].date.getMonth() + 1}-${overtime[0].date.getDate()}`,

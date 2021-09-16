@@ -7,7 +7,7 @@ class dashboardController {
         try {
             const metric = await this.dashboardService.getMetric();
             return res.status(200).json({
-                metric: metric
+                metric: metric,
             })
         } catch (err) {
             console.log(err)

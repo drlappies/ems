@@ -16,7 +16,7 @@ function UserAllowance() {
 
     const fetchAllowanceRecord = useCallback(async () => {
         try {
-            const res = await axios.get(`/allowance/entitlement/${auth.id}`, {
+            const res = await axios.get(`/api/allowance/entitlement/${auth.id}`, {
                 params: {
                     offset: state.currentOffset,
                     limit: state.currentLimit,
@@ -41,7 +41,7 @@ function UserAllowance() {
     const fetchNextAllowanceRecord = useCallback(async () => {
         try {
             if (state.currentOffset + state.currentLimit >= state.currentLimit) return;
-            const res = await axios.get(`/allowance/entitlement/${auth.id}`, {
+            const res = await axios.get(`/api/allowance/entitlement/${auth.id}`, {
                 params: {
                     offset: state.currentOffset + state.currentLimit,
                     limit: state.currentLimit,
@@ -66,7 +66,7 @@ function UserAllowance() {
     const fetchPrevAllowanceRecord = useCallback(async () => {
         try {
             if (state.offset <= 0) return;
-            const res = await axios.get(`/allowance/entitlement/${auth.id}`, {
+            const res = await axios.get(`/api/allowance/entitlement/${auth.id}`, {
                 params: {
                     offset: state.currentOffset - state.currentLimit,
                     limit: state.currentLimit,

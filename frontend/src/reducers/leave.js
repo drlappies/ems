@@ -1,4 +1,4 @@
-import { DELETE_LEAVE, APPLY_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, TOGGLE_LEAVE_CREATING, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, RESET_LEAVE, CREATE_LEAVE, BATCH_DELETE_LEAVE, CONFIRM_UPDATE_LEAVE, BATCH_UPDATE_LEAVE } from "../types/leave"
+import { DELETE_LEAVE, APPLY_LEAVE, FETCH_EMPLOYEE_AL, UPDATE_LEAVE, FETCH_LEAVE, FETCH_SPECIFIC_LEAVE, TOGGLE_LEAVE_CREATING, TOGGLE_LEAVE_VIEWING, TOGGLE_LEAVE_UPDATING, TOGGLE_LEAVE_DELETING, TOGGLE_LEAVE_BATCH_UPDATING, TOGGLE_LEAVE_BATCH_DELETING, ADD_TO_LEAVE_SELECTED, REMOVE_FROM_LEAVE_SELECTED, ADD_ALL_TO_LEAVE_SELECTED, RESET_LEAVE_SELECTED, TOGGLE_LEAVE_FILTERING, RESET_QUERY, FETCH_LEAVE_BY_QUERY, CREATE_LEAVE, BATCH_DELETE_LEAVE, CONFIRM_UPDATE_LEAVE, BATCH_UPDATE_LEAVE } from "../types/leave"
 
 const initialState = {
     record: [],
@@ -6,8 +6,8 @@ const initialState = {
     employeeAL: 0,
     applyFrom: "",
     applyTo: "",
-    applyType: "sick_leave",
-    applySpan: "half_day",
+    applyType: "",
+    applySpan: "",
     applyReason: "",
     applyEmployee: "",
     from: "",
@@ -158,12 +158,14 @@ const leaveReducer = (state = initialState, action) => {
         case ADD_ALL_TO_LEAVE_SELECTED:
             return {
                 ...state,
-                selectedRecord: action.payload.id
+                selectedRecord: action.payload.id,
+                isAllSelected: action.payload.isAllSelected
             }
         case RESET_LEAVE_SELECTED:
             return {
                 ...state,
-                selectedRecord: action.payload.id
+                selectedRecord: action.payload.id,
+                isAllSelected: action.payload.isAllSelected
             }
         case TOGGLE_LEAVE_FILTERING:
             return {
@@ -239,6 +241,8 @@ const leaveReducer = (state = initialState, action) => {
                 currentPageEnd: action.payload.currentPageEnd,
                 pageLength: action.payload.pageLength,
                 currentLimit: action.payload.currentLimit,
+                isAllSelected: action.payload.isAllSelected,
+                selectedRecord: action.payload.selectedRecord
             }
         case DELETE_LEAVE:
             return {

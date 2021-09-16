@@ -130,14 +130,14 @@ class EmployeeService {
         }
         if (password) update.password = password
 
-        const employee = await this.knex('employee')
-            .where({ id: id })
-            .update(update)
+        const [employee] = await this.knex('employee')
+            .where('id', id)
+            .update(update, ['id'])
         return employee
     }
 
     deleteEmployee = async (id) => {
-        const [employee] = await this.knex('employee').where({ id: id }).del();
+        const [employee] = await this.knex('employee').where('id', id).del(['id']);
         return employee
     }
 
@@ -163,7 +163,7 @@ class EmployeeService {
         if (ot_hourly_salary) update.ot_hourly_salary = ot_hourly_salary;
         if (salary_monthly) update.salary_monthly = salary_monthly;
 
-        const employee = await this.knex('employee').whereIn('id', id).update(update, ['id'])
+        const employee = await this.knex('employee').whereIn('id', id).update(update)
         return employee
     }
 

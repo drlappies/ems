@@ -13,8 +13,8 @@ function Department() {
     const department = useSelector(state => state.department)
 
     useEffect(() => {
-        dispatch(fetchDepartment(department.currentPage))
-    }, [department.currentPage, dispatch])
+        dispatch(fetchDepartment())
+    }, [dispatch])
 
     return (
         <div className="record">
@@ -26,7 +26,7 @@ function Department() {
                 </Grid.Row>
                 <Grid.Row columns="1">
                     <Grid.Column textAlign="right">
-                        <Button size="tiny" color="red" disabled={!department.selectedRecord.length} onClick={() => dispatch(toggleBatchDeleting(department.isBatchDeleting))}>Batch Delete</Button>
+                        <Button size="tiny" color="red" disabled={department.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(department.isBatchDeleting))}>Batch Delete</Button>
                         <Button size="tiny" color="teal" primary onClick={() => dispatch(toggleFiltering(department.isFiltering))}>Filter</Button>
                         <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(department.isCreating))}>Create Department</Button>
                     </Grid.Column>
@@ -58,7 +58,7 @@ function Department() {
                                 onNext={() => dispatch(gotoNextDepartmentPage(department.currentPage, department.currentLimit, department.pageLength, department.queryDepartmentName))}
                                 onPrevious={() => dispatch(gotoPreviousDepartmentPage(department.currentPage, department.currentLimit, department.queryDepartmentName))}
                                 entriesNum={department.currentLimit}
-                                entriesFunc={(e, result) => dispatch(fetchDepartmentsByEntries(result.value, department.currentPage, department.queryDepartmentName))}
+                                entriesFunc={(e) => dispatch(fetchDepartmentsByEntries(e.target.value, department.currentPage, department.queryDepartmentName))}
                             />
                         </Table>
                     </Grid.Column>
@@ -70,7 +70,7 @@ function Department() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleUpdating())}
                 configSecondaryAction={"Update"}
-                configSecondaryFunc={() => dispatch(confirmDepartmentUpdate(department.departmentId, department.departmentName, department.departmentDesc))}
+                configSecondaryFunc={() => dispatch(confirmDepartmentUpdate(department.departmentId, department.departmentName, department.departmentDesc, department.currentPage, department.currentLimit, department.queryDepartmentName))}
                 configSecondaryColor={"blue"}
             >
                 <Form>
@@ -107,9 +107,9 @@ function Department() {
                 configPrimaryAction={"Cancel"}
                 configPrimaryFunc={() => dispatch(toggleCreating(department.isCreating))}
                 configType={"Create Department"}
-                configSecondaryAction={"Update"}
+                configSecondaryAction={"Create"}
                 configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(handleCreate(department.createDepartmentName, department.createDepartmentDesc))}
+                configSecondaryFunc={() => dispatch(handleCreate(department.createDepartmentName, department.createDepartmentDesc, department.currentPage, department.currentLimit, department.queryDepartmentName))}
             >
                 <Form>
                     <Form.Field>
@@ -155,7 +155,7 @@ function Department() {
                     <p key={i}><strong>ID:</strong> {el}</p>
                 )}
             </Config>
-        </div>
+        </div >
     )
 }
 

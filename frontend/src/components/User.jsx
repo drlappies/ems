@@ -78,10 +78,6 @@ function User() {
                                     <Table.Cell>{new Date(auth.onboard_date).getDate()} {months[new Date(auth.onboard_date).getMonth()]}  {new Date(auth.onboard_date).getFullYear()} </Table.Cell>
                                 </Table.Row>
                                 <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Annual Leave</Header></Table.Cell>
-                                    <Table.Cell>{auth.annual_leave_count}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
                                     <Table.Cell collapsing><Header as="h5">Overtime Pay Entitlement</Header></Table.Cell>
                                     <Table.Cell>{auth.ot_pay_entitled ? "Yes" : "No"}</Table.Cell>
                                 </Table.Row>

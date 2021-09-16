@@ -38,6 +38,7 @@ function LeaveManagement() {
                             <TableHeader
                                 header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Leave From', 'Leave To', 'Leave Type', 'Duration', 'Status', 'Actions']}
                                 checkFunc={(e) => dispatch(handleSelectAll(e, leave.record))}
+                                isChecked={leave.isAllSelected}
                             />
                             <TableBody
                                 data={leave.record}
@@ -62,7 +63,7 @@ function LeaveManagement() {
                                 onPrevious={() => dispatch(fetchPreviousLeaveRecord(leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
                                 entriesName={"currentLimit"}
                                 entriesNum={leave.currentLimit}
-                                entriesFunc={(e, result) => dispatch(handleEntriesChange(leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus, leave.currentPage, result.value))}
+                                entriesFunc={(e) => dispatch(handleEntriesChange(leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus, leave.currentPage, e.target.value))}
                             />
                         </Table>
                     </Grid.Column>
@@ -188,6 +189,7 @@ function LeaveManagement() {
                     <Form.Field>
                         <label htmlFor="applyType">Leave Type</label>
                         <select id="applyType" name="applyType" value={leave.applyType} onChange={(e) => dispatch(updateLeave(e))} >
+                            <option value="">Select a leave type</option>
                             <option value="sick_leave">Sick Leave</option>
                             <option value="no_pay_leave">No Pay Leave</option>
                             <option value="annual_leave">Annual Leave</option>
@@ -196,6 +198,7 @@ function LeaveManagement() {
                     <Form.Field>
                         <label htmlFor="applySpan">Span</label>
                         <select id="applySpan" name="applySpan" value={leave.applySpan} onChange={(e) => dispatch(updateLeave(e))} >
+                            <option value="">Select a span</option>
                             <option value="half_day">Half Day</option>
                             <option value="full_day">Full Day</option>
                         </select>

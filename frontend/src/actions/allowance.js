@@ -5,7 +5,7 @@ import axios from 'axios';
 export const fetchAllowance = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/allowance')
+            const res = await axios.get('/api/allowance')
             dispatch({
                 type: FETCH_ALLOWANCE,
                 payload: {
@@ -57,7 +57,7 @@ export const confirmAllowanceUpdate = (allowanceId, allowanceName, allowanceDesc
                 minimum_attendance_required: allowanceMinimumAttendanceRequired,
                 required_attendance_rate: allowanceRequiredAttendanceRate
             }
-            const res = await axios.put(`/allowance/${allowanceId}`, body)
+            const res = await axios.put(`/api/allowance/${allowanceId}`, body)
             dispatch(popSuccessMessage(res.data.success))
             dispatch({
                 type: CONFIRM_UPDATE_ALLOWANCE,
@@ -79,10 +79,10 @@ export const confirmAllowanceUpdate = (allowanceId, allowanceName, allowanceDesc
 export const deleteAllowance = (id, currentPage, currentLimit, queryText, queryAmountFrom, queryAmountTo, queryStatus, queryIsAttendRequired, queryRequiredAttendRateFrom, queryRequiredAttendRateTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/allowance/${id}`)
+            const res = await axios.delete(`/api/allowance/${id}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/allowance', {
+            const res2 = await axios.get('/api/allowance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -118,7 +118,7 @@ export const addToEntitleList = (employeeId, allowanceId, firstname, lastname) =
     return async (dispatch) => {
         try {
             const body = { employeeId: employeeId }
-            await axios.post(`/allowance/entitlement/${allowanceId}`, body)
+            await axios.post(`/api/allowance/entitlement/${allowanceId}`, body)
             dispatch({
                 type: ENTITLE_TO_ALLOWANCE,
                 payload: {
@@ -136,7 +136,7 @@ export const addToEntitleList = (employeeId, allowanceId, firstname, lastname) =
 export const removeFromEntitleList = (employeeId, allowanceId, firstname, lastname) => {
     return async (dispatch) => {
         try {
-            await axios.delete(`/allowance/entitlement/${allowanceId}/employee/${employeeId}`)
+            await axios.delete(`/api/allowance/entitlement/${allowanceId}/employee/${employeeId}`)
             dispatch({
                 type: DISENTITLE_FROM_ALLOWANCE,
                 payload: {
@@ -155,7 +155,7 @@ export const toggleManaging = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/allowance/${id}`)
+            if (id) res = await axios.get(`/api/allowance/${id}`)
             dispatch({
                 type: TOGGLE_ALLOWANCE_MANAGING,
                 payload: {
@@ -180,7 +180,7 @@ export const gotoNextAllowancePage = (page, pageCount, limit, queryText, queryAm
     return async (dispatch) => {
         try {
             if (page + limit >= pageCount) return;
-            const res = await axios.get('/allowance', {
+            const res = await axios.get('/api/allowance', {
                 params: {
                     page: page + limit,
                     limit: limit,
@@ -214,7 +214,7 @@ export const gotoPreviousAllowancePage = (page, limit, queryText, queryAmountFro
     return async (dispatch) => {
         try {
             if (page <= 0) return;
-            const res = await axios.get('/allowance', {
+            const res = await axios.get('/api/allowance', {
                 params: {
                     page: page - limit,
                     text: queryText,
@@ -253,10 +253,10 @@ export const createAllowance = (name, desc, amount, rma, rate, currentPage, curr
                 rma: rma,
                 rate: rate
             }
-            const res = await axios.post('/allowance', body)
+            const res = await axios.post('/api/allowance', body)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/allowance', {
+            const res2 = await axios.get('/api/allowance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -296,7 +296,7 @@ export const createAllowance = (name, desc, amount, rma, rate, currentPage, curr
 export const fetchAllowanceByQuery = (currentPage, currentLimit, queryText, queryAmountFrom, queryAmountTo, queryStatus, queryIsAttendRequired, queryRequiredAttendRateFrom, queryRequiredAttendRateTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/allowance', {
+            const res = await axios.get('/api/allowance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
@@ -330,7 +330,7 @@ export const fetchAllowanceByQuery = (currentPage, currentLimit, queryText, quer
 export const handleEntriesChange = (limit, currentPage, queryText, queryAmountFrom, queryAmountTo, queryStatus, queryIsAttendRequired, queryRequiredAttendRateFrom, queryRequiredAttendRateTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/allowance', {
+            const res = await axios.get('/api/allowance', {
                 params: {
                     page: currentPage,
                     limit: limit,
@@ -375,7 +375,7 @@ export const toggleFiltering = (isFiltering) => {
 export const resetAllowanceQuery = () => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/allowance')
+            const res = await axios.get('/api/allowance')
             dispatch({
                 type: RESET_ALLOWANCE_QUERY,
                 payload: {
@@ -416,7 +416,7 @@ export const toggleUpdating = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/allowance/${id}`)
+            if (id) res = await axios.get(`/api/allowance/${id}`)
             dispatch({
                 type: TOGGLE_ALLOWANCE_UPDATING,
                 payload: {
@@ -442,7 +442,7 @@ export const toggleDeleting = (id) => {
     return async (dispatch) => {
         try {
             let res;
-            if (id) res = await axios.get(`/allowance/${id}`)
+            if (id) res = await axios.get(`/api/allowance/${id}`)
             dispatch({
                 type: TOGGLE_ALLOWANCE_DELETING,
                 payload: {
@@ -519,7 +519,7 @@ export const batchUpdateAllowance = (selectedRecord, updateAllowanceAmount, upda
                 required_attendance_rate: updateAllowanceRequiredAttendanceRate
             }
 
-            const res = await axios.put('/allowance', body)
+            const res = await axios.put('/api/allowance', body)
             dispatch(popSuccessMessage(res.data.success))
             dispatch({
                 type: BATCH_UPDATE_ALLOWANCE,
@@ -540,10 +540,10 @@ export const batchUpdateAllowance = (selectedRecord, updateAllowanceAmount, upda
 export const batchDeleteAllowance = (selectedRecord, currentPage, currentLimit, queryText, queryAmountFrom, queryAmountTo, queryStatus, queryIsAttendRequired, queryRequiredAttendRateFrom, queryRequiredAttendRateTo) => {
     return async (dispatch) => {
         try {
-            const res = await axios.delete(`/allowance/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`/api/allowance/${selectedRecord.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popSuccessMessage(res.data.success))
 
-            const res2 = await axios.get('/allowance', {
+            const res2 = await axios.get('/api/allowance', {
                 params: {
                     page: currentPage,
                     limit: currentLimit,
