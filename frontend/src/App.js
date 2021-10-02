@@ -22,14 +22,16 @@ import Payroll from './components/Payroll';
 import Deduction from './components/Deduction';
 import Leave from './components/Leave';
 import LeaveManagement from './components/LeaveManagement';
+import SnackbarProvider from './components/SnackbarProvider';
 import User from './components/User'
 import 'semantic-ui-css/semantic.min.css'
 
 function App() {
   return (
     <Router>
-        <Popup />
-        <Head />
+      <Popup />
+      <Head />
+      <SnackbarProvider>
         <Navbar>
           <Switch>
             <Route exact path="/" component={Login} />
@@ -52,6 +54,7 @@ function App() {
             <AdminRoute exact path="/deduction/management" component={Deduction} />
           </Switch>
         </Navbar>
+      </SnackbarProvider>
     </Router>
   );
 }

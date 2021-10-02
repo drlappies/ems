@@ -1,43 +1,42 @@
-import { SUCCESS, ERROR, DISMISS, SIDEBAR, RESET } from "../types/ui"
+import { SUCCESS, ERROR, DISMISS, RESET } from "../types/ui"
 
 const initialState = {
     message: '',
-    type: '',
-    visible: false,
-    sidebar: false
+    severity: '',
+    snackbar: false,
 }
 
 const uiReducer = (state = initialState, action) => {
     switch (action.type) {
+        case "SNACKBAR":
+            return {
+                message: action.payload.message,
+                severity: action.payload.severity,
+                snackbar: true,
+            }
         case SUCCESS:
             return {
                 message: action.payload,
                 type: 'success',
-                visible: true
+                snackbar: true,
             }
         case ERROR:
             return {
                 message: action.payload,
                 type: 'error',
-                visible: true
+                snackbar: true,
             }
         case DISMISS:
             return {
-                message: '',
-                type: '',
-                visible: false
-            }
-        case SIDEBAR:
-            return {
-                ...state,
-                sidebar: !state.sidebar
+                message: action.payload.message,
+                severity: action.payload.severity,
+                snackbar: false,
             }
         case RESET:
             return {
                 message: '',
                 type: '',
-                visible: false,
-                sidebar: false
+                snackbar: false,
             }
         default:
             return state

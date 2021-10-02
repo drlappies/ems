@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { popSuccessMessage, popErrorMessage, resetUI } from './ui'
+import { popMessage } from './ui'
 import { LOGIN, LOGOUT } from '../types/auth'
 
 export const verifyThunk = (token, history) => {
@@ -77,12 +77,12 @@ export const loginThunk = (username, password, history) => {
                     lastname: res.data.payload.lastname
                 }
             })
-            dispatch(popSuccessMessage(`Welcome, ${res.data.payload.lastname} ${res.data.payload.firstname}`))
+            dispatch(popMessage(`Welcome, ${res.data.payload.lastname} ${res.data.payload.firstname}`, 'success'))
             window.localStorage.setItem('jwt', res.data.token)
             history.push('/user')
         } catch (err) {
             console.log(err)
-            dispatch(popErrorMessage(err.response.data.error))
+            dispatch(popMessage(err.response.data.error, "error"))
         }
     }
 }
@@ -90,7 +90,7 @@ export const loginThunk = (username, password, history) => {
 export const logoutThunk = (history) => {
     return (dispatch) => {
         dispatch({ type: LOGOUT })
-        dispatch(resetUI())
+        dispatch(popMessage('Logged out successfully!', 'success'))
         window.localStorage.removeItem('jwt')
         history.push('/')
     }

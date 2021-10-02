@@ -1,10 +1,14 @@
-import { SUCCESS, ERROR, DISMISS, SIDEBAR, RESET } from "../types/ui"
+import { SUCCESS, ERROR, DISMISS, SIDEBAR } from "../types/ui"
 
-export const popMessage = (message, type) => {
+export const popMessage = (message, severity) => {
+    console.log(message)
     return (dispatch) => {
         dispatch({
-            type: type,
-            payload: message
+            type: "SNACKBAR",
+            payload: {
+                message: message,
+                severity: severity,
+            }
         })
     }
 }
@@ -29,18 +33,18 @@ export const popErrorMessage = (message) => {
 
 export const dismissMessage = () => {
     return (dispatch) => {
-        dispatch({ type: DISMISS })
+        dispatch({
+            type: DISMISS,
+            payload: {
+                message: '',
+                severity: ''
+            }
+        })
     }
 }
 
 export const toggleSidebar = () => {
     return (dispatch) => {
         dispatch({ type: SIDEBAR })
-    }
-}
-
-export const resetUI = () => {
-    return (dispatch) => {
-        dispatch({ type: RESET })
     }
 }
