@@ -10,7 +10,6 @@ import PrivateRoute from './components/routes/Private';
 import Head from './components/Head'
 import AttendanceOvertime from './components/AttendanceOvertime';
 import OvertimeHistory from './components/OvertimeHistory';
-import Popup from './components/Popup';
 import Employee from './components/Employee';
 import Department from './components/Department'
 import Position from './components/Position';
