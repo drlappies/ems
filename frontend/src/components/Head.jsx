@@ -1,30 +1,22 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux'
-import { toggleSidebar } from '../actions/ui'
-import { logoutThunk } from '../actions/auth';
-import { Menu } from 'semantic-ui-react'
+import { useSelector } from 'react-redux'
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
 import '../css/main.css'
 
 function Head() {
-    const dispatch = useDispatch()
-    const history = useHistory()
     const auth = useSelector(state => state.auth)
-
+    const drawerWidth = 240;
     if (!auth.isAuthenticated) return null
+
     return (
-        <div className="head">
-            <Menu inverted size="large" attached="top">
-                <Menu.Item onClick={() => dispatch(toggleSidebar())}>
-                    Menu
-                </Menu.Item>
-                <Menu.Menu position='right'>
-                    <Menu.Item onClick={() => dispatch(logoutThunk(history))}>
-                        Logout
-                    </Menu.Item>
-                </Menu.Menu>
-            </Menu>
-        </div>
+        <AppBar
+            position="fixed"
+            sx={{ width: `calc(100% - ${drawerWidth}px)`, ml: `${drawerWidth}px` }}
+        >
+            <Toolbar>
+            </Toolbar>
+        </AppBar>
     )
 }
 

@@ -28,30 +28,30 @@ import 'semantic-ui-css/semantic.min.css'
 function App() {
   return (
     <Router>
-      <Head />
-      <Popup />
-      <Navbar>
-        <Switch>
-          <Route exact path="/" component={Login} />
-          <AdminRoute exact path="/dashboard" component={Dashboard} />
-          <PrivateRoute exact path="/user" component={User} />
-          <PrivateRoute exact path="/attendance/punch" component={Attendance} />
-          <AdminRoute exact path="/attendance" component={AttendanceHistory} />
-          <PrivateRoute exact path="/attendance/overtime/check_in" component={AttendanceOvertime} />
-          <AdminRoute exact path="/overtime" component={OvertimeHistory} />
-          <PrivateRoute exact path="/leave/application" component={Leave} />
-          <AdminRoute exact path="/leave/management" component={LeaveManagement} />
-          <AdminRoute exact path="/employee/record" component={Employee} />
-          <AdminRoute exact path="/employee/department" component={Department} />
-          <AdminRoute exact path="/employee/position" component={Position} />
-          <AdminRoute exact path="/allowance" component={Allowance} />
-          <AdminRoute exact path="/reimbursement/apply" component={Reimbursement} />
-          <AdminRoute exact path="/reimbursement/management" component={ReimbursementManagement} />
-          <AdminRoute exact path="/bonus/management" component={Bonus} />
-          <AdminRoute exact path="/payroll" component={Payroll} />
-          <AdminRoute exact path="/deduction/management" component={Deduction} />
-        </Switch>
-      </Navbar>
+        <Popup />
+        <Head />
+        <Navbar>
+          <Switch>
+            <Route exact path="/" component={Login} />
+            <AdminRoute exact path="/dashboard" component={Dashboard} />
+            <PrivateRoute exact path="/user" component={User} />
+            <PrivateRoute exact path="/attendance/punch" component={Attendance} />
+            <AdminRoute exact path="/attendance" component={AttendanceHistory} />
+            <PrivateRoute exact path="/attendance/overtime/check_in" component={AttendanceOvertime} />
+            <AdminRoute exact path="/overtime" component={OvertimeHistory} />
+            <PrivateRoute exact path="/leave/application" component={Leave} />
+            <AdminRoute exact path="/leave/management" component={LeaveManagement} />
+            <AdminRoute exact path="/employee/record" component={Employee} />
+            <AdminRoute exact path="/employee/department" component={Department} />
+            <AdminRoute exact path="/employee/position" component={Position} />
+            <AdminRoute exact path="/allowance" component={Allowance} />
+            <AdminRoute exact path="/reimbursement/apply" component={Reimbursement} />
+            <AdminRoute exact path="/reimbursement/management" component={ReimbursementManagement} />
+            <AdminRoute exact path="/bonus/management" component={Bonus} />
+            <AdminRoute exact path="/payroll" component={Payroll} />
+            <AdminRoute exact path="/deduction/management" component={Deduction} />
+          </Switch>
+        </Navbar>
     </Router>
   );
 }
