@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { logoutThunk } from '../actions/auth';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
@@ -30,6 +30,7 @@ import Tooltip from '@mui/material/Tooltip';
 function Navbar(props) {
     const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
+    const history = useHistory();
     const drawerWidth = 240;
     return (
         <Box sx={{ display: 'flex' }}>
@@ -49,7 +50,7 @@ function Navbar(props) {
                 <List>
                     <ListItem secondaryAction={
                         <Tooltip title="Logout">
-                            <IconButton onClick={() => dispatch(logoutThunk())}>
+                            <IconButton onClick={() => dispatch(logoutThunk(history))}>
                                 <LogoutIcon />
                             </IconButton>
                         </Tooltip>
