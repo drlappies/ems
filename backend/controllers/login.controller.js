@@ -11,7 +11,7 @@ class LoginController {
             const { username, password } = req.body;
             if (!username || !password) {
                 return res.status(401).json({
-                    'message': 'Incorrect credentials.'
+                    error: 'Incorrect credentials.'
                 })
             }
             const user = await this.LoginService.getUserByUsername(username);
@@ -23,7 +23,7 @@ class LoginController {
             const isPasswordValid = await checkPassword(password, user.password)
             if (!isPasswordValid) {
                 return res.status(401).json({
-                    'message': 'Incorrect credentials.'
+                    error: 'Incorrect credentials.'
                 })
             }
             const payload = {
