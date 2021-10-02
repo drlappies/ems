@@ -29,12 +29,11 @@ import 'semantic-ui-css/semantic.min.css'
 function App() {
   return (
     <Router>
-      <Popup />
       <Head />
       <SnackbarProvider>
+        <Route exact path="/" component={Login} />
         <Navbar>
           <Switch>
-            <Route exact path="/" component={Login} />
             <AdminRoute exact path="/dashboard" component={Dashboard} />
             <PrivateRoute exact path="/user" component={User} />
             <PrivateRoute exact path="/attendance/punch" component={Attendance} />

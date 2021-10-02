@@ -32,6 +32,8 @@ function Navbar(props) {
     const auth = useSelector(state => state.auth)
     const history = useHistory();
     const drawerWidth = 240;
+
+    if (!auth.isAuthenticated) return null
     return (
         <Box sx={{ display: 'flex' }}>
             <Drawer
