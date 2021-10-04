@@ -49,8 +49,8 @@ function AttendanceHistory() {
         searchStatus: "any",
         isDeleting: false,
         updateStatus: "",
-        updateCheckIn: "",
-        updateCheckOut: "",
+        updateCheckIn: moment(),
+        updateCheckOut: moment(),
     })
 
     const columns = [
@@ -88,8 +88,8 @@ function AttendanceHistory() {
                         }
                     }),
                     updateStatus: "",
-                    updateCheckIn: "",
-                    updateCheckOut: "",
+                    updateCheckIn: moment(),
+                    updateCheckOut: moment(),
                     employee: res.data.employee,
                     rowCount: parseInt(res.data.rowCount.count),
                     isUpdating: false,
@@ -149,16 +149,16 @@ function AttendanceHistory() {
                 const body = {
                     id: state.selectedAttendance,
                     status: state.updateStatus,
-                    check_in: state.updateCheckIn,
-                    check_out: state.updateCheckOut
+                    check_in: state.updateCheckIn.format('HH:mm:ss'),
+                    check_out: state.updateCheckOut.format('HH:mm:ss')
                 }
                 const res = await axios.put('/api/attendance', body)
                 dispatch(popMessage(res.data.success), 'success')
             } else {
                 const body = {
                     status: state.updateStatus,
-                    check_in: state.updateCheckIn,
-                    check_out: state.updateCheckOut
+                    check_in: state.updateCheckIn.format('HH:mm:ss'),
+                    check_out: state.updateCheckOut.format('HH:mm:ss')
                 }
                 const res = await axios.put(`/api/attendance/${[state.selectedAttendance]}`, body)
                 dispatch(popMessage(res.data.success), 'success')
@@ -327,8 +327,29 @@ function AttendanceHistory() {
                         <Card>
                             <CardHeader title="Update Attendance Record" />
                             <CardContent>
-                                <TextField fullWidth margin="normal" size="small" label="Check In" type="time" name="updateCheckIn" inputProps={{ step: 1 }} value={state.updateCheckIn} onChange={handleChange} />
-                                <TextField fullWidth margin="normal" size="small" label="Check Out" type="time" name="updateCheckOut" inputProps={{ step: 1 }} value={state.updateCheckOut} onChange={handleChange} />
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <TimePicker
+                                        ampm={false}
+                                        openTo={'hours'}
+                                        views={['hours', 'minutes', 'seconds']}
+                                        mask="__:__:__"
+                                        inputFormat="HH:mm:ss"
+                                        label="Check In"
+                                        value={state.updateCheckIn}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, updateCheckIn: newValue } }) }}
+                                        renderInput={(params) => <TextField fullWidth size="small" margin="normal" {...params} />}
+                                    />
+                                    <TimePicker
+                                        ampm={false}
+                                        views={['hours', 'minutes', 'seconds']}
+                                        mask="__:__:__"
+                                        inputFormat="HH:mm:ss"
+                                        label="Check Out"
+                                        value={state.updateCheckOut}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, updateCheckOut: newValue } }) }}
+                                        renderInput={(params) => <TextField fullWidth size="small" margin="normal" {...params} />}
+                                    />
+                                </LocalizationProvider>
                                 <TextField fullWidth select margin="normal" size="small" label="Status" name="updateStatus" value={state.updateStatus} onChange={handleChange}>
                                     <MenuItem value="on_time">On Time</MenuItem>
                                     <MenuItem value="late">Late</MenuItem>
