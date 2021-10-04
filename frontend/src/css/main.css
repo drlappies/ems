@@ -65,7 +65,7 @@
 .calendar-date {
     height: 70px;
     width: 100px;
-    background-color: lightgray;
+    background-color: #aae4ff;
     text-align: end;
     vertical-align: bottom;
 }

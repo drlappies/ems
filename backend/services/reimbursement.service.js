@@ -109,8 +109,15 @@ class ReimbursementService {
     getReimbursement = async (id) => {
         const [reimbursement] = await this.knex('reimbursement')
             .join('employee', 'reimbursement.employee_id', 'employee.id')
-            .select(['reimbursement.id', 'reimbursement.employee_id', 'reimbursement.reason', 'reimbursement.status', 'reimbursement.amount', 'reimbursement.date', 'employee.firstname', 'employee.lastname'])
+            .select(['reimbursement.id', 'reimbursement.reason', 'reimbursement.status', 'reimbursement.amount', 'reimbursement.date', 'employee.firstname', 'employee.lastname'])
             .where('reimbursement.id', id)
+        return reimbursement
+    }
+
+    getReimbursementByEmployee = async (id) => {
+        const reimbursement = await this.knex('reimbursement')
+            .select(['id', 'reason', 'status', 'amount', 'date'])
+            .where('employee_id', id)
         return reimbursement
     }
 

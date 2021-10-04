@@ -69,17 +69,26 @@ class ReimbursementController {
     getReimbursement = async (req, res) => {
         try {
             const { id } = req.params;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
             const reimbursement = await this.ReimbursementService.getReimbursement(id)
             return res.status(200).json({
                 reimbursement: reimbursement
             })
         } catch (err) {
             console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    getReimbursementByEmployee = async (req, res) => {
+        try {
+            const { id } = req.params;
+            const reimbursement = await this.ReimbursementService.getReimbursementByEmployee(id);
+            return res.status(200).json({
+                reimbursement: reimbursement
+            })
+        } catch (err) {
             return res.status(500).json({
                 error: err
             })

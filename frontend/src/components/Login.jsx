@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { useHistory } from 'react-router';
 import { useDispatch } from 'react-redux'
 import { loginThunk } from '../actions/auth'
-import { Form, Button, Segment, Header } from 'semantic-ui-react'
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 import '../css/main.css'
 
 function Login() {
@@ -30,32 +36,22 @@ function Login() {
     }
 
     return (
-        <div className="container">
-            <Segment className="login-segment">
-                <Header size="large">Employee Management System</Header>
-                <Form onSubmit={(e) => handleSubmit(e)}>
-                    <Form.Field>
-                        <label>Username</label>
-                        <input
-                            onChange={(e) => handleChange(e)}
-                            type="text"
-                            name="username"
-                            value={state.username}
-                        />
-                    </Form.Field>
-                    <Form.Field>
-                        <label>Password</label>
-                        <input
-                            onChange={(e) => handleChange(e)}
-                            type="password"
-                            name="password"
-                            value={state.password}
-                        />
-                    </Form.Field>
-                    <Button color="primary" type="submit">Login</Button>
-                </Form>
-            </Segment>
-        </div>
+        <Grid container justifyContent="center" alignItems="center" direction="column" style={{ minHeight: '90vh' }}>
+            <Grid item>
+                <Card>
+                    <form onSubmit={handleSubmit}>
+                        <CardHeader title="Employee Management System" subheader="demo" />
+                        <CardContent>
+                            <TextField margin="normal" fullWidth variant="standard" label="Username" type="text" name="username" onChange={(e) => handleChange(e)} />
+                            <TextField margin="normal" fullWidth variant="standard" label="Password" type="password" name="password" onChange={(e) => handleChange(e)} />
+                        </CardContent>
+                        <CardActions>
+                            <Button variant="contained" color="primary" type="submit">Login</Button>
+                        </CardActions>
+                    </form>
+                </Card>
+            </Grid>
+        </Grid>
     )
 }
 

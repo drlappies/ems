@@ -114,6 +114,13 @@ class BonusService {
         return bonus
     }
 
+    getBonusByEmployee = async (id) => {
+        const bonus = await this.knex('bonus')
+            .select(['bonus.id', 'bonus.reason', 'bonus.amount', 'bonus.date'])
+            .where('employee_id', id)
+        return bonus
+    }
+
     batchUpdateBonus = async (id, employee_id, date, reason, amount) => {
         if (!Array.isArray(id)) id = [id]
 

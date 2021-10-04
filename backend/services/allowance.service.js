@@ -171,29 +171,13 @@ class AllowanceService {
         return allowance
     }
 
-    getAllAllowanceByEmployee = async (employee_id, offset, limit) => {
-        if (offset <= 0 || !offset) offset = 0;
-        if (limit <= 0 || !limit) limit = 10;
-        offset = parseInt(offset)
-        limit = parseInt(limit)
-        let pageStart = offset + 1;
-        let pageEnd = offset + limit;
-        if (pageEnd >= limit) pageEnd = limit
-
-        const [count] = await this.knex('allowance_employee')
-            .join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
-            .select()
-            .where('allowance_employee.employee_id', employee_id)
-            .count('allowance.id')
-
+    getAllAllowanceByEmployee = async (employee_id) => {
         const allowance_employee = await this.knex('allowance_employee')
             .join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
             .select('allowance.name', 'allowance.description', 'allowance.amount', 'allowance.status', 'allowance.minimum_attendance_required', 'allowance.required_attendance_rate')
-            .offset(offset)
-            .limit(limit)
             .where('allowance_employee.employee_id', employee_id)
 
-        return { allowance_employee: allowance_employee, offset: offset, limit: limit, count: parseInt(count.count), pageStart: pageStart, pageEnd: pageEnd }
+        return { allowance_employee: allowance_employee }
     }
 }
 

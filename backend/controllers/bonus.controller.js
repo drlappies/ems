@@ -105,6 +105,21 @@ class BonusController {
         }
     }
 
+    getBonusByEmployee = async (req, res) => {
+        try {
+            const { id } = req.params;
+            const bonus = await this.BonusService.getBonusByEmployee(id);
+            return res.status(200).json({
+                bonus: bonus
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
     batchUpdateBonus = async (req, res) => {
         try {
             const { id, employee_id, date, reason, amount } = req.body

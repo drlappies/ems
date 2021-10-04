@@ -88,98 +88,37 @@ class AttendanceService extends EmployeeService {
         return attendance
     }
 
-    getAllAttendance = async (text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employee_id) => {
-        if (!page || page < 0) page = 0;
-        if (!limit) limit = 10;
-        let pageStart = parseInt(page) + 1;
-        let pageEnd = parseInt(page) + parseInt(limit);
-        let currentPage = parseInt(page)
-        let currentLimit = parseInt(limit)
+    getAllAttendance = async (offset, limit, search, employeeId, status, dateFrom, dateTo) => {
+        offset = parseInt(offset) * parseInt(limit)
+        limit = parseInt(limit)
 
-        const [count] = await this.knex('attendance')
-            .count()
-            .from(queryBuilder => {
-                queryBuilder
-                    .select(['employee.firstname', 'employee.lastname', 'attendance.status', 'attendance.check_in', 'attendance.check_out', 'attendance.date'])
-                    .from('attendance')
-                    .join('employee', 'attendance.employee_id', 'employee.id')
-                    .modify((queryBuilder) => {
-                        if (text) {
-                            queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || attendance.employee_id) @@ plainto_tsquery('${text}')`)
-                        }
-                        if (dateFrom) {
-                            queryBuilder.where('attendance.date', '>=', dateFrom)
-                        }
-                        if (dateTo) {
-                            queryBuilder.where('attendance.date', '<=', dateTo)
-                        }
-                        if (checkinFrom) {
-                            queryBuilder.where('attendance.check_in', '>=', checkinFrom)
-                        }
-                        if (checkinTo) {
-                            queryBuilder.where('attendance.check_in', '<=', checkinTo)
-                        }
-                        if (checkoutFrom) {
-                            queryBuilder.where('attendance.check_out', '>=', checkoutFrom)
-                        }
-                        if (checkoutTo) {
-                            queryBuilder.where('attendance.check_out', '<=', checkoutTo)
-                        }
-                        if (status) {
-                            queryBuilder.where('attendance.status', status)
-                        }
-                        if (employee_id) {
-                            queryBuilder.where('attendance.employee_id', employee_id)
-                        }
-                    })
-                    .as('count')
-            })
+        const employee = await this.knex('employee')
+            .select(['id', 'firstname', 'lastname'])
+            .orderBy('id')
 
         const attendance = await this.knex('attendance')
             .select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
             .join('employee', 'attendance.employee_id', 'employee.id')
-            .limit(currentLimit)
-            .offset(page)
-            .orderBy('id')
-            .modify((queryBuilder) => {
-                if (text) {
-                    queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || attendance.employee_id) @@ plainto_tsquery('${text}')`)
-                }
-                if (dateFrom) {
-                    queryBuilder.where('attendance.date', '>=', dateFrom)
-                }
-                if (dateTo) {
-                    queryBuilder.where('attendance.date', '<=', dateTo)
-                }
-                if (checkinFrom) {
-                    queryBuilder.where('attendance.check_in', '>=', checkinFrom)
-                }
-                if (checkinTo) {
-                    queryBuilder.where('attendance.check_in', '<=', checkinTo)
-                }
-                if (checkoutFrom) {
-                    queryBuilder.where('attendance.check_out', '>=', checkoutFrom)
-                }
-                if (checkoutTo) {
-                    queryBuilder.where('attendance.check_out', '<=', checkoutTo)
-                }
-                if (status) {
-                    queryBuilder.where('attendance.status', status)
-                }
-                if (employee_id) {
-                    queryBuilder.where('attendance.employee_id', employee_id)
-                }
+            .modify(qb => {
+                if (search) qb.whereRaw(`to_tsvector(attendance.id || ' ' || attendance.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || attendance.date || ' ' || attendance.check_in || ' ' || attendance.check_out || ' ' || attendance.status) @@ plainto_tsquery('${search}')`)
+                if (employeeId) qb.where('attendance.employee_id', '=', employeeId);
+                if (status) qb.where('attendance.status', '=', status);
+                if (dateFrom && dateTo) qb.whereBetween('attendance.date', [dateFrom, dateTo])
             })
+            .offset(offset)
+            .limit(limit)
+            .orderBy('id')
 
-        const employee = await this.knex('employee')
-            .select(['id', 'firstname', 'lastname'])
-            .where('status', 'available')
+        const [rowCount] = await this.knex('attendance')
+            .join('employee', 'attendance.employee_id', 'employee.id')
+            .modify(qb => {
+                if (search) qb.whereRaw(`to_tsvector(attendance.id || ' ' || attendance.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || attendance.date || ' ' || attendance.check_in || ' ' || attendance.check_out || ' ' || attendance.status) @@ plainto_tsquery('${search}')`)
+                if (employeeId) qb.where('attendance.employee_id', '=', employeeId);
+                if (status) qb.where('attendance.status', '=', status);
+                if (dateFrom && dateTo) qb.whereBetween('attendance.date', [dateFrom, dateTo])
+            }).count()
 
-        if (pageEnd > count.count) {
-            pageEnd = parseInt(count.count)
-        }
-
-        return { attendance: attendance, count: count, currentPage: currentPage, pageStart: pageStart, pageEnd: pageEnd, employeeList: employee, currentLimit: currentLimit }
+        return { attendance: attendance, rowCount: rowCount, employee: employee }
     }
 
     deleteAttendance = async (id) => {
@@ -190,13 +129,13 @@ class AttendanceService extends EmployeeService {
     }
 
     updateAttendance = async (id, check_in, check_out, status) => {
+        let update = {};
+        if (check_in) update.check_in = check_in;
+        if (check_out) update.check_out = check_out;
+        if (status) update.status = status;
         const attendance = await this.knex('attendance')
             .where('id', id)
-            .update({
-                check_in: check_in,
-                check_out: check_out,
-                status: status
-            }, ['id'])
+            .update(update, ['id'])
         return attendance
     }
 

@@ -7,6 +7,7 @@ module.exports.DeductionRoute = (DeductionController) => {
     router.put('/:id', DeductionController.updateDeduction)
     router.get('/', DeductionController.getAllDeduction)
     router.get('/:id', DeductionController.getDeduction)
+    router.get('/user/:id', DeductionController.getDeductionByEmployee)
     router.put('/', DeductionController.batchUpdateDeduction)
     return router
 }

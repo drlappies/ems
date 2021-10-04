@@ -1,7 +1,10 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { Grid, Segment, Header, Table, Tab } from 'semantic-ui-react'
+import React, { useState } from 'react';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 import Calendar from './Calendar';
+import UserInfo from './UserInfo';
 import UserLeave from './UserLeave';
 import UserPayroll from './UserPayroll';
 import UserOvertime from './UserOvertime';
@@ -12,96 +15,55 @@ import UserDeduction from './UserDeduction';
 import '../css/main.css'
 
 function User() {
-    const auth = useSelector(state => state.auth)
+    const [state, setState] = useState("1")
 
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    const panes = [
-        { menuItem: 'Attendance', render: () => <Tab.Pane><Calendar /></Tab.Pane> },
-        { menuItem: 'Leave', render: () => <Tab.Pane><UserLeave /></Tab.Pane> },
-        { menuItem: 'Overtime', render: () => <Tab.Pane><UserOvertime /></Tab.Pane> },
-        { menuItem: 'Payroll', render: () => <Tab.Pane><UserPayroll /></Tab.Pane> },
-        { menuItem: 'Reimbursement', render: () => <Tab.Pane><UserReimbursement /></Tab.Pane> },
-        { menuItem: 'Allowance', render: () => <Tab.Pane><UserAllowance /></Tab.Pane> },
-        { menuItem: 'Bonus', render: () => <Tab.Pane><UserBonus /></Tab.Pane> },
-        { menuItem: 'Deduction', render: () => <Tab.Pane><UserDeduction /></Tab.Pane> },
-    ]
+    const handleChange = (event, newValue) => {
+        setState(newValue)
+    };
 
     return (
-        <div className="record">
-            <Header>User Dashboard</Header>
-            <Grid>
-                <Grid.Row columns="2">
-                    <Grid.Column width="6">
-                        <Segment>
-                            <Segment.Inline>
-                                <Header as="h4">Employee Profile</Header>
-                            </Segment.Inline>
-                            <Table size="small">
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Employee ID</Header></Table.Cell>
-                                    <Table.Cell>{auth.id}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Firstname</Header></Table.Cell>
-                                    <Table.Cell>{auth.firstname}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Lastname</Header></Table.Cell>
-                                    <Table.Cell>{auth.lastname}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Account Role</Header></Table.Cell>
-                                    <Table.Cell>{auth.role}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Department</Header></Table.Cell>
-                                    <Table.Cell>{auth.department ? auth.department : "unassigned"}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Position</Header></Table.Cell>
-                                    <Table.Cell>{auth.position ? auth.position : "unassigned"}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Working Hour</Header></Table.Cell>
-                                    <Table.Cell>{auth.start_hour} to {auth.end_hour}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Address</Header></Table.Cell>
-                                    <Table.Cell>{auth.address}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Phone Number</Header></Table.Cell>
-                                    <Table.Cell>{auth.phone_number}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Onboard Date</Header></Table.Cell>
-                                    <Table.Cell>{new Date(auth.onboard_date).getDate()} {months[new Date(auth.onboard_date).getMonth()]}  {new Date(auth.onboard_date).getFullYear()} </Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Overtime Pay Entitlement</Header></Table.Cell>
-                                    <Table.Cell>{auth.ot_pay_entitled ? "Yes" : "No"}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Overtime Pay (Hourly)</Header></Table.Cell>
-                                    <Table.Cell>{auth.ot_hourly_salary}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Emergency Contact Person</Header></Table.Cell>
-                                    <Table.Cell>{auth.emergency_contact_person}</Table.Cell>
-                                </Table.Row>
-                                <Table.Row>
-                                    <Table.Cell collapsing><Header as="h5">Emergency Contact Number</Header></Table.Cell>
-                                    <Table.Cell>{auth.emergency_contact_number}</Table.Cell>
-                                </Table.Row>
-                            </Table>
-                        </Segment>
-                    </Grid.Column>
-                    <Grid.Column width="10">
-                        <Tab panes={panes} />
-                    </Grid.Column>
-                </Grid.Row>
-            </Grid>
-        </div >
+        <div>
+            <TabContext value={state}>
+                <TabList onChange={handleChange}>
+                    <Tab label="Employee Information" value="1" />
+                    <Tab label="Attendance" value="2" />
+                    <Tab label="Leave" value="3" />
+                    <Tab label="Overtime" value="4" />
+                    <Tab label="Payroll" value="5" />
+                    <Tab label="Reimbursement" value="6" />
+                    <Tab label="Allowance" value="7" />
+                    <Tab label="Bonus" value="8" />
+                    <Tab label="Deduction" value="9" />
+                </TabList>
+                <TabPanel value="1">
+                    <UserInfo />
+                </TabPanel>
+                <TabPanel value="2">
+                    <Calendar />
+                </TabPanel>
+                <TabPanel value="3">
+                    <UserLeave />
+                </TabPanel>
+                <TabPanel value="4">
+                    <UserOvertime />
+                </TabPanel>
+                <TabPanel value="5">
+                    <UserPayroll />
+                </TabPanel>
+                <TabPanel value="6">
+                    <UserReimbursement />
+                </TabPanel>
+                <TabPanel value="7">
+                    <UserAllowance />
+                </TabPanel>
+                <TabPanel value="8">
+                    <UserBonus />
+                </TabPanel>
+                <TabPanel value="9">
+                    <UserDeduction />
+                </TabPanel>
+            </TabContext>
+        </div>
     )
 }
 

@@ -71,16 +71,12 @@ class AttendanceController {
 
     getAllAttendance = async (req, res) => {
         try {
-            const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employee_id } = req.query
-            const query = await this.AttendanceService.getAllAttendance(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employee_id);
+            const { offset, limit, search, employeeId, status, dateFrom, dateTo } = req.query;
+            const query = await this.AttendanceService.getAllAttendance(offset, limit, search, employeeId, status, dateFrom, dateTo);
             return res.status(200).json({
                 attendance: query.attendance,
-                employeeList: query.employeeList,
-                count: query.count,
-                currentPage: query.currentPage,
-                pageStart: query.pageStart,
-                pageEnd: query.pageEnd,
-                currentLimit: query.currentLimit
+                employee: query.employee,
+                rowCount: query.rowCount
             })
         } catch (err) {
             console.log(err)
@@ -167,7 +163,7 @@ class AttendanceController {
                     error: `Overlapped Attendance: ${overlappedRecords.map(el => `ID: ${el.id} Date: ${el.date} Employee ID: ${el.employee_id}`)}`
                 })
             }
-            
+
             const attendance = await this.AttendanceService.createAttendance(employee_id, date, check_in, check_out, status)
             return res.status(200).json({
                 success: `Successfully created attendance record ${attendance.id} for Employee ${attendance.employee_id}`,

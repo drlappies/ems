@@ -224,81 +224,15 @@ class PayrollService {
         return payroll
     }
 
-    getAllPayroll = async (page, limit, from, to, paydayFrom, paydayTo, text, status, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled) => {
-        if (!page || page < 0) page = 0;
-        if (!limit) limit = 10;
-        let currentPage = parseInt(page)
-        let currentPageStart = parseInt(page) + 1
-        let currentPageEnd = parseInt(page) + parseInt(limit)
-        let currentLimit = parseInt(limit)
-
+    getAllPayroll = async () => {
         const employee = await this.knex('employee')
             .select(['id', 'firstname', 'lastname'])
             .where('status', 'available')
             .orderBy('id')
 
-        const [count] = await this.knex('payroll')
-            .count()
-            .from(queryBuilder => {
-                queryBuilder
-                    .select(['payroll.employee_id', 'payroll.from', 'payroll.to', 'employee.firstname', 'employee.lastname', 'payroll.status', 'payroll.payday'])
-                    .from('payroll')
-                    .join('employee', 'payroll.employee_id', 'employee.id')
-                    .modify(queryBuilder => {
-                        if (from) {
-                            queryBuilder.whereBetween('payroll.from', [from, to])
-                        }
-                        if (to) {
-                            queryBuilder.whereBetween('payroll.from', [from, to])
-                        }
-                        if (text) {
-                            queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || payroll.employee_id || ' ' || payroll.id) @@ plainto_tsquery('${text}')`)
-                        }
-                        if (status) {
-                            queryBuilder.where('payroll.status', status)
-                        }
-                        if (amountFrom) {
-                            queryBuilder.where('payroll.amount', '>=', amountFrom)
-                        }
-                        if (amountTo) {
-                            queryBuilder.where('payroll.amount', '<=', amountTo)
-                        }
-                        if (employee_id) {
-                            queryBuilder.where('payroll.employee_id', employee_id)
-                        }
-                        if (isReimbursementCaled) {
-                            queryBuilder.where('payroll.is_reimbursement_calculated', isReimbursementCaled)
-                        }
-                        if (isAllowanceCaled) {
-                            queryBuilder.where('payroll.is_allowance_calculated', isAllowanceCaled)
-                        }
-                        if (isDeductCaled) {
-                            queryBuilder.where('payroll.is_deduction_calculated', isDeductCaled)
-                        }
-                        if (isBonusCaled) {
-                            queryBuilder.where('payroll.is_bonus_calculated', isBonusCaled)
-                        }
-                        if (isOvertimeCaled) {
-                            queryBuilder.where('payroll.is_overtime_calculated', isOvertimeCaled)
-                        }
-                        if (isLeaveCaled) {
-                            queryBuilder.where('payroll.is_leave_calculated', isLeaveCaled)
-                        }
-                        if (paydayFrom) {
-                            queryBuilder.where('payroll.payday', '>=', paydayFrom)
-                        }
-                        if (paydayTo) {
-                            queryBuilder.where('payroll.payday', '<=', paydayTo)
-                        }
-                    })
-                    .as('count')
-            })
-
         const payroll = await this.knex('payroll')
             .join('employee', 'payroll.employee_id', 'employee.id')
             .select(['payroll.id', 'payroll.employee_id', 'employee.firstname', 'employee.lastname', 'payroll.from', 'payroll.to', 'payroll.payday', 'payroll.amount', 'payroll.status',])
-            .limit(currentLimit)
-            .offset(currentPage)
             .orderBy('payroll.id')
             .modify(queryBuilder => {
                 if (from) {
@@ -348,11 +282,12 @@ class PayrollService {
                 }
             })
 
-        if (currentPageEnd >= count.count) {
-            currentPageEnd = parseInt(count.count)
-        }
+        return { payroll: payroll, employee: employee }
+    }
 
-        return { payroll: payroll, employee: employee, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd, pageLength: count.count, currentLimit: currentLimit }
+    getPayrollByEmployee = async (id) => {
+        const payroll = await this.knex('payroll').where('employee_id', id)
+        return payroll
     }
 
     updatePayroll = async (id, status) => {

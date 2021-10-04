@@ -110,6 +110,13 @@ class DeductionService {
         return deduction
     }
 
+    getDeductionByEmployee = async (id) => {
+        const deduction = await this.knex('deduction')
+            .select(['deduction.id', 'deduction.reason', 'deduction.amount', 'deduction.date'])
+            .where('employee_id', id)
+        return deduction
+    }
+
     batchUpdateDeduction = async (id, employee_id, date, reason, amount) => {
         if (!Array.isArray(id)) id = [id]
         let update = {};

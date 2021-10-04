@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Button } from 'semantic-ui-react'
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import axios from 'axios'
 import '../css/main.css'
 
@@ -114,60 +117,68 @@ function UserOvertime() {
     }
 
     return (
-        <div>
-            <Button size="tiny" onClick={() => prev()}>Last Month</Button>
-            <Button size="tiny" onClick={() => next()}>Next Month</Button>
-            <span>Jump To:
-                <select name="currentMonth" defaultValue={state.currentMonth} onChange={(e) => jump(e)}>
+        <Grid container spacing={1}>
+            <Grid item>
+                <Button size="small" variant="contained" onClick={() => prev()}>Last Month</Button>
+            </Grid>
+            <Grid item>
+                <Button size="small" variant="contained" onClick={() => next()}>Next Month</Button>
+            </Grid>
+            <Grid item>
+                <TextField name="currentMonth" onChange={(e) => jump(e)} value={state.currentMonth} select size="small" margin="none" variant="standard">
                     {months.map((el, i) =>
-                        <option value={i} key={i}>{el}</option>
+                        <MenuItem key={i} value={i}>{el}</MenuItem>
                     )}
-                </select>
-                <select name="currentYear" defaultValue={state.currentYear} onChange={(e) => jump(e)} >
+                </TextField>
+            </Grid>
+            <Grid item>
+                <TextField name="currentYear" onChange={(e) => jump(e)} value={state.currentYear} select size="small" margin="none" variant="standard">
                     {years.map((el, i) =>
-                        <option value={el} key={i}>{el}</option>
+                        <MenuItem key={i} value={el}>{el}</MenuItem>
                     )}
-                </select>
-            </span>
-            <table className="calendar">
-                <thead>
-                    <tr>
-                        <th colSpan="7">
-                            {state.currentYear} {months[state.currentMonth]}
-                        </th>
-                    </tr>
-                    <tr>
-                        <th>Sun</th>
-                        <th>Mon</th>
-                        <th>Tue</th>
-                        <th>Wed</th>
-                        <th>Thu</th>
-                        <th>Fri</th>
-                        <th>Sat</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {calendar.map((week, i) =>
-                        <tr key={i}>
-                            {week.map((date, j) =>
-                                <td className="calendar-date" key={j}>
-                                    {date ?
-                                        <div>
-                                            {date.from ? <div>IN: {date.from}</div> : null}
-                                            {date.to ? <div>OUT: {date.to}</div> : null}
-                                            {date.status && date.status === 'pending' ? <div style={{ backgroundColor: 'yellow' }}>Pending</div> : null}
-                                            {date.status && date.status === 'approved' ? <div style={{ backgroundColor: 'green' }}>Approved</div> : null}
-                                            {date.status && date.status === 'rejected' ? <div style={{ backgroundColor: 'red' }}>Rejected</div> : null}
-                                            <div>{date.date}</div>
-                                        </div>
-                                        : null}
-                                </td>
-                            )}
+                </TextField>
+            </Grid>
+            <Grid item xs={12}>
+                <table className="calendar">
+                    <thead>
+                        <tr>
+                            <th colSpan="7">
+                                {state.currentYear} {months[state.currentMonth]}
+                            </th>
                         </tr>
-                    )}
-                </tbody>
-            </table>
-        </div >
+                        <tr>
+                            <th>Sun</th>
+                            <th>Mon</th>
+                            <th>Tue</th>
+                            <th>Wed</th>
+                            <th>Thu</th>
+                            <th>Fri</th>
+                            <th>Sat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {calendar.map((week, i) =>
+                            <tr key={i}>
+                                {week.map((date, j) =>
+                                    <td className="calendar-date" key={j}>
+                                        {date ?
+                                            <div>
+                                                {date.from ? <div>IN: {date.from}</div> : null}
+                                                {date.to ? <div>OUT: {date.to}</div> : null}
+                                                {date.status && date.status === 'pending' ? <div style={{ backgroundColor: 'yellow' }}>Pending</div> : null}
+                                                {date.status && date.status === 'approved' ? <div style={{ backgroundColor: 'green' }}>Approved</div> : null}
+                                                {date.status && date.status === 'rejected' ? <div style={{ backgroundColor: 'red' }}>Rejected</div> : null}
+                                                <div>{date.date}</div>
+                                            </div>
+                                            : null}
+                                    </td>
+                                )}
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </Grid>
+        </Grid>
     )
 }
 

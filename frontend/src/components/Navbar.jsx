@@ -23,6 +23,7 @@ import SafetyDividerOutlinedIcon from '@mui/icons-material/SafetyDividerOutlined
 import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
 import LocalAtmOutlinedIcon from '@mui/icons-material/LocalAtmOutlined';
 import MoneyOffCsredOutlinedIcon from '@mui/icons-material/MoneyOffCsredOutlined';
+import FoodBankOutlinedIcon from '@mui/icons-material/FoodBankOutlined';
 import IconButton from '@mui/material/IconButton';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Tooltip from '@mui/material/Tooltip';
@@ -141,6 +142,12 @@ function Navbar(props) {
                             </ListItemIcon>
                             <ListItemText>Reimbursement</ListItemText>
                         </ListItem>
+                        <ListItem button component={Link} to="/allowance">
+                            <ListItemIcon>
+                                <FoodBankOutlinedIcon />
+                            </ListItemIcon>
+                            <ListItemText>Allowance</ListItemText>
+                        </ListItem>
                         <ListItem button component={Link} to="/bonus/management">
                             <ListItemIcon>
                                 <AttachMoneyOutlinedIcon />
@@ -155,7 +162,7 @@ function Navbar(props) {
                         </ListItem>
                     </List> : null}
             </Drawer>
-            <Box>
+            <Box style={{ width: "100vw", height: "100vh" }}>
                 {props.children}
             </Box>
         </Box>

@@ -105,6 +105,20 @@ class DeductionController {
         }
     }
 
+    getDeductionByEmployee = async (req, res) => {
+        try {
+            const { id } = req.params
+            const deduction = await this.DeductionService.getDeductionByEmployee(id);
+            return res.status(200).json({
+                deduction: deduction
+            })
+        } catch (err) {
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
     batchUpdateDeduction = async (req, res) => {
         try {
             const { id, employee_id, date, reason, amount } = req.body;

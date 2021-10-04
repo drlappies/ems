@@ -9,5 +9,6 @@ module.exports.PayrollRoute = (PayrollController) => {
     router.delete('/:id', PayrollController.deletePayroll);
     router.get('/', PayrollController.getAllPayroll);
     router.get('/:id', PayrollController.getPayroll);
+    router.get('/user/:id', PayrollController.getPayrollByEmployee);
     return router
 }

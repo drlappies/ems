@@ -1,61 +1,95 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchEmployeeAl, updateLeave, applyLeave } from '../actions/leave';
-import { Form, Header } from 'semantic-ui-react'
+import { fetchEmployeeAl } from '../actions/leave';
+import { popMessage } from '../actions/ui';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import axios from 'axios';
 import '../css/main.css'
 
 function Leave() {
     const dispatch = useDispatch()
     const leave = useSelector(state => state.leave)
     const auth = useSelector(state => state.auth)
+    const [state, setState] = useState({
+        from: "",
+        to: "",
+        reason: "",
+        type: "",
+        span: ""
+    })
 
     useEffect(() => {
         dispatch(fetchEmployeeAl(auth.id))
     }, [auth.id, dispatch])
 
-    const handleSubmit = () => {
-        dispatch(applyLeave(auth.id, leave.applyReason, leave.applyFrom, leave.applyTo, leave.applyType, leave.applySpan))
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setState(prevState => {
+            return {
+                ...prevState,
+                [name]: value
+            }
+        })
+    }
+
+    const handleSubmit = async (e) => {
+        try {
+            e.preventDefault()
+            const body = {
+                employeeId: auth.id,
+                reason: state.reason,
+                from: state.from,
+                to: state.to,
+                duration: state.span,
+                type: state.type
+            }
+            const res = await axios.post('/api/leave', body);
+            dispatch(popMessage(res.data.success, 'success'))
+            setState({
+                from: "",
+                to: "",
+                reason: "",
+                type: "",
+                span: ""
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'));
+        }
     }
 
     return (
-        <div className="leave-container">
-            <div className="leave-form">
-                <Header>Leave Application Portal</Header>
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="applyFrom">Leave From</label>
-                        <input id="applyFrom" name="applyFrom" type="date" value={leave.applyFrom} onChange={(e) => dispatch(updateLeave(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="applyTo">To</label>
-                        <input id="applyTo" name="applyTo" type="date" value={leave.applyTo} onChange={(e) => dispatch(updateLeave(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="applyReason">Reason</label>
-                        <textarea id="applyReason" name="applyReason" value={leave.applyReason} onChange={(e) => dispatch(updateLeave(e))}></textarea>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="applyType">Leave Type</label>
-                        <select id="applyType" name="applyType" value={leave.applyType} onChange={(e) => dispatch(updateLeave(e))} >
-                            <option value="">Select a type</option>
-                            <option value="sick_leave">Sick Leave</option>
-                            <option value="no_pay_leave">No Pay Leave</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="applySpan">Span</label>
-                        <select id="applySpan" name="applySpan" value={leave.applySpan} onChange={(e) => dispatch(updateLeave(e))} >
-                            <option value="">Selecy a dayspan</option>
-                            <option value="half_day">Half Day</option>
-                            <option value="full_day">Full Day</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Button color="green" onClick={() => handleSubmit()}>
-                        Apply
-                    </Form.Button>
-                </Form>
-            </div>
-        </div>
+        <Grid container justifyContent="center">
+            <Grid item xs={6}>
+                <form onSubmit={(e) => handleSubmit(e)}>
+                    <Card>
+                        <CardHeader title="Apply for leave" />
+                        <CardContent>
+                            <TextField fullWidth size="small" margin="normal" label="From" type="date" name="from" id="from" value={state.from} onChange={(e) => handleChange(e)} />
+                            <TextField fullWidth size="small" margin="normal" label="To" type="date" name="to" id="to" value={state.to} onChange={(e) => handleChange(e)} />
+                            <TextField fullWidth multiline rows={5} size="small" margin="normal" label="Reason" type="text" name="reason" id="reason" value={state.reason} onChange={(e) => handleChange(e)} />
+                            <TextField fullWidth size="small" margin="normal" select label="Type" name="type" id="type" value={state.type} onChange={(e) => handleChange(e)}>
+                                <MenuItem value={'sick_leave'}>Sick Leave</MenuItem>
+                                <MenuItem value={'no_pay_leave'}>No Pay Leave</MenuItem>
+                            </TextField>
+                            <TextField fullWidth size="small" margin="normal" select label="Span" name="span" id="span" value={state.span} onChange={(e) => handleChange(e)}>
+                                <MenuItem value={'half_day'}>Half Day</MenuItem>
+                                <MenuItem value={'full_day'}>Full Day</MenuItem>
+                            </TextField>
+                        </CardContent>
+                        <CardActions>
+                            <Button variant="contained" color="primary" type="submit">Apply</Button>
+                        </CardActions>
+                    </Card>
+                </form>
+            </Grid>
+        </Grid>
     )
 }
 

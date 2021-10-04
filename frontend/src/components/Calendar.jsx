@@ -1,7 +1,10 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { useSelector } from 'react-redux'
-import { Button } from 'semantic-ui-react'
 import axios from 'axios'
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import '../css/main.css'
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
@@ -113,56 +116,66 @@ function Calendar(props) {
     }
 
     return (
-        <div >
-            <Button size="tiny" onClick={() => prev()}>Last Month</Button>
-            <Button size="tiny" onClick={() => next()}>Next Month</Button>
-            <span>Jump To:
-                <select name="currentMonth" onChange={(e) => jump(e)} defaultValue={state.currentMonth}>{months.map((el, i) =>
-                    <option key={i} value={i}>{el}</option>)}
-                </select>
-                <select name="currentYear" onChange={(e) => jump(e)} defaultValue={state.currentYear}>
+        <Grid container spacing={1}>
+            <Grid item>
+                <Button size="small" variant="contained" onClick={() => prev()}>Last Month</Button>
+            </Grid>
+            <Grid item>
+                <Button size="small" variant="contained" onClick={() => next()}>Next Month</Button>
+            </Grid>
+            <Grid item>
+                <TextField name="currentMonth" onChange={(e) => jump(e)} value={state.currentMonth} select size="small" margin="none" variant="standard">
+                    {months.map((el, i) =>
+                        <MenuItem key={i} value={i}>{el}</MenuItem>
+                    )}
+                </TextField>
+            </Grid>
+            <Grid item>
+                <TextField name="currentYear" onChange={(e) => jump(e)} value={state.currentYear} select size="small" margin="none" variant="standard">
                     {years.map((el, i) =>
-                        <option key={i} value={el}>{el}</option>
+                        <MenuItem key={i} value={el}>{el}</MenuItem>
                     )}
-                </select>
-            </span>
-            <table className="calendar">
-                <thead>
-                    <tr>
-                        <th colSpan="7">{state.currentYear} {months[state.currentMonth]}</th>
-                    </tr>
-                </thead>
-                <thead>
-                    <tr>
-                        <th>Sun</th>
-                        <th>Mon</th>
-                        <th>Tue</th>
-                        <th>Wed</th>
-                        <th>Thu</th>
-                        <th>Fri</th>
-                        <th>Sat</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {calendar.map((week, i) =>
-                        <tr key={i}>
-                            {week.map((date, j) =>
-                                <td className="calendar-date" key={j}>
-                                    {date ?
-                                        <div>
-                                            {date.checkIn ? <div>In: {date.checkIn}</div> : null}
-                                            {date.checkOut ? <div>Out: {date.checkOut}</div> : null}
-                                            {date.status ? <div style={{ backgroundColor: date.status === 'on_time' ? 'green' : 'red' }}>{date.status}</div> : null}
-                                            <div>{date.date}</div>
-                                        </div>
-                                        : null}
-                                </td>
-                            )}
+                </TextField>
+            </Grid>
+            <Grid item xs={12}>
+                <table className="calendar">
+                    <thead>
+                        <tr>
+                            <th colSpan="7">{state.currentYear} {months[state.currentMonth]}</th>
                         </tr>
-                    )}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <thead>
+                        <tr>
+                            <th>Sun</th>
+                            <th>Mon</th>
+                            <th>Tue</th>
+                            <th>Wed</th>
+                            <th>Thu</th>
+                            <th>Fri</th>
+                            <th>Sat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {calendar.map((week, i) =>
+                            <tr key={i}>
+                                {week.map((date, j) =>
+                                    <td className="calendar-date" key={j}>
+                                        {date ?
+                                            <div>
+                                                {date.checkIn ? <div>In: {date.checkIn}</div> : null}
+                                                {date.checkOut ? <div>Out: {date.checkOut}</div> : null}
+                                                {date.status ? <div style={{ backgroundColor: date.status === 'on_time' ? 'green' : 'red' }}>{date.status}</div> : null}
+                                                <div>{date.date}</div>
+                                            </div>
+                                            : null}
+                                    </td>
+                                )}
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </Grid>
+        </Grid>
     )
 }
 
