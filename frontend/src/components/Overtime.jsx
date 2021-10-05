@@ -57,7 +57,7 @@ function Overtime() {
         } catch (err) {
             dispatch(popMessage(err.response.data.error, 'error'))
         }
-    }, [])
+    }, [auth.id, dispatch])
 
     useEffect(() => {
         fetchOvertimeStatus()
