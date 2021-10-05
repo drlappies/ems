@@ -47,14 +47,13 @@ class OvertimeService {
     }
 
     updateOvertime = async (id, from, to, status) => {
+        let update = {}
+        if (from) update.from = from;
+        if (to) update.to = to;
+        if (status) update.status = status;
         const overtime = await this.knex('overtime')
             .where('id', id)
-            .update({
-                from: from,
-                to: to,
-                status: status
-            }, ['id'])
-
+            .update(update, ['id'])
         return overtime
     }
 
@@ -65,98 +64,35 @@ class OvertimeService {
         return overtime
     }
 
-    getAllOvertime = async (text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employeeId) => {
-        if (!page || page < 0) page = 0;
-        if (!limit) limit = 10;
-        let currentPage = parseInt(page);
-        let currentLimit = parseInt(limit);
-        let pageStart = parseInt(page) + 1;
-        let pageEnd = parseInt(page) + parseInt(limit);
-
+    getAllOvertime = async (offset, limit, search, dateTo, dateFrom, employeeId, status) => {
         const [count] = await this.knex('overtime')
-            .count()
-            .from(queryBuilder => {
-                queryBuilder
-                    .select(['employee.firstname', 'employee.lastname', 'overtime.from', 'overtime.to', 'overtime.date', 'overtime.status', 'overtime.from', 'overtime.from'])
-                    .from('overtime')
-                    .join('employee', 'overtime.employee_id', 'employee.id')
-                    .modify(queryBuilder => {
-                        if (status) {
-                            queryBuilder.where('overtime.status', status)
-                        }
-                        if (dateFrom) {
-                            queryBuilder.where('overtime.date', '>=', dateFrom)
-                        }
-                        if (dateTo) {
-                            queryBuilder.where('overtime.date', '<=', dateTo)
-                        }
-                        if (checkinFrom) {
-                            queryBuilder.where('overtime.from', '>=', checkinFrom)
-                        }
-                        if (checkinTo) {
-                            queryBuilder.where('overtime.from', '<=', checkinTo)
-                        }
-                        if (checkoutFrom) {
-                            queryBuilder.where('overtime.to', '>=', checkoutFrom)
-                        }
-                        if (checkoutTo) {
-                            queryBuilder.where('overtime.to', '<=', checkoutTo)
-                        }
-                        if (text) {
-                            queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || employee.id || ' ' || overtime.id) @@ plainto_tsquery('${text}')`)
-                        }
-                        if (employeeId) {
-                            queryBuilder.where('overtime.employee_id', employeeId)
-                        }
-                    })
-                    .as('count')
+            .join('employee', 'overtime.employee_id', 'employee.id')
+            .modify(qb => {
+                if (search) qb.whereRaw(`to_tsvector(overtime.id || ' ' || overtime.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || overtime.from || ' ' || overtime.to || ' ' || overtime.date || ' ' || overtime.status) @@ plainto_tsquery('${search}')`)
+                if (dateTo && dateFrom) qb.whereBetween('overtime.date', [dateTo, dateFrom])
+                if (status) qb.where('overtime.status', '=', status)
+                if (employeeId) qb.where('overtime.employee_id', '=', employeeId)
             })
+            .count()
 
         const overtime = await this.knex('overtime')
             .join('employee', 'overtime.employee_id', 'employee.id')
             .select(['overtime.id', 'overtime.employee_id', 'employee.firstname', 'employee.lastname', 'overtime.from', 'overtime.to', 'overtime.date', 'overtime.status'])
-            .limit(currentLimit)
-            .offset(page)
-            .orderBy('id')
-            .modify((queryBuilder) => {
-                if (status) {
-                    queryBuilder.where('overtime.status', status)
-                }
-                if (dateFrom) {
-                    queryBuilder.where('overtime.date', '>=', dateFrom)
-                }
-                if (dateTo) {
-                    queryBuilder.where('overtime.date', '<=', dateTo)
-                }
-                if (checkinFrom) {
-                    queryBuilder.where('overtime.from', '>=', checkinFrom)
-                }
-                if (checkinTo) {
-                    queryBuilder.where('overtime.from', '<=', checkinTo)
-                }
-                if (checkoutFrom) {
-                    queryBuilder.where('overtime.to', '>=', checkoutFrom)
-                }
-                if (checkoutTo) {
-                    queryBuilder.where('overtime.to', '<=', checkoutTo)
-                }
-                if (text) {
-                    queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || employee.id || ' ' || overtime.id) @@ plainto_tsquery('${text}')`)
-                }
-                if (employeeId) {
-                    queryBuilder.where('overtime.employee_id', employeeId)
-                }
+            .modify(qb => {
+                if (search) qb.whereRaw(`to_tsvector(overtime.id || ' ' || overtime.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || overtime.from || ' ' || overtime.to || ' ' || overtime.date || ' ' || overtime.status) @@ plainto_tsquery('${search}')`)
+                if (dateTo && dateFrom) qb.whereBetween('overtime.date', [dateTo, dateFrom])
+                if (status) qb.where('overtime.status', '=', status)
+                if (employeeId) qb.where('overtime.employee_id', '=', employeeId)
             })
+            .limit(parseInt(limit))
+            .offset(parseInt(offset) * parseInt(limit))
+            .orderBy('id')
 
         const employee = await this.knex('employee')
             .select(['id', 'firstname', 'lastname'])
             .where('status', 'available')
 
-        if (pageEnd > count.count) {
-            pageEnd = parseInt(count.count)
-        }
-
-        return { overtime: overtime, count: count.count, currentPage: currentPage, pageStart: pageStart, pageEnd: pageEnd, employeeList: employee, currentLimit: currentLimit }
+        return { overtime: overtime, employee: employee, count: count }
     }
 
     getOvertime = async (id) => {

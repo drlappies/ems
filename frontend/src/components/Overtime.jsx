@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { popMessage } from '../actions/ui'
 import Clock from 'react-live-clock';
 import { useSelector, useDispatch } from 'react-redux';
-import { createOvertime, fetchOvertimeStatus, createOvertimeTimeout } from '../actions/overtime'
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
@@ -14,16 +14,54 @@ import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import TimerIcon from '@mui/icons-material/Timer';
 import TimerOffIcon from '@mui/icons-material/TimerOff';
+import axios from 'axios'
 import '../css/main.css'
 
 function Overtime() {
     const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
-    const overtime = useSelector(state => state.overtime)
+    const [state, setState] = useState({
+        checkInTime: "",
+        checkOutTime: "",
+    })
+
+    const fetchOvertimeStatus = useCallback(async () => {
+        try {
+            const res = await axios.get(`/api/overtime/user/${auth.id}`)
+            setState({
+                checkInTime: res.data.checkIn,
+                checkOutTime: res.data.checkOut
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [auth.id, dispatch])
+
+    const handleCheckIn = useCallback(async () => {
+        try {
+            const body = { employee_id: auth.id, }
+            const res = await axios.post('/api/overtime/timein', body)
+            dispatch(popMessage(res.data.success, 'success'))
+            setState(prevState => { return { ...prevState, checkInTime: res.data.timein } })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [auth.id, dispatch])
+
+    const handleCheckOut = useCallback(async () => {
+        try {
+            const body = { employee_id: auth.id }
+            const res = await axios.post('/api/overtime/timeout', body)
+            dispatch(popMessage(res.data.success, 'success'))
+            setState(prevState => { return { ...prevState, checkOutTime: res.data.timeout } })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [])
 
     useEffect(() => {
-        dispatch(fetchOvertimeStatus(auth.id))
-    }, [auth.id, dispatch])
+        fetchOvertimeStatus()
+    }, [fetchOvertimeStatus])
 
     return (
         <Card elevation={3} style={{ width: 400 }}>
@@ -38,7 +76,7 @@ function Overtime() {
                         </ListItemAvatar>
                         <ListItemText
                             primary={<Typography variant="body1">Check In Time</Typography>}
-                            secondary={<Typography variant="body1">{overtime.overtimeCheckIn ? overtime.overtimeCheckOut : "You have not checked in yet!"}</Typography>}
+                            secondary={<Typography variant="body1">{state.checkInTime ? state.checkInTime : "You have not checked in yet!"}</Typography>}
                         />
                     </ListItem>
                     <ListItem>
@@ -47,14 +85,14 @@ function Overtime() {
                         </ListItemAvatar>
                         <ListItemText
                             primary={<Typography variant="body1">Check Out Time</Typography>}
-                            secondary={<Typography variant="body1">{overtime.overtimeCheckIn ? overtime.overtimeCheckOut : "You have not checked out yet!"}</Typography>}
+                            secondary={<Typography variant="body1">{state.checkOutTime ? state.checkOutTime : "You have not checked out yet!"}</Typography>}
                         />
                     </ListItem>
                 </List>
             </CardContent>
             <CardActions style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Button variant="contained" color="primary" onClick={() => dispatch(createOvertime(auth.id))}>Check In</Button>
-                <Button variant="contained" color="secondary" onClick={() => dispatch(createOvertimeTimeout(auth.id))}>Check Out</Button>
+                <Button variant="contained" color="primary" onClick={handleCheckIn}>Check In</Button>
+                <Button variant="contained" color="secondary" onClick={handleCheckOut}>Check Out</Button>
             </CardActions>
         </Card>
     )

@@ -3,7 +3,6 @@ import authReducer from "./auth";
 import uiReducer from './ui';
 import punchReducer from "./punch";
 import employeeReducer from "./employee";
-import overtimeReducer from "./overtime";
 import configReducer from "./config";
 import departmentReducer from "./department";
 import positionReducer from "./position";
@@ -19,7 +18,6 @@ const reducer = combineReducers({
     ui: uiReducer,
     punch: punchReducer,
     employee: employeeReducer,
-    overtime: overtimeReducer,
     config: configReducer,
     department: departmentReducer,
     position: positionReducer,

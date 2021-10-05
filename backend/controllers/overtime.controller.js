@@ -82,7 +82,7 @@ class OvertimeController {
                     error: 'Check in time cannot be greater than or equal to check out time!'
                 })
             }
-            
+
             const overtime = await this.OvertimeService.createOvertime(employee_id, date, from, to, status)
             return res.status(200).json({
                 success: `Succsesfully created specific overtime record on ${overtime[0].date.getFullYear()}-${overtime[0].date.getMonth() + 1}-${overtime[0].date.getDate()}`,
@@ -129,16 +129,12 @@ class OvertimeController {
 
     getAllOvertime = async (req, res) => {
         try {
-            const { text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employeeId } = req.query
-            const query = await this.OvertimeService.getAllOvertime(text, status, dateFrom, dateTo, checkinFrom, checkinTo, checkoutFrom, checkoutTo, page, limit, employeeId);
+            const { offset, limit, search, dateTo, dateFrom, status, employee } = req.query
+            const query = await this.OvertimeService.getAllOvertime(offset, limit, search, dateFrom, dateTo, employee, status);
             return res.status(200).json({
-                overtimeRecord: query.overtime,
-                employeeList: query.employeeList,
-                currentPage: query.currentPage,
-                pageEnd: query.pageEnd,
-                pageStart: query.pageStart,
-                pageCount: query.count,
-                currentLimit: query.currentLimit
+                overtime: query.overtime,
+                employee: query.employee,
+                count: query.count
             })
         } catch (err) {
             console.log(err)
@@ -166,13 +162,11 @@ class OvertimeController {
     getEmployeeOvertimeStatus = async (req, res) => {
         try {
             const { employeeId } = req.params;
-            if (!employeeId) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
             const overtimeStatus = await this.OvertimeService.getEmployeeOvertimeStatus(employeeId);
-            return res.status(200).json(overtimeStatus)
+            return res.status(200).json({
+                checkIn: overtimeStatus.from,
+                checkOut: overtimeStatus.to
+            })
         } catch (err) {
             console.log(err)
             return res.status(500).json({
