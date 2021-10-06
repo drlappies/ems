@@ -20,17 +20,13 @@ class EmployeeController {
 
     getAllEmployee = async (req, res) => {
         try {
-            const { page, limit, text, position, department, joinFrom, joinTo, status } = req.query
-            const employee = await this.employeeService.getAllEmployee(page, limit, text, position, department, joinFrom, joinTo, status);
+            const { offset, limit, search, position, department, role, status, salaryFrom, salaryTo, hasOTpay } = req.query
+            const query = await this.employeeService.getAllEmployee(offset, limit, search, position, department, role, status, salaryFrom, salaryTo, hasOTpay);
             return res.status(200).json({
-                employee: employee.employee,
-                count: employee.count,
-                currentPage: employee.currentPage,
-                currentPageStart: employee.currentPageStart,
-                currentPageEnd: employee.currentPageEnd,
-                currentLimit: employee.currentLimit,
-                positions: employee.positions,
-                departments: employee.departments
+                employee: query.employee,
+                rowCount: query.count,
+                positions: query.positions,
+                departments: query.departments
             });
         } catch (err) {
             console.log(err);

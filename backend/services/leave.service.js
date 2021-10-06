@@ -11,79 +11,36 @@ class LeaveService {
         return leave
     }
 
-    getAllLeave = async (page, from, to, type, status, text, limit, employee_id) => {
-        if (!page || page < 0) page = 0;
-        if (!limit) limit = 10;
-        let currentPage = parseInt(page)
-        let currentPageStart = parseInt(page) + 1
-        let currentPageEnd = parseInt(page) + parseInt(limit)
-        let currentLimit = parseInt(limit)
-
+    getAllLeave = async (offset, limit, search, employeeId, dateFrom, dateTo, status) => {
         const employee = await this.knex('employee')
             .select(['id', 'firstname', 'lastname'])
 
         const [count] = await this.knex('leave')
-            .count()
-            .from(queryBuilder => {
-                queryBuilder
-                    .select(['employee.firstname', 'employee.lastname', 'leave.reason', 'leave.from', 'leave.to', 'leave.type', 'leave.duration', 'leave.status',])
-                    .from('leave')
-                    .join('employee', 'leave.employee_id', 'employee.id')
-                    .modify(queryBuilder => {
-                        if (from) {
-                            queryBuilder.where('leave.from', '>=', from)
-                        }
-                        if (to) {
-                            queryBuilder.where('leave.to', '<=', to)
-                        }
-                        if (type) {
-                            queryBuilder.where('leave.type', type)
-                        }
-                        if (text) {
-                            queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || leave.id || ' ' || leave.employee_id || ' ' || leave.reason) @@ plainto_tsquery('${text}')`)
-                        }
-                        if (status) {
-                            queryBuilder.where('leave.status', status)
-                        }
-                        if (employee_id) {
-                            queryBuilder.where('leave.employee_id', employee_id)
-                        }
-                    })
-                    .as('count')
+            .join('employee', 'leave.employee_id', 'employee.id')
+            .modify(qb => {
+                if (search) qb.whereRaw(`to_tsvector(leave.id || ' ' || leave.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || leave.from || ' ' || leave.to || ' ' || leave.type || ' ' || leave.duration || ' ' || leave.status) @@ plainto_tsquery('${search}')`)
+                if (employeeId) qb.where('leave.employee_id', '=', employeeId);
+                if (dateFrom && dateTo) qb.whereBetween('leave.from', [dateFrom, dateTo])
+                if (dateFrom && dateTo) qb.whereBetween('leave.to', [dateFrom, dateTo])
+                if (status) qb.where('leave.status', '=', status)
             })
+            .count()
 
         const leave = await this.knex('leave')
             .join('employee', 'leave.employee_id', 'employee.id')
             .select(['leave.id', 'leave.employee_id', 'employee.firstname', 'employee.lastname', 'leave.from', 'leave.to', 'leave.type', 'leave.duration', 'leave.status'])
-            .limit(currentLimit)
-            .offset(currentPage)
-            .orderBy('id')
-            .modify(queryBuilder => {
-                if (from) {
-                    queryBuilder.where('leave.from', '>=', from)
-                }
-                if (to) {
-                    queryBuilder.where('leave.to', '<=', to)
-                }
-                if (type) {
-                    queryBuilder.where('leave.type', type)
-                }
-                if (text) {
-                    queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || leave.id || ' ' || leave.employee_id || ' ' || leave.reason) @@ plainto_tsquery('${text}')`)
-                }
-                if (status) {
-                    queryBuilder.where('leave.status', status)
-                }
-                if (employee_id) {
-                    queryBuilder.where('leave.employee_id', employee_id)
-                }
+            .limit(parseInt(limit))
+            .offset(parseInt(offset) * parseInt(limit))
+            .modify(qb => {
+                if (search) qb.whereRaw(`to_tsvector(leave.id || ' ' || leave.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || leave.from || ' ' || leave.to || ' ' || leave.type || ' ' || leave.duration || ' ' || leave.status) @@ plainto_tsquery('${search}')`)
+                if (employeeId) qb.where('leave.employee_id', '=', employeeId);
+                if (dateFrom && dateTo) qb.whereBetween('leave.from', [dateFrom, dateTo])
+                if (dateFrom && dateTo) qb.whereBetween('leave.to', [dateFrom, dateTo])
+                if (status) qb.where('leave.status', '=', status)
             })
+            .orderBy('id')
 
-        if (currentPageEnd >= count.count) {
-            currentPageEnd = parseInt(count.count)
-        }
-
-        return { leave: leave, employee: employee, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count, currentLimit: currentLimit }
+        return { leave: leave, count: count, employee: employee }
     }
 
     createLeave = async (employeeId, reason, from, to, duration, type) => {
@@ -100,14 +57,15 @@ class LeaveService {
         return leave
     }
 
-    updateLeave = async (ids, duration, type, status) => {
+    updateLeave = async (id, duration, type, status) => {
+        if (!Array.isArray(id)) id = [id];
+        let update = {}
+        if (duration) update.duration = duration;
+        if (type) update.type = type;
+        if (status) update.status = status;
         const [leave] = await this.knex('leave')
-            .whereIn('id', ids)
-            .update({
-                duration: duration,
-                type: type,
-                status: status
-            }, ['id'])
+            .whereIn('id', id)
+            .update(update, ['id'])
         return leave
     }
 
@@ -131,13 +89,6 @@ class LeaveService {
             .where('id', employeeId)
 
         return employeeAL
-    }
-
-    leaveRate = async () => {
-        const [attendance] = await this.knex('attendance').count('id')
-        const [leave] = await this.knex('leave').count('id')
-        const rate = Math.round((leave.count / attendance.count) * 100)
-        return rate
     }
 }
 

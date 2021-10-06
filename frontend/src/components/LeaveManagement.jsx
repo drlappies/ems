@@ -1,330 +1,352 @@
-import React, { useEffect } from 'react';
-import { fetchLeave, updateLeave, confirmLeaveUpdate, deleteLeave, createLeave, toggleViewing, toggleUpdating, toggleDeleting, toggleCreating, handleSelect, handleSelectAll, toggleFiltering, resetQuery, fetchLeaveByQuery, toggleBatchUpdating, confirmBatchLeaveUpdate, toggleBatchDeleting, batchDeleteLeave, fetchNextLeaveRecord, fetchPreviousLeaveRecord, handleEntriesChange } from '../actions/leave';
-import { useSelector, useDispatch } from 'react-redux';
-import TableBody from './TableBody';
-import TableFooter from './TableFooter';
-import TableHeader from './TableHeader'
-import Config from './Config'
-import { Grid, Button, Header, Table, Form } from 'semantic-ui-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
+import { popMessage } from '../actions/ui';
+import { DataGrid } from '@mui/x-data-grid';
+import Toolbar from './Toolbar';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Modal from '@mui/material/Modal';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Button from '@mui/material/Button';
+import DateAdapter from '@mui/lab/AdapterMoment';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import DesktopDateRangePicker from '@mui/lab/DesktopDateRangePicker';
+import Box from '@mui/material/Box';
+import axios from 'axios'
 import '../css/main.css'
 
 function LeaveManagement() {
     const dispatch = useDispatch()
-    const leave = useSelector(state => state.leave)
+    const [state, setState] = useState({
+        leaveHistory: [],
+        employeeList: [],
+        selectedRow: [],
+        offset: 0,
+        limit: 25,
+        rowCount: 0,
+        search: "",
+        employee: "any",
+        status: "any",
+        date: [null, null],
+        isCreating: false,
+        isUpdating: false,
+        isDeleting: false,
+        createEmployee: "",
+        createDate: [null, null],
+        createStatus: "",
+        createType: "",
+        createSpan: "",
+        createReason: "",
+        updateDate: [null, null],
+        updateReason: "",
+        updateSpan: "",
+        updateType: "",
+        updateStatus: ""
+    })
 
-    useEffect(() => {
-        dispatch(fetchLeave())
+    const columns = [
+        { field: 'id', headerName: 'ID', flex: 1 },
+        { field: 'employee_id', headerName: 'Employee ID', flex: 1 },
+        { field: 'firstname', headerName: 'Firstname', flex: 1 },
+        { field: 'lastname', headerName: 'Lastname', flex: 1 },
+        { field: 'from', headerName: 'Date From', flex: 1 },
+        { field: 'to', headerName: 'Date To', flex: 1 },
+        { field: 'type', headerName: 'Leave Type', flex: 1 },
+        { field: 'duration', headerName: 'Span', flex: 1 },
+        { field: 'status', headerName: 'Status', flex: 1 }
+    ]
+
+    const fetchLeave = useCallback(async (offset, limit, search, employee, status, date) => {
+        try {
+            const res = await axios.get('/api/leave', {
+                params: {
+                    offset: offset,
+                    limit: limit,
+                    search: search,
+                    employee: employee === 'any' ? null : employee,
+                    status: status === 'any' ? null : status,
+                    dateFrom: date[0] ? date[0].format('YYYY-MM-DD') : null,
+                    dateTo: date[1] ? date[1].format('YYYY-MM-DD') : null
+                }
+            })
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    leaveHistory: res.data.leave.map(el => {
+                        return {
+                            ...el,
+                            from: `${new Date(el.from).getDate().toString().padStart(2, 0)}/${(new Date(el.from).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.from).getFullYear()}`,
+                            to: `${new Date(el.to).getDate().toString().padStart(2, 0)}/${(new Date(el.to).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.to).getFullYear()}`,
+                            duration: el.duration === 'full_day' ? "Full Day" : "Half Day",
+                        }
+                    }),
+                    employeeList: res.data.employee,
+                    rowCount: parseInt(res.data.rowCount.count),
+                    isCreating: false,
+                    isUpdating: false,
+                    isDeleting: false,
+                    createEmployee: "",
+                    createDate: [null, null],
+                    createStatus: "",
+                    createType: "",
+                    createSpan: "",
+                    createReason: "",
+                    updateDate: [null, null],
+                    updateReason: "",
+                    updateSpan: "",
+                    updateType: "",
+                    updateStatus: ""
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
     }, [dispatch])
 
+    const createLeave = useCallback(async () => {
+        try {
+            const body = {
+                employeeId: state.createEmployee,
+                from: state.createDate[0] ? state.createDate[0].format('YYYY-MM-DD') : null,
+                to: state.createDate[1] ? state.createDate[1].format('YYYY-MM-DD') : null,
+                type: state.createType,
+                duration: state.createSpan,
+                reason: state.createReason
+            }
+            const res = await axios.post('/api/leave', body)
+            dispatch(popMessage(res.data.success, 'success'))
+            return fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchLeave, state.createDate, state.createEmployee, state.createReason, state.createSpan, state.createType, state.date, state.employee, state.limit, state.offset, state.search, state.status])
+
+    const updateLeave = useCallback(async () => {
+        try {
+            const body = {
+                id: state.selectedRow,
+                duration: state.updateSpan,
+                type: state.updateType,
+                status: state.updateStatus
+            }
+            const res = await axios.put('/api/leave', body)
+            dispatch(popMessage(res.data.success, 'success'))
+            return fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchLeave, state.date, state.employee, state.limit, state.offset, state.search, state.selectedRow, state.status, state.updateSpan, state.updateStatus, state.updateType])
+
+    const deleteLeave = useCallback(async () => {
+        try {
+            const res = await axios.delete(`/api/leave/${state.selectedRow.map((el, i) => i === 0 ? `?ids=${el}` : `&ids=${el}`).join("")}`)
+            dispatch(popMessage(res.data.success, 'success'))
+            return fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchLeave, state.date, state.employee, state.limit, state.offset, state.search, state.selectedRow, state.status])
+
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
+    const toggleUpdating = () => { setState(prevState => { return { ...prevState, isUpdating: !prevState.isUpdating } }) }
+    const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
+    const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setState(prevState => { return { ...prevState, [name]: value } })
+    }
+
+    useEffect(() => {
+        fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
+    }, [fetchLeave, state.limit, state.offset, state.search, state.employee, state.status, state.date])
+
     return (
-        <div className="record">
-            <Grid>
-                <Grid.Row columns="2">
-                    <Grid.Column>
-                        <Header>Employee Leave Management</Header>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row columns="1">
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" color="blue" disabled={leave.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchUpdating(leave.isBatchUpdating))}>Batch Update</Button>
-                        <Button size="tiny" color="red" disabled={leave.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(leave.isBatchDeleting))}>Batch Delete</Button>
-                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(leave.isFiltering))}> Filter</Button>
-                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(leave.isCreating))}>Create Leave Record</Button>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row>
-                    <Grid.Column>
-                        <Table celled compact selectable size="small">
-                            <TableHeader
-                                header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Leave From', 'Leave To', 'Leave Type', 'Duration', 'Status', 'Actions']}
-                                checkFunc={(e) => dispatch(handleSelectAll(e, leave.record))}
-                                isChecked={leave.isAllSelected}
-                            />
-                            <TableBody
-                                data={leave.record}
-                                primaryAction={"View"}
-                                primaryActionColor={"olive"}
-                                primaryFunc={(e) => dispatch(toggleViewing(e.target.value))}
-                                secondaryAction={"Update"}
-                                secondaryActionColor={"blue"}
-                                secondaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
-                                tertiaryAction={"Delete"}
-                                tertiaryActionColor={"red"}
-                                tertiaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
-                                checkFunc={(e) => dispatch(handleSelect(e))}
-                                checkedRows={leave.selectedRecord}
-                            />
-                            <TableFooter
-                                colSpan={11}
-                                pageStart={leave.currentPageStart}
-                                pageEnd={leave.currentPageEnd}
-                                pageTotal={leave.pageLength}
-                                onNext={() => dispatch(fetchNextLeaveRecord(leave.currentPage, leave.pageLength, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
-                                onPrevious={() => dispatch(fetchPreviousLeaveRecord(leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
-                                entriesName={"currentLimit"}
-                                entriesNum={leave.currentLimit}
-                                entriesFunc={(e) => dispatch(handleEntriesChange(leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus, leave.currentPage, e.target.value))}
-                            />
-                        </Table>
-                    </Grid.Column>
-                </Grid.Row>
-            </Grid >
-            <Config
-                isConfigOpen={leave.isViewing}
-                configType={"Leave Details"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleViewing())}
-            >
-                <p><strong>ID:</strong> {leave.leaveId}</p>
-                <p><strong>Employee ID:</strong> {leave.employeeId}</p>
-                <p><strong>Employee Firstname:</strong> {leave.firstname}</p>
-                <p><strong>Employee Lastname:</strong>  {leave.lastname}</p>
-                <p><strong>Leave From: </strong> {leave.from}</p>
-                <p><strong>Leave To:</strong> {leave.to}</p>
-                <p><strong>Duration:</strong> {leave.duration}</p>
-                <p><strong>Reason:</strong> {leave.reason}</p>
-                <p><strong>Status:</strong> {leave.status}</p>
-            </Config>
-            <Config
-                isConfigOpen={leave.isUpdating}
-                configType={"Update Leave"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleUpdating())}
-                configSecondaryAction={"Update"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(confirmLeaveUpdate(leave.leaveId, leave.duration, leave.type, leave.status, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="leaveId">Leave ID</label>
-                        <input id="leaveId" name="leaveId" value={leave.leaveId} disabled />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="employeeId">Employee ID</label>
-                        <input id="employeeId" name="employeeId" value={leave.employeeId} disabled />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="firstname">Firstname</label>
-                        <input id="firstname" name="firstname" value={leave.firstname} disabled />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="lastname">Lastname</label>
-                        <input id="lastname" name="lastname" value={leave.lastname} disabled />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="duration">Duration</label>
-                        <select id="duration" name="duration" value={leave.duration} onChange={(e) => dispatch(updateLeave(e))}>
-                            <option value="half_day">Half Day</option>
-                            <option value="full_day">Full Day</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="type">Type</label>
-                        <select id="type" name="type" value={leave.type} onChange={(e) => dispatch(updateLeave(e))}>
-                            <option value="annual_leave">Annual Leave</option>
-                            <option value="sick_leave">Sick Leave</option>
-                            <option value="no_pay_leave">No Pay Leave</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="status">Status</label>
-                        <select id="status" name="status" value={leave.status} onChange={(e) => dispatch(updateLeave(e))}>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={leave.isDeleting}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleDeleting())}
-                configType={"Delete Leave Record"}
-                configSecondaryAction={"Delete"}
-                configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(deleteLeave(leave.leaveId, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
-            >
-                <p><strong>ID:</strong> {leave.leaveId}</p>
-                <p><strong>Employee ID:</strong> {leave.employeeId}</p>
-                <p><strong>Employee Firstname:</strong> {leave.firstname}</p>
-                <p><strong>Employee Lastname:</strong>  {leave.lastname}</p>
-                <p><strong>Leave From: </strong> {leave.from}</p>
-                <p><strong>Leave To:</strong> {leave.to}</p>
-                <p><strong>Duration:</strong> {leave.duration}</p>
-                <p><strong>Reason:</strong> {leave.reason}</p>
-                <p><strong>Status:</strong> {leave.status}</p>
-            </Config>
-            <Config
-                isConfigOpen={leave.isCreating}
-                configType={"Create Leave Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleCreating(leave.isCreating))}
-                configSecondaryAction={"Create"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(createLeave(leave.applyEmployee, leave.applyReason, leave.applyFrom, leave.applyTo, leave.applyType, leave.applySpan, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="applyEmployee">Employee</label>
-                        <select id="applyEmployee" name="applyEmployee" value={leave.applyEmployee} onChange={(e) => dispatch(updateLeave(e))}>
-                            <option value="">Employee</option>
-                            {leave.employeeList.map((el, i) =>
-                                <option key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                            )}
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="applyFrom">Leave From</label>
-                        <input id="applyFrom" name="applyFrom" type="date" value={leave.applyFrom} onChange={(e) => dispatch(updateLeave(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="applyTo">To</label>
-                        <input id="applyTo" name="applyTo" type="date" value={leave.applyTo} onChange={(e) => dispatch(updateLeave(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="applyReason">Reason</label>
-                        <textarea id="applyReason" name="applyReason" value={leave.applyReason} onChange={(e) => dispatch(updateLeave(e))}></textarea>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="applyType">Leave Type</label>
-                        <select id="applyType" name="applyType" value={leave.applyType} onChange={(e) => dispatch(updateLeave(e))} >
-                            <option value="">Select a leave type</option>
-                            <option value="sick_leave">Sick Leave</option>
-                            <option value="no_pay_leave">No Pay Leave</option>
-                            <option value="annual_leave">Annual Leave</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="applySpan">Span</label>
-                        <select id="applySpan" name="applySpan" value={leave.applySpan} onChange={(e) => dispatch(updateLeave(e))} >
-                            <option value="">Select a span</option>
-                            <option value="half_day">Half Day</option>
-                            <option value="full_day">Full Day</option>
-                        </select>
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={leave.isFiltering}
-                configType={"Search and Filter"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleFiltering(leave.isFiltering))}
-                configSecondaryAction={"Reset"}
-                configSecondaryFunc={() => dispatch(resetQuery())}
-                configSecondaryColor={"grey"}
-                configTertiaryColor={"green"}
-                configTertiaryAction={"Search"}
-                configTertiaryFunc={() => dispatch(fetchLeaveByQuery(leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus, leave.queryEmployeeId))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="queryText">Keywords</label>
-                        <input type="text" id="queryText" name="queryText" value={leave.queryText} onChange={(e) => dispatch(updateLeave(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="queryEmployeeId">Employee</label>
-                        <select id="queryEmployeeId" name="queryEmployeeId" value={leave.queryEmployeeId} onChange={(e) => dispatch(updateLeave(e))} >
-                            <option value="">Employee</option>
-                            {leave.employeeList.map((el, i) =>
-                                <option key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                            )}
-                        </select>
-                    </Form.Field>
-                    <Grid>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryFrom">Date Range From</label>
-                                    <input type="date" id="queryFrom" name="queryFrom" value={leave.queryFrom} onChange={(e) => dispatch(updateLeave(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryTo">Date Range To</label>
-                                    <input type="date" id="queryTo" name="queryTo" value={leave.queryTo} onChange={(e) => dispatch(updateLeave(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryType">Leave Type</label>
-                                    <select id="queryType" name="queryType" value={leave.queryType} onChange={(e) => dispatch(updateLeave(e))}>
-                                        <option value="" hidden>Type</option>
-                                        <option value="half_day">Half Day</option>
-                                        <option value="full_day">Full Day</option>
-                                    </select>
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryStatus">Leave Status</label>
-                                    <select id="queryStatus" name="queryStatus" value={leave.queryStatus} onChange={(e) => dispatch(updateLeave(e))}>
-                                        <option value="" hidden>Status</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="approved">Approved</option>
-                                        <option value="rejected">Rejected</option>
-                                    </select>
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
+        <Grid container>
+            <Grid item xs={12}>
+                <DataGrid
+                    checkboxSelection
+                    paginationMode="server"
+                    disableColumnFilter
+                    pageSize={state.limit}
+                    rowCount={state.rowCount}
+                    rowsPerPageOptions={[25, 50, 100]}
+                    style={{ height: '75vh', width: "100%" }}
+                    rows={state.leaveHistory}
+                    columns={columns}
+                    onSelectionModelChange={(row) => handleSelect(row)}
+                    onPageSizeChange={(size) => changePageSize(size)}
+                    onPageChange={(page) => changePage(page)}
+                    components={{ Toolbar: Toolbar }}
+                    componentsProps={{
+                        toolbar: {
+                            create: toggleCreating,
+                            update: toggleUpdating,
+                            destroy: toggleDeleting,
+                            isUpdateDisabled: state.selectedRow.length < 1,
+                            isDestroyDisabled: state.selectedRow.length < 1,
+                            filterOption: (
+                                <Grid container spacing={1}>
+                                    <Grid item xs={4}>
+                                        <TextField fullWidth variant="standard" size="small" margin="normal" label="Search" name="search" value={state.search} onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={2}>
+                                        <TextField fullWidth variant="standard" select size="small" margin="normal" label="Employee" name="employee" value={state.employee} onChange={handleChange}>
+                                            <MenuItem value="any">Any</MenuItem>
+                                            {state.employeeList.map((el, i) =>
+                                                <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                            )}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={2}>
+                                        <TextField fullWidth variant="standard" select size="small" margin="normal" label="Status" name="status" value={state.status} onChange={handleChange}>
+                                            <MenuItem value="any">Any</MenuItem>
+                                            <MenuItem value="pending">Pending</MenuItem>
+                                            <MenuItem value="approved">Approved</MenuItem>
+                                            <MenuItem value="rejected">Rejected</MenuItem>
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <LocalizationProvider dateAdapter={DateAdapter}>
+                                            <DesktopDateRangePicker
+                                                displayStaticWrapperAs="desktop"
+                                                startText="Date range from"
+                                                endText="Date range to"
+                                                value={state.date}
+                                                onChange={(newValue) => { setState(prevState => { return { ...prevState, date: newValue } }) }}
+                                                renderInput={(startProps, endProps) => (
+                                                    <React.Fragment>
+                                                        <TextField fullWidth variant="standard" margin="normal" size="small"{...startProps} />
+                                                        <Box sx={{ mx: 2 }}> - </Box>
+                                                        <TextField fullWidth variant="standard" margin="normal" size="small" {...endProps} />
+                                                    </React.Fragment>
+                                                )}
+                                            />
+                                        </LocalizationProvider>
+                                    </Grid>
+                                </Grid>
+                            )
+                        }
+                    }}
+                />
+            </Grid>
+            <Modal open={state.isCreating} onClose={toggleCreating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Create Leave Record" subheader="Create specific leave record for an employee" />
+                            <CardContent>
+                                <TextField fullWidth select margin="normal" size="small" label="Employee" name="createEmployee" value={state.createEmployee} onChange={handleChange}>
+                                    {state.employeeList.map((el, i) =>
+                                        <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                    )}
+                                </TextField>
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DesktopDateRangePicker
+                                        displayStaticWrapperAs="desktop"
+                                        startText="Leave from"
+                                        endText="Leave to"
+                                        value={state.createDate}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createDate: newValue } }) }}
+                                        renderInput={(startProps, endProps) => (
+                                            <React.Fragment>
+                                                <TextField fullWidth margin="normal" size="small"{...startProps} />
+                                                <Box sx={{ mx: 2 }}> - </Box>
+                                                <TextField fullWidth margin="normal" size="small" {...endProps} />
+                                            </React.Fragment>
+                                        )}
+                                    />
+                                </LocalizationProvider>
+                                <TextField fullWidth multiline rows={4} margin="normal" size="small" label="Reason" name="createReason" value={state.createReason} onChange={handleChange} />
+                                <TextField fullWidth select margin="normal" size="small" label="Span" name="createSpan" value={state.createSpan} onChange={handleChange}>
+                                    <MenuItem value="half_day">Half Day</MenuItem>
+                                    <MenuItem value="full_day">Full Day</MenuItem>
+                                </TextField>
+                                <TextField fullWidth select margin="normal" size="small" label="Type" name="createType" value={state.createType} onChange={handleChange}>
+                                    <MenuItem value="sick_leave">Sick Leave</MenuItem>
+                                    <MenuItem value="no_pay_leave">No Pay Leave</MenuItem>
+                                </TextField>
+                                <TextField fullWidth select margin="normal" size="small" label="Status" name="createStatus" value={state.createStatus} onChange={handleChange}>
+                                    <MenuItem value="pending">Pending</MenuItem>
+                                    <MenuItem value="approved">Approved</MenuItem>
+                                    <MenuItem value="rejected">Rejected</MenuItem>
+                                </TextField>
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleCreating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={createLeave}>Create</Button>
+                            </CardActions>
+                        </Card>
                     </Grid>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={leave.isBatchUpdating}
-                configType={"Batch Update Leave Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchUpdating(leave.isBatchUpdating))}
-                configSecondaryAction={"Batch Update"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(confirmBatchLeaveUpdate(leave.selectedRecord, leave.batchUpdateDuration, leave.batchUpdateType, leave.batchUpdateStatus, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="batchUpdateDuration">Duration</label>
-                        <select id="batchUpdateDuration" name="batchUpdateDuration" value={leave.batchUpdateDuration} onChange={(e) => dispatch(updateLeave(e))}>
-                            <option value="" hidden>Duration</option>
-                            <option value="half_day">Half Day</option>
-                            <option value="full_day">Full Day</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="batchUpdateType">Type</label>
-                        <select id="batchUpdateType" name="batchUpdateType" value={leave.batchUpdateType} onChange={(e) => dispatch(updateLeave(e))}>
-                            <option value="" hidden>Type</option>
-                            <option value="sick_leave">Sick Leave</option>
-                            <option value="no_pay_leave">No Pay Leave</option>
-                            <option value="annual_leave">Annual Leave</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="batchUpdateStatus">Status</label>
-                        <select id="batchUpdateStatus" name="batchUpdateStatus" value={leave.batchUpdateStatus} onChange={(e) => dispatch(updateLeave(e))}>
-                            <option value="" hidden>Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={leave.isBatchDeleting}
-                configType={"Batch Delete Leave Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchDeleting(leave.isBatchDeleting))}
-                configSecondaryAction={"Delete"}
-                configSecondaryColor={'red'}
-                configSecondaryFunc={() => dispatch(batchDeleteLeave(leave.selectedRecord, leave.currentPage, leave.currentLimit, leave.queryText, leave.queryFrom, leave.queryTo, leave.queryType, leave.queryStatus))}
-            >
-                <p><strong>Are you sure to batch delete leave record?</strong></p>
-                {leave.selectedRecord.map(el =>
-                    <p><strong>ID: </strong>{el}</p>
-                )}
-            </Config>
-        </div>
+                </Grid>
+            </Modal>
+            <Modal open={state.isUpdating} onClose={toggleUpdating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Update Leave Record" />
+                            <CardContent>
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DesktopDateRangePicker
+                                        displayStaticWrapperAs="desktop"
+                                        startText="Leave from"
+                                        endText="Leave to"
+                                        value={state.updateDate}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, updateDate: newValue } }) }}
+                                        renderInput={(startProps, endProps) => (
+                                            <React.Fragment>
+                                                <TextField fullWidth margin="normal" size="small"{...startProps} />
+                                                <Box sx={{ mx: 2 }}> - </Box>
+                                                <TextField fullWidth margin="normal" size="small" {...endProps} />
+                                            </React.Fragment>
+                                        )}
+                                    />
+                                </LocalizationProvider>
+                                <TextField fullWidth multiline rows={4} margin="normal" size="small" label="Reason" name="updateReason" value={state.updateReason} onChange={handleChange} />
+                                <TextField fullWidth select margin="normal" size="small" label="Span" name="updateSpan" value={state.updateSpan} onChange={handleChange}>
+                                    <MenuItem value="half_day">Half Day</MenuItem>
+                                    <MenuItem value="full_day">Full Day</MenuItem>
+                                </TextField>
+                                <TextField fullWidth select margin="normal" size="small" label="Type" name="updateType" value={state.updateType} onChange={handleChange}>
+                                    <MenuItem value="sick_leave">Sick Leave</MenuItem>
+                                    <MenuItem value="no_pay_leave">No Pay Leave</MenuItem>
+                                </TextField>
+                                <TextField fullWidth select margin="normal" size="small" label="Status" name="updateStatus" value={state.updateStatus} onChange={handleChange}>
+                                    <MenuItem value="pending">Pending</MenuItem>
+                                    <MenuItem value="approved">Approved</MenuItem>
+                                    <MenuItem value="rejected">Rejected</MenuItem>
+                                </TextField>
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleUpdating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={updateLeave}>Update</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+            <Modal open={state.isDeleting} onClose={toggleDeleting}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Delete Leave Record" />
+                            <CardContent>
+                                Are you sure?
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleDeleting}>Cancel</Button>
+                                <Button variant="contained" color="error" onClick={deleteLeave}>Delete</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+        </Grid>
     )
 }
 

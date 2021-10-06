@@ -12,73 +12,42 @@ class EmployeeService {
         return employee
     }
 
-    getAllEmployee = async (page, limit, text, position, department, joinFrom, joinTo, status) => {
-        if (!page || page < 0) page = 0;
-        if (!limit || limit <= 0) limit = 10;
-        let currentPage = parseInt(page)
-        let currnetPageStart = parseInt(page) + 1
-        let currentPageEnd = parseInt(page) + parseInt(limit)
-        let currentLimit = parseInt(limit)
-
+    getAllEmployee = async (offset, limit, search, position, department, role, status, salaryFrom, salaryTo, hasOTpay) => {
         const [count] = await this.knex('employee')
-            .count('id')
-            .modify((queryBuilder) => {
-                if (joinTo) {
-                    queryBuilder.where('employee.onboard_date', '<=', joinTo)
-                }
-                if (joinFrom) {
-                    queryBuilder.where('employee.onboard_date', '>=', joinFrom)
-                }
-                if (status) {
-                    queryBuilder.where('employee.status', status)
-                }
-                if (text) {
-                    queryBuilder.whereRaw(`to_tsvector(firstname || ' ' || lastname) @@ plainto_tsquery('${text}')`)
-                }
-                if (position) {
-                    queryBuilder.where('employee.post_id', position)
-                }
-                if (department) {
-                    queryBuilder.where('employee.dept_id', department)
-                }
+            .leftJoin('departments', 'employee.dept_id', 'departments.id')
+            .leftJoin('positions', 'employee.post_id', 'positions.id')
+            .modify(qb => {
+                if (hasOTpay || hasOTpay === false) qb.where('employee.ot_pay_entitled', '=', hasOTpay)
+                if (salaryFrom && salaryTo) qb.whereBetween('employee.salary_monthly', [salaryFrom, salaryTo])
+                if (status) qb.where('employee.status', '=', status)
+                if (role) qb.where('employee.role', '=', role)
+                if (department) qb.where('employee.dept_id', '=', department)
+                if (position) qb.where('employee.post_id', '=', position)
+                if (search) qb.whereRaw(`to_tsvector(employee.id || ' ' || employee.post_id || ' ' || employee.dept_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || employee.address || ' ' || employee.phone_number || ' ' || employee.emergency_contact_person || ' ' || employee.emergency_contact_number || ' ' || employee.onboard_date || ' ' || employee.status || ' ' || employee.created_at || ' ' || employee.updated_at || ' ' || employee.role || ' ' || employee.start_hour || ' ' || employee.end_hour || ' ' || employee.salary_monthly || ' ' || employee.ot_pay_entitled || ' ' || employee.ot_hourly_salary || ' ' || employee.annual_leave_count || ' ' || departments.name || ' ' || positions.post) @@ plainto_tsquery(${search})`)
             })
+            .count()
 
         const employee = await this.knex('employee')
             .leftJoin('departments', 'employee.dept_id', 'departments.id')
             .leftJoin('positions', 'employee.post_id', 'positions.id')
             .select(['employee.id', 'employee.post_id', 'employee.dept_id', 'employee.firstname', 'employee.lastname', 'employee.address', 'employee.phone_number', 'employee.emergency_contact_person', 'employee.emergency_contact_number', 'employee.onboard_date', 'employee.status', 'employee.created_at', 'employee.updated_at', 'employee.role', 'employee.start_hour', 'employee.end_hour', 'employee.salary_monthly', 'employee.ot_pay_entitled', 'employee.ot_hourly_salary', 'employee.annual_leave_count', 'departments.name', 'positions.post'])
-            .limit(currentLimit)
-            .offset(currentPage)
-            .orderBy('employee.id')
-            .modify((queryBuilder) => {
-                if (joinTo) {
-                    queryBuilder.where('employee.onboard_date', '<=', joinTo)
-                }
-                if (joinFrom) {
-                    queryBuilder.where('employee.onboard_date', '>=', joinFrom)
-                }
-                if (status) {
-                    queryBuilder.where('employee.status', status)
-                }
-                if (text) {
-                    queryBuilder.whereRaw(`to_tsvector(firstname || ' ' || lastname) @@ plainto_tsquery('${text}')`)
-                }
-                if (position) {
-                    queryBuilder.where('employee.post_id', position)
-                }
-                if (department) {
-                    queryBuilder.where('employee.dept_id', department)
-                }
+            .modify(qb => {
+                if (hasOTpay || hasOTpay === false) qb.where('employee.ot_pay_entitled', '=', hasOTpay)
+                if (salaryFrom && salaryTo) qb.whereBetween('employee.salary_monthly', [salaryFrom, salaryTo])
+                if (status) qb.where('employee.status', '=', status)
+                if (role) qb.where('employee.role', '=', role)
+                if (department) qb.where('employee.dept_id', '=', department)
+                if (position) qb.where('employee.post_id', '=', position)
+                if (search) qb.whereRaw(`to_tsvector(employee.id || ' ' || employee.post_id || ' ' || employee.dept_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || employee.address || ' ' || employee.phone_number || ' ' || employee.emergency_contact_person || ' ' || employee.emergency_contact_number || ' ' || employee.onboard_date || ' ' || employee.status || ' ' || employee.created_at || ' ' || employee.updated_at || ' ' || employee.role || ' ' || employee.start_hour || ' ' || employee.end_hour || ' ' || employee.salary_monthly || ' ' || employee.ot_pay_entitled || ' ' || employee.ot_hourly_salary || ' ' || employee.annual_leave_count || ' ' || departments.name || ' ' || positions.post) @@ plainto_tsquery(${search})`)
             })
+            .limit(parseInt(limit))
+            .offset(parseInt(offset) * parseInt(limit))
+            .orderBy('employee.id')
 
         const positions = await this.knex('positions').select()
         const departments = await this.knex('departments').select(['id', 'name'])
 
-        if (currentPageEnd >= count.count) {
-            currentPageEnd = parseInt(count.count)
-        }
-
-        return { employee: employee, count: count.count, currentPage: currentPage, currentPageStart: currnetPageStart, currentPageEnd: currentPageEnd, currentLimit: currentLimit, positions: positions, departments: departments }
+        return { employee: employee, count: count, positions: positions, departments: departments }
     }
 
     createEmployee = async (username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, salary_monthly, start_hour, end_hour, post_id, dept_id, ot_hourly_salary, ot_pay_entitled) => {

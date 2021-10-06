@@ -25,16 +25,12 @@ class LeaveController {
 
     getAllLeave = async (req, res) => {
         try {
-            const { page, from, to, type, status, text, limit, employee_id } = req.query
-            const data = await this.LeaveService.getAllLeave(page, from, to, type, status, text, limit, employee_id);
+            const { offset, limit, search, employee, dateFrom, dateTo, status } = req.query
+            const query = await this.LeaveService.getAllLeave(offset, limit, search, employee, dateFrom, dateTo, status);
             return res.status(200).json({
-                leave: data.leave,
-                employee: data.employee,
-                currentPage: data.currentPage,
-                currentPageStart: data.currentPageStart,
-                currentPageEnd: data.currentPageEnd,
-                pageLength: data.pageLength,
-                currentLimit: data.currentLimit
+                leave: query.leave,
+                employee: query.employee,
+                rowCount: query.count
             });
         } catch (err) {
             console.log(err)
@@ -80,11 +76,10 @@ class LeaveController {
 
     updateLeave = async (req, res) => {
         try {
-            let { status, duration, type, ids } = req.body;
-            if (!Array.isArray(ids)) ids = [ids];
-            const leave = await this.LeaveService.updateLeave(ids, duration, type, status);
+            let { status, duration, type, id } = req.body
+            const leave = await this.LeaveService.updateLeave(id, duration, type, status);
             res.status(200).json({
-                success: `Successfully updated leave record`
+                success: `Successfully updated leave record!`
             })
         } catch (err) {
             console.log(err)

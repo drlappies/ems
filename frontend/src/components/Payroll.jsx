@@ -1,421 +1,438 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { useSelector, useDispatch } from 'react-redux'
-import { fetchPayroll, updatePayroll, generatePayroll, fetchNextPayrollPage, fetchPreviousPayrollPage, toggleCreating, toggleViewing, toggleDeleting, handleDelete, toggleBatchUpdating, handleSelect, handleBatchDelete, handleBatchUpdate, toggleBatchDeleting, handleEntriesChange, toggleFiltering, resetQuery, handleSearch, toggleUpdating, handleUpdate, handleSelectAll, togglePrinting } from '../actions/payroll';
-import { Grid, Button, Header, Table, Form } from 'semantic-ui-react'
-import TableHeader from './TableHeader'
-import TableBody from './TableBody'
-import TableFooter from './TableFooter'
-import Config from './Config'
+import { useDispatch, useSelector } from 'react-redux'
+import { popMessage } from '../actions/ui';
+import { DataGrid } from '@mui/x-data-grid';
+import Toolbar from './Toolbar';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Modal from '@mui/material/Modal';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Button from '@mui/material/Button';
+import DateAdapter from '@mui/lab/AdapterMoment';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import DesktopDateRangePicker from '@mui/lab/DesktopDateRangePicker';
+import DesktopDatePicker from '@mui/lab/DesktopDatePicker';
+import FormLabel from '@mui/material/FormLabel';
+import FormControl from '@mui/material/FormControl';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Box from '@mui/material/Box';
+import LocalPrintshopOutlinedIcon from '@mui/icons-material/LocalPrintshopOutlined';
+import axios from 'axios'
 import Payslip from './Payslip'
-import '../css/main.css'
 
 function Payroll() {
     const componentRef = useRef();
     const dispatch = useDispatch()
-    const payroll = useSelector(state => state.payroll)
     const auth = useSelector(state => state.auth)
-    const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
-    });
+    const handlePrint = useReactToPrint({ content: () => componentRef.current, });
+    const [state, setState] = useState({
+        payrollHistory: [],
+        employeeList: [],
+        selectedRow: [],
+        offset: 0,
+        limit: 25,
+        rowCount: 0,
+        search: "",
+        employee: "any",
+        status: "any",
+        date: [null, null],
+        amountFrom: null,
+        amountTo: null,
+        isCreating: false,
+        createEmployee: "",
+        createDate: [null, null],
+        createPayday: null,
+        createIsDeductCaled: true,
+        createIsBonusCaled: true,
+        createIsAllowanceCaled: true,
+        createIsOTcaled: true,
+        createIsReimbursementCaled: true,
+        createIsLeaveCaled: true,
+        isUpdating: false,
+        updateStatus: "",
+        isDeleting: false,
+        isPrinting: false,
+        toBePrinted: []
+    })
 
-    useEffect(() => {
-        dispatch(fetchPayroll())
+    const columns = [
+        { field: 'id', headerName: 'ID' },
+        { field: 'employee_id', headerName: 'Employee ID' },
+        { field: 'firstname', headerName: 'Firstname' },
+        { field: 'lastname', headerName: 'Lastname' },
+        { field: 'from', headerName: 'From' },
+        { field: 'to', headerName: 'To' },
+        { field: 'payday', headerName: 'Payday' },
+        { field: 'basic_salary', headerName: 'Gross' },
+        { field: "mpf_deduction", headerName: "MPF" },
+        { field: 'amount', headerName: 'Amount' },
+        { field: 'status', headerName: 'Status' },
+    ]
+
+    const fetchPayroll = useCallback(async (offset, limit, search, employee, status, date, amountFrom, amountTo) => {
+        try {
+            const res = await axios.get('/api/payroll', {
+                params: {
+                    offset: offset,
+                    limit: limit,
+                    search: search,
+                    employee: employee === 'any' ? null : employee,
+                    status: status === 'any' ? null : status,
+                    dateFrom: date[0] ? date[0].format('YYYY-MM-DD') : null,
+                    dateTo: date[1] ? date[1].format('YYYY-MM-DD') : null,
+                    amountFrom: amountFrom,
+                    amountTo: amountTo,
+                }
+            })
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    payrollHistory: res.data.payroll.map(el => {
+                        return {
+                            ...el,
+                            from: `${new Date(el.from).getDate().toString().padStart(2, 0)}/${(new Date(el.from).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.from).getFullYear()}`,
+                            to: `${new Date(el.to).getDate().toString().padStart(2, 0)}/${(new Date(el.to).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.to).getFullYear()}`,
+                            payday: `${new Date(el.payday).getDate().toString().padStart(2, 0)}/${(new Date(el.payday).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.payday).getFullYear()}`
+                        }
+                    }),
+                    employeeList: res.data.employee,
+                    rowCount: parseInt(res.data.rowCount.count),
+                    isCreating: false,
+                    createEmployee: "",
+                    createDate: [null, null],
+                    createPayday: null,
+                    createIsDeductCaled: true,
+                    createIsBonusCaled: true,
+                    createIsAllowanceCaled: true,
+                    createIsOTcaled: true,
+                    createIsReimbursementCaled: true,
+                    createIsLeaveCaled: true,
+                    isUpdating: false,
+                    updateStatus: "",
+                    isDeleting: false,
+                    isPrinting: false,
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
     }, [dispatch])
 
+    const createPayroll = useCallback(async () => {
+        try {
+            const body = {
+                employee_id: state.createEmployee,
+                starting_date: state.createDate[0] ? state.createDate[0].format('YYYY-MM-DD') : null,
+                ending_date: state.createDate[1] ? state.createDate[1].format('YYYY-MM-DD') : null,
+                payday: state.createPayday ? state.createPayday.format('YYYY-MM-DD') : null,
+                isDeductCaled: state.createIsDeductCaled,
+                isBonusCaled: state.createIsBonusCaled,
+                isAllowanceCaled: state.createIsAllowanceCaled,
+                isOTcaled: state.createIsOTcaled,
+                isReimbursementCaled: state.createIsReimbursementCaled,
+                isLeaveCaled: state.createIsLeaveCaled
+            }
+            const res = await axios.post('/api/payroll', body)
+            dispatch(popMessage(res.data.success, 'success'))
+            return fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchPayroll, state.amountFrom, state.amountTo, state.createDate, state.createEmployee, state.createIsAllowanceCaled, state.createIsBonusCaled, state.createIsDeductCaled, state.createIsLeaveCaled, state.createIsOTcaled, state.createIsReimbursementCaled, state.createPayday, state.date, state.employee, state.limit, state.offset, state.search, state.status])
+
+    const updatePayroll = useCallback(async () => {
+        try {
+            const body = {
+                id: state.selectedRow,
+                status: state.updateStatus
+            }
+            const res = await axios.put('/api/payroll', body)
+            dispatch(popMessage(res.data.success, 'success'))
+            return fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchPayroll, state.amountFrom, state.amountTo, state.date, state.employee, state.limit, state.offset, state.search, state.selectedRow, state.status, state.updateStatus])
+
+    const deletePayroll = useCallback(async () => {
+        try {
+            const res = await axios.delete(`/api/payroll/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            dispatch(popMessage(res.data.success, 'success'))
+            return fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchPayroll, state.amountFrom, state.amountTo, state.date, state.employee, state.limit, state.offset, state.search, state.selectedRow, state.status])
+
+    const togglePrinting = useCallback(async () => {
+        try {
+            if (state.isPrinting) {
+                return setState(prevState => { return { ...prevState, toBePrinted: [], isPrinting: false } })
+            } else {
+                state.selectedRow.forEach(async (el) => {
+                    const res = await axios.get(`/api/payroll/${el}`)
+                    setState(prevState => { return { ...prevState, toBePrinted: prevState.toBePrinted.concat(res.data), isPrinting: true } })
+                })
+            }
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, state.isPrinting, state.selectedRow])
+
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
+    const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
+    const toggleUpdating = () => { setState(prevState => { return { ...prevState, isUpdating: !prevState.isUpdating } }) }
+    const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
+    const handleChange = (e) => {
+        let { name, value, type, checked } = e.target;
+        if (type === 'checkbox') value = checked
+        setState(prevState => { return { ...prevState, [name]: value } })
+    }
+
+    useEffect(() => {
+        fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
+    }, [fetchPayroll, state.limit, state.offset, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo])
+
+
+
     return (
-        <div className="record">
-            <Grid>
-                <Grid.Row>
-                    <Grid.Column>
-                        <Header>Employee Payroll Management</Header>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row columns="1">
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" color="blue" disabled={payroll.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchUpdating(payroll.isBatchUpdating))}>Batch Update</Button>
-                        <Button size="tiny" color="red" disabled={payroll.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(payroll.isBatchDeleting))}>Batch Delete</Button>
-                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(payroll.isFiltering))}>Filter</Button>
-                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(payroll.isCreating))}>Generate Payroll</Button>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row>
-                    <Grid.Column>
-                        <Table celled compact selectable size="small">
-                            <TableHeader
-                                header={['ID', 'Employee ID', 'Firstname', 'Lastname', 'Payroll Period From', 'To', 'Payday', 'Total Amount', 'Status', 'Actions']}
-                                checkFunc={(e) => dispatch(handleSelectAll(e, payroll.record))}
-                                isChecked={payroll.isAllSelected}
-                            />
-                            <TableBody
-                                data={payroll.record}
-                                primaryAction={"View"}
-                                primaryActionColor={"olive"}
-                                primaryFunc={(e) => dispatch(toggleViewing(e.target.value))}
-                                secondaryAction={"Update"}
-                                secondaryActionColor={"blue"}
-                                secondaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
-                                tertiaryAction={"Delete"}
-                                tertiaryActionColor={"red"}
-                                tertiaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
-                                checkFunc={(e) => dispatch(handleSelect(e))}
-                                checkedRows={payroll.selectedRecord}
-                            />
-                            <TableFooter
-                                colSpan={11}
-                                pageStart={payroll.currentPageStart}
-                                pageEnd={payroll.currentPageEnd}
-                                pageTotal={payroll.pageLength}
-                                onNext={() => dispatch(fetchNextPayrollPage(payroll.currentLimit, payroll.currentPage, payroll.pageLength, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
-                                onPrevious={() => dispatch(fetchPreviousPayrollPage(payroll.currentLimit, payroll.currentPage, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
-                                entriesNum={payroll.currentLimit}
-                                entriesFunc={(e) => dispatch(handleEntriesChange(e.target.value, payroll.currentPage, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
-                            />
-                        </Table>
-                    </Grid.Column>
-                </Grid.Row>
-            </Grid>
-            <Config
-                isConfigOpen={payroll.isViewing}
-                configType={"Payroll Details"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleViewing())}
-                configSecondaryAction={"Payslip"}
-                configSecondaryFunc={() => dispatch(togglePrinting(payroll.isPrinting))}
-                configSecondaryColor={"green"}
-            >
-                <p><strong>Payroll id:</strong> {payroll.payrollId}</p>
-                <p><strong>Employee id:</strong> {payroll.employeeId}</p>
-                <p><strong>Employee Firstname:</strong> {payroll.firstname}</p>
-                <p><strong>Employee Lastname:</strong> {payroll.lastname}</p>
-                <p><strong>Payoll Period:</strong> From {new Date(payroll.from).getFullYear()}-{new Date(payroll.from).getMonth() + 1}-{new Date(payroll.from).getDate()} to {new Date(payroll.to).getFullYear()}-{new Date(payroll.to).getMonth() + 1}-{new Date(payroll.to).getDate()}</p>
-                <p><strong>Payday:</strong> {new Date(payroll.payday).getFullYear()}-{new Date(payroll.payday).getMonth() + 1}-{new Date(payroll.payday).getDate()}</p>
-                <p><strong>Basic Salary:</strong> {payroll.basicSalary}</p>
-                <p><strong>Total Amount:</strong> {payroll.amount}</p>
-                <p><strong>Overtime Pay:</strong> {payroll.overtime}</p>
-                <p><strong>Reimbursement:</strong> {payroll.reimbursement}</p>
-                <p><strong>Allowance:</strong> {payroll.allowance}</p>
-                <p><strong>Bonus:</strong> {payroll.bonus}</p>
-                <p><strong>Deduction:</strong> {payroll.deduction}</p>
-                <p><strong>MPF (Employee Voluntary):</strong> {payroll.mpfDeduction}</p>
-            </Config>
-            <Config
-                isConfigOpen={payroll.isCreating}
-                configType={"Generate Payroll Report"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleCreating(payroll.isCreating))}
-                configSecondaryAction={"Generate Payroll"}
-                configSecondaryFunc={() => dispatch(generatePayroll(payroll.employeeId, payroll.starting, payroll.ending, payroll.payday, payroll.isOTcaled, payroll.isLeaveCaled, payroll.isDeductCaled, payroll.isBonusCaled, payroll.isAllowanceCaled, payroll.isReimbursementCaled, payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
-                configSecondaryColor={'green'}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="employeeId">Employee</label>
-                        <select id="employeeId" name="employeeId" value={payroll.employeeId} onChange={(e) => dispatch(updatePayroll(e))}>
-                            <option value="">Select employee</option>
-                            {payroll.employeeList.map((el, i) =>
-                                <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                            )}
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="starting">Payroll Period From</label>
-                        <input id="starting" name="starting" type="date" onChange={(e) => dispatch(updatePayroll(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="ending">To</label>
-                        <input id="ending" name="ending" type="date" onChange={(e) => dispatch(updatePayroll(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="payday">Payday</label>
-                        <input type="date" id="payday" name="payday" onChange={(e) => dispatch(updatePayroll(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="isOTcaled">Calculate Employee Overtime Pay?</label>
-                        <input id="isOTcaled" name="isOTcaled" type="checkbox" onChange={(e) => dispatch(updatePayroll(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="isLeaveCaled">Calculate Employee Leave Deduction?</label>
-                        <input id="isLeaveCaled" name="isLeaveCaled" type="checkbox" onChange={(e) => dispatch(updatePayroll(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="isDeductCaled">Calculate Employee Deduction?</label>
-                        <input id="isDeductCaled" name="isDeductCaled" type="checkbox" onChange={(e) => dispatch(updatePayroll(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="isBonusCaled">Calculate Employee Bonus?</label>
-                        <input id="isBonusCaled" name="isBonusCaled" type="checkbox" onChange={(e) => dispatch(updatePayroll(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="isAllowanceCaled">Calculate Employee Allowance?</label>
-                        <input id="isAllowanceCaled" name="isAllowanceCaled" type="checkbox" onChange={(e) => dispatch(updatePayroll(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="isReimbursementCaled">Calculate Employee Reimbursement?</label>
-                        <input id="isReimbursementCaled" name="isReimbursementCaled" type="checkbox" onChange={(e) => dispatch(updatePayroll(e))} />
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={payroll.isDeleting}
-                configType={"Delete Payroll Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleDeleting())}
-                configSecondaryAction={"Delete"}
-                configSecondaryFunc={() => dispatch(handleDelete(payroll.payrollId, payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
-                configSecondaryColor={'red'}
-            >
-                <p><strong>Are you sure to delete the following payroll record?</strong></p>
-                <p><strong>Payroll id:</strong> {payroll.payrollId}</p>
-                <p><strong>Employee id:</strong> {payroll.employeeId}</p>
-                <p><strong>Employee Firstname:</strong> {payroll.firstname}</p>
-                <p><strong>Employee Lastname:</strong> {payroll.lastname}</p>
-                <p><strong>Payoll Period:</strong> From {new Date(payroll.from).getFullYear()}-{new Date(payroll.from).getMonth() + 1}-{new Date(payroll.from).getDate()} to {new Date(payroll.to).getFullYear()}-{new Date(payroll.to).getMonth() + 1}-{new Date(payroll.to).getDate()}</p>
-                <p><strong>Payroll Amount:</strong> {payroll.amount}</p>
-                <p><strong>Overtime Pay:</strong> {payroll.overtime}</p>
-                <p><strong>Reimbursement:</strong> {payroll.reimbursement}</p>
-                <p><strong>Allowance:</strong> {payroll.allowance}</p>
-                <p><strong>Bonus:</strong> {payroll.bonus}</p>
-                <p><strong>Deduction:</strong> {payroll.deduction}</p>
-            </Config>
-            <Config
-                configType={"Generate Batch Payroll Report"}
-                configPrimaryAction={"Cancel"}
-            />
-            <Config
-                isConfigOpen={payroll.isBatchUpdating}
-                configType={"Batch Update Payroll"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchUpdating(payroll.isBatchUpdating))}
-                configSecondaryAction={"Update"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(handleBatchUpdate(payroll.selectedRecord, payroll.updateBatchPayrollStatus, payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="updateBatchPayrollStatus">Status</label>
-                        <select id="updateBatchPayrollStatus" name="updateBatchPayrollStatus" value={payroll.updateBatchPayrollStatus} onChange={(e) => dispatch(updatePayroll(e))}>
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                        </select>
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={payroll.isBatchDeleting}
-                configType={"Batch Delete Payroll"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchDeleting(payroll.isBatchDeleting))}
-                configSecondaryAction={"Delete"}
-                configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(handleBatchDelete(payroll.selectedRecord))}
-            >
-                <p><strong>Are you sure to delete the following payroll records?</strong></p>
-                {payroll.selectedRecord.map((el, i) =>
-                    <p key={i}><strong>ID:</strong> {el}</p>
-                )}
-            </Config>
-            <Config
-                isConfigOpen={payroll.isFiltering}
-                configType={"Search and Filter"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleFiltering(payroll.isFiltering))}
-                configSecondaryAction={"Reset"}
-                configSecondaryColor={"grey"}
-                configSecondaryFunc={() => dispatch(resetQuery(payroll.currentPage, payroll.currentLimit))}
-                configTertiaryColor={"green"}
-                configTertiaryAction={"Search"}
-                configTertiaryFunc={() => dispatch(handleSearch(payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryPaydayFrom, payroll.queryPaydayTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
-            >
-                <Form>
-                    <Grid>
-                        <Grid.Row>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryText">Keywords</label>
-                                    <input id="queryText" name="queryText" value={payroll.queryText} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryEmployeeId">Employee</label>
-                                    <select id="queryEmployeeId" name="queryEmployeeId" value={payroll.queryEmployeeId} onChange={(e) => dispatch(updatePayroll(e))}>
-                                        <option value="">Any employee</option>
-                                        {payroll.employeeList.map((el, i) =>
-                                            <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                                        )}
-                                    </select>
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row >
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryStatus">Status</label>
-                                    <select id="queryStatus" name="queryStatus" value={payroll.queryStatus} onChange={(e) => dispatch(updatePayroll(e))}>
-                                        <option value="">Any status</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="confirmed">Confirmed</option>
-                                    </select>
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryFrom">Date from</label>
-                                    <input id="queryFrom" name="queryFrom" type="date" value={payroll.queryFrom} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryTo">Date to</label>
-                                    <input id="queryTo" name="queryTo" type="date" value={payroll.queryTo} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryPaydayFrom">Payday From</label>
-                                    <input type="date" id="queryPaydayFrom" name="queryPaydayFrom" value={payroll.queryPaydayFrom} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryPaydayTo">Payday To</label>
-                                    <input type="date" id="queryPaydayTo" name="queryPaydayTo" value={payroll.queryPaydayTo} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryAmountFrom">Amount From </label>
-                                    <input id="queryAmountFrom" name="queryAmountFrom" type="number" value={payroll.queryAmountFrom} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryAmountTo">Amount To</label>
-                                    <input id="queryAmountTo" name="queryAmountTo" type="number" value={payroll.queryAmountTo} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="3">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryIsReimbursementCaled">Is Reimbursement Calculated?</label>
-                                    <input id="queryIsReimbursementCaled" name="queryIsReimbursementCaled" type="checkbox" checked={payroll.queryIsReimbursementCaled} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryIsAllowanceCaled">Is Allowance Calculated?</label>
-                                    <input id="queryIsAllowanceCaled" name="queryIsAllowanceCaled" type="checkbox" checked={payroll.queryIsAllowanceCaled} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryIsDeductionCaled">Is Deduction Calculated?</label>
-                                    <input id="queryIsDeductionCaled" name="queryIsDeductionCaled" type="checkbox" checked={payroll.queryIsDeductionCaled} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="3">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryIsBonusCaled">Is Bonus Calculated?</label>
-                                    <input id="queryIsBonusCaled" name="queryIsBonusCaled" type="checkbox" checked={payroll.queryIsBonusCaled} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryIsOvertimeCaled">Is Overtime Calculated?</label>
-                                    <input id="queryIsOvertimeCaled" name="queryIsOvertimeCaled" type="checkbox" checked={payroll.queryIsOvertimeCaled} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryIsLeaveCaled">Is Leave Calculated?</label>
-                                    <input id="queryIsLeaveCaled" name="queryIsLeaveCaled" type="checkbox" checked={payroll.queryIsLeaveCaled} onChange={(e) => dispatch(updatePayroll(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                    </Grid>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={payroll.isUpdating}
-                configType={"Update Payroll Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleUpdating())}
-                configSecondaryAction={"Update"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(handleUpdate(payroll.payrollId, payroll.status, payroll.currentPage, payroll.currentLimit, payroll.queryFrom, payroll.queryTo, payroll.queryText, payroll.queryStatus, payroll.queryAmountFrom, payroll.queryAmountTo, payroll.queryEmployeeId, payroll.queryIsReimbursementCaled, payroll.queryIsAllowanceCaled, payroll.queryIsDeductionCaled, payroll.queryIsBonusCaled, payroll.queryIsOvertimeCaled, payroll.queryIsLeaveCaled))}
-            >
-                <p><strong>Payroll ID:</strong> {payroll.payrollId}</p>
-                <p><strong>Employee ID:</strong> {payroll.employeeId}</p>
-                <p><strong>Employee Name:</strong> {payroll.firstname} {payroll.lastname}</p>
-                <p><strong>Employee Firstname:</strong> {payroll.firstname}</p>
-                <p><strong>Employee Lastname:</strong> {payroll.lastname}</p>
-                <p><strong>Amount:</strong> {payroll.amount}</p>
-                <p><strong>Date From:</strong> {new Date(payroll.from).getFullYear()} - {new Date(payroll.from).getMonth() + 1} - {new Date(payroll.from).getDate()}</p>
-                <p><strong>Date To:</strong> {new Date(payroll.to).getFullYear()} - {new Date(payroll.to).getMonth() + 1} - {new Date(payroll.to).getDate()}</p>
-                <p><strong>Reimbursement:</strong> {payroll.reimbursement}</p>
-                <p><strong>Allowance:</strong> {payroll.allowance}</p>
-                <p><strong>Deduction:</strong> {payroll.deduction}</p>
-                <p><strong>Bonus:</strong> {payroll.bonus}</p>
-                <p><strong>Overtime:</strong> {payroll.overtime}</p>
-                <p><strong>Is Reimbursement Calculated?</strong> {payroll.isReimbursementCaled ? "Yes" : "No"} </p>
-                <p><strong>Is Allowance Calculated?</strong> {payroll.isAllowanceCaled ? "Yes" : "No"}</p>
-                <p><strong>Is Bonus Calculated?</strong> {payroll.isBonusCaled ? "Yes" : "No"}</p>
-                <p><strong>Is Deduction Caculated?</strong> {payroll.isDeductCaled ? "Yes" : "No"}</p>
-                <p><strong>Is Leave Calculated?</strong> {payroll.isLeaveCaled ? "Yes" : "No"}</p>
-                <p><strong>Is Overtime Calculated?</strong> {payroll.isOTcaled ? "Yes" : "No"}</p>
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="status">Payroll Status:</label>
-                        <select id="status" name="status" value={payroll.status} onChange={(e) => dispatch(updatePayroll(e))}>
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                        </select>
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={payroll.isPrinting}
-                configPrimaryAction={"Cancel"}
-                configType={"Generate Payslip"}
-                configPrimaryFunc={() => dispatch(togglePrinting(payroll.isPrinting))}
-                configSecondaryAction={"Print"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={handlePrint}
-            >
-                <Payslip
-                    ref={componentRef}
-                    payrollId={payroll.payrollId}
-                    employeeId={payroll.employeeId}
-                    employeeFirstname={payroll.firstname}
-                    employeeLastname={payroll.lastname}
-                    payrollFrom={payroll.from}
-                    payrollTo={payroll.to}
-                    payday={payroll.payday}
-                    basicAmount={payroll.basicSalary}
-                    totalAmount={payroll.amount}
-                    overtimeAmount={payroll.overtime}
-                    reimbursementAmount={payroll.reimbursement}
-                    allowanceAmount={payroll.allowance}
-                    mpf={payroll.mpfDeduction}
-                    bonusAmount={payroll.bonus}
-                    deductionAmount={payroll.deduction}
-                    approvalFirstname={auth.firstname}
-                    approvalLastname={auth.lastname}
+        <Grid container>
+            <Grid item xs={12}>
+                <DataGrid
+                    paginationMode="server"
+                    checkboxSelection
+                    disableColumnFilter
+                    rows={state.payrollHistory}
+                    columns={columns}
+                    pageSize={state.limit}
+                    rowCount={state.rowCount}
+                    rowsPerPageOptions={[25, 50, 100]}
+                    style={{ height: '75vh', width: "100%" }}
+                    onSelectionModelChange={(row) => handleSelect(row)}
+                    onPageSizeChange={(size) => changePageSize(size)}
+                    onPageChange={(page) => changePage(page)}
+                    components={{ Toolbar: Toolbar }}
+                    componentsProps={{
+                        toolbar: {
+                            create: toggleCreating,
+                            update: toggleUpdating,
+                            destroy: toggleDeleting,
+                            isUpdateDisabled: state.selectedRow.length < 1,
+                            isDestroyDisabled: state.selectedRow.length < 1,
+                            actions: <Button
+                                size="small"
+                                startIcon={<LocalPrintshopOutlinedIcon />}
+                                disabled={state.selectedRow.length < 1}
+                                onClick={togglePrinting}
+                            >
+                                Print
+                            </Button>,
+                            filterOption: (
+                                <Grid container spacing={2}>
+                                    <Grid item xs={4}>
+                                        <TextField fullWidth variant="standard" size="small" label="Search" name="search" value={state.search} onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={2}>
+                                        <TextField fullWidth variant="standard" select size="small" label="Employee" name="employee" value={state.employee} onChange={handleChange}>
+                                            <MenuItem value="any">Any</MenuItem>
+                                            {state.employeeList.map((el, i) =>
+                                                <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                            )}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={2}>
+                                        <TextField fullWidth variant="standard" select size="small" label="Status" name="status" value={state.status} onChange={handleChange}>
+                                            <MenuItem value="any">Any</MenuItem>
+                                            <MenuItem value="pending">Pending</MenuItem>
+                                            <MenuItem value="confirmed">Confirmed</MenuItem>
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <LocalizationProvider dateAdapter={DateAdapter}>
+                                            <DesktopDateRangePicker
+                                                displayStaticWrapperAs="desktop"
+                                                startText="Date range from"
+                                                endText="Date range to"
+                                                value={state.date}
+                                                onChange={(newValue) => { setState(prevState => { return { ...prevState, date: newValue } }) }}
+                                                renderInput={(startProps, endProps) => (
+                                                    <React.Fragment>
+                                                        <TextField fullWidth variant="standard" size="small"{...startProps} />
+                                                        <Box sx={{ mx: 2 }}> - </Box>
+                                                        <TextField fullWidth variant="standard" size="small" {...endProps} />
+                                                    </React.Fragment>
+                                                )}
+                                            />
+                                        </LocalizationProvider>
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField fullWidth size="small" variant="standard" label="Amount range from" type="number" name="amountFrom" value={state.amountFrom} onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField fullWidth size="small" variant="standard" label="Amount range to" type="number" name="amountTo" value={state.amountTo} onChange={handleChange} />
+                                    </Grid>
+                                </Grid>
+                            )
+                        }
+                    }}
                 />
-            </Config>
-        </div >
+            </Grid>
+            <Modal open={state.isCreating} onClose={toggleCreating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Generate Payroll" />
+                            <CardContent>
+                                <TextField fullWidth select margin="normal" size="small" label="Employee" name="createEmployee" value={state.createEmployee} onChange={handleChange}>
+                                    {state.employeeList.map((el, i) =>
+                                        <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                    )}
+                                </TextField>
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DesktopDateRangePicker
+                                        displayStaticWrapperAs="desktop"
+                                        startText="From"
+                                        endText="To"
+                                        value={state.createDate}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createDate: newValue } }) }}
+                                        renderInput={(startProps, endProps) => (
+                                            <React.Fragment>
+                                                <TextField fullWidth margin="normal" size="small"{...startProps} />
+                                                <Box sx={{ mx: 2 }}> - </Box>
+                                                <TextField fullWidth margin="normal" size="small" {...endProps} />
+                                            </React.Fragment>
+                                        )}
+                                    />
+                                    <DesktopDatePicker
+                                        label="Payday"
+                                        value={state.createPayday}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createPayday: newValue } }) }}
+                                        renderInput={(params) => <TextField fullWidth margin="normal" size="small"{...params} />}
+                                    />
+                                </LocalizationProvider>
+                                <FormControl component="fieldset" variant="standard">
+                                    <FormLabel component="legend">Payroll Calculation</FormLabel>
+                                    <FormGroup row>
+                                        <FormControlLabel
+                                            control={<Checkbox checked={state.createIsDeductCaled} onChange={handleChange} name="createIsDeductCaled" />}
+                                            label="Deduction"
+                                        />
+                                        <FormControlLabel
+                                            control={<Checkbox checked={state.createIsBonusCaled} onChange={handleChange} name="createIsBonusCaled" />}
+                                            label="Bonus"
+                                        />
+                                        <FormControlLabel
+                                            control={<Checkbox checked={state.createIsAllowanceCaled} onChange={handleChange} name="createIsAllowanceCaled" />}
+                                            label="Allowance"
+                                        />
+                                        <FormControlLabel
+                                            control={<Checkbox checked={state.createIsOTcaled} onChange={handleChange} name="createIsOTcaled" />}
+                                            label="Overtime"
+                                        />
+                                        <FormControlLabel
+                                            control={<Checkbox checked={state.createIsReimbursementCaled} onChange={handleChange} name="createIsReimbursementCaled" />}
+                                            label="Reimbursement"
+                                        />
+                                        <FormControlLabel
+                                            control={<Checkbox checked={state.createIsLeaveCaled} onChange={handleChange} name="createIsLeaveCaled" />}
+                                            label="Leave"
+                                        />
+                                    </FormGroup>
+                                </FormControl>
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleCreating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={createPayroll}>Create</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+            <Modal open={state.isUpdating} onClose={toggleUpdating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Update Payroll Record" />
+                            <CardContent>
+                                <TextField fullWidth select margin="normal" size="small" label="Status" name="updateStatus" value={state.updateStatus} onChange={handleChange}>
+                                    <MenuItem value="pending">Pending</MenuItem>
+                                    <MenuItem value="confirmed">Confirmed</MenuItem>
+                                </TextField>
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleUpdating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={updatePayroll}>Update</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+            <Modal open={state.isDeleting} onClose={toggleDeleting}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Delete Leave Record" />
+                            <CardContent>
+                                Are you sure?
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleDeleting}>Cancel</Button>
+                                <Button variant="contained" color="error" onClick={deletePayroll}>Delete</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+            <Modal open={state.isPrinting} onClose={togglePrinting}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={6}>
+                        <Card>
+                            <CardHeader title="Print Payslip" />
+                            <CardContent style={{ maxHeight: '70vh', overflowY: "scroll" }}>
+                                <div ref={componentRef}>
+                                    {state.toBePrinted.map((el, i) =>
+                                        <Payslip
+                                            payrollId={el.id}
+                                            employeeId={el.employee_id}
+                                            employeeFirstname={el.firstname}
+                                            employeeLastname={el.lastname}
+                                            payrollFrom={el.from}
+                                            payrollTo={el.to}
+                                            payday={el.payday}
+                                            basicAmount={el.basic_salary}
+                                            totalAmount={el.amount}
+                                            overtimeAmount={el.overtime}
+                                            reimbursementAmount={el.reimbursement}
+                                            allowanceAmount={el.allowance}
+                                            mpf={el.mpf_deduction}
+                                            bonusAmount={el.bonus}
+                                            deductionAmount={el.deduction}
+                                            approvalFirstname={auth.firstname}
+                                            approvalLastname={auth.lastname}
+                                            approvalId={auth.id}
+                                        />
+                                    )}
+                                </div>
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={togglePrinting}>Cancel</Button>
+                                <Button variant="contained" color="info" onClick={handlePrint}>Print</Button>
+                            </CardActions>
+                        </Card>
+
+                    </Grid>
+                </Grid>
+            </Modal>
+        </Grid >
     )
 }
 

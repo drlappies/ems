@@ -8,7 +8,7 @@ import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 
 
 function Toolbar(props) {
-    const { create, update, destroy, filterOption, isCreateDisabled, isUpdateDisabled, isDestroyDisabled } = props
+    const { create, update, destroy, filterOption, isCreateDisabled, isUpdateDisabled, isDestroyDisabled, actions } = props
 
     return (
         <Grid container sx={{ padding: 1 }}>
@@ -20,6 +20,7 @@ function Toolbar(props) {
                     <Button size="small" startIcon={<EditOutlinedIcon />} onClick={update} disabled={isUpdateDisabled}>Edit</Button>
                     <Button size="small" startIcon={<DeleteOutlineOutlinedIcon />} onClick={destroy} disabled={isDestroyDisabled}>Delete</Button>
                     <GridToolbarExport />
+                    {actions}
                 </GridToolbarContainer>
             </Grid>
             <Grid item xs={12}>

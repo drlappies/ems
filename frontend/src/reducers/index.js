@@ -10,8 +10,6 @@ import allowanceReducer from "./allowance";
 import reimbursementReducer from "./reimbursement";
 import bonusReducer from "./bonus";
 import deductionReducer from "./deduction";
-import payrollReducer from "./payroll";
-import leaveReducer from "./leave";
 
 const reducer = combineReducers({
     auth: authReducer,
@@ -25,8 +23,6 @@ const reducer = combineReducers({
     reimbursement: reimbursementReducer,
     bonus: bonusReducer,
     deduction: deductionReducer,
-    payroll: payrollReducer,
-    leave: leaveReducer
 })
 
 export default reducer

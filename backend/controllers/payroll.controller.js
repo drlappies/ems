@@ -38,7 +38,7 @@ class PayrollController {
 
     deletePayroll = async (req, res) => {
         try {
-            const { id } = req.params;
+            const { id } = req.query;
             const payroll = await this.PayrollService.deletePayroll(id);
             return res.status(200).json({
                 success: `Successfully deleted payroll record ID: ${payroll.id}`
@@ -85,16 +85,12 @@ class PayrollController {
 
     getAllPayroll = async (req, res) => {
         try {
-            const { page, from, to, text, status, limit, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled, paydayFrom, paydayTo } = req.query
-            const payroll = await this.PayrollService.getAllPayroll(page, limit, from, to, paydayFrom, paydayTo, text, status, amountFrom, amountTo, employee_id, isReimbursementCaled, isAllowanceCaled, isBonusCaled, isDeductCaled, isLeaveCaled, isOvertimeCaled);
+            const { offset, limit, search, employee, status, dateFrom, dateTo, amountFrom, amountTo } = req.query
+            const query = await this.PayrollService.getAllPayroll(offset, limit, search, employee, status, dateFrom, dateTo, amountFrom, amountTo);
             return res.status(200).json({
-                payroll: payroll.payroll,
-                employee: payroll.employee,
-                currentPage: payroll.currentPage,
-                currentPageStart: payroll.currentPageStart,
-                currentPageEnd: payroll.currentPageEnd,
-                pageLength: payroll.pageLength,
-                currentLimit: payroll.currentLimit
+                payroll: query.payroll,
+                employee: query.employee,
+                rowCount: query.count
             })
         } catch (err) {
             console.log(err)
@@ -106,47 +102,15 @@ class PayrollController {
 
     updatePayroll = async (req, res) => {
         try {
-            const { id } = req.params;
-            const { status } = req.body;
+            const { status, id } = req.body;
             if (!id || !status) {
                 return res.status(401).json({
                     error: 'Missing required fields.'
                 })
             }
-
             const payroll = await this.PayrollService.updatePayroll(id, status);
             return res.status(200).json({
-                success: `Successfully updated payroll record ID: ${payroll.id}`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchUpdatePayroll = async (req, res) => {
-        try {
-            const { id, status } = req.body;
-            const payroll = await this.PayrollService.batchUpdatePayroll(id, status)
-            return res.status(200).json({
-                success: 'Successfully batch updated payroll.'
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchDeletePayroll = async (req, res) => {
-        try {
-            const { id } = req.query;
-            const payroll = await this.PayrollService.batchDeletePayroll(id)
-            return res.status(200).json({
-                success: 'Successfully batch deleted payroll record.'
+                success: `Successfully updated payroll record!`
             })
         } catch (err) {
             console.log(err)

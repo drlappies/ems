@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchEmployeeAl } from '../actions/leave';
 import { popMessage } from '../actions/ui';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
@@ -15,7 +14,6 @@ import '../css/main.css'
 
 function Leave() {
     const dispatch = useDispatch()
-    const leave = useSelector(state => state.leave)
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
         from: "",
@@ -24,10 +22,6 @@ function Leave() {
         type: "",
         span: ""
     })
-
-    useEffect(() => {
-        dispatch(fetchEmployeeAl(auth.id))
-    }, [auth.id, dispatch])
 
     const handleChange = (e) => {
         const { name, value } = e.target;
