@@ -6,8 +6,7 @@ module.exports.DepartmentRoute = (departmentController) => {
     router.get('/metric', departmentController.getDepartmentCount);
     router.get('/:id', departmentController.getDepartment);
     router.post('/', departmentController.createDepartment);
-    router.put('/:id', departmentController.updateDepartment);
-    router.delete('/:id', departmentController.deleteDepartment);
-    router.delete('/', departmentController.batchDeleteDepartment);
+    router.put('/', departmentController.updateDepartment);
+    router.delete('/', departmentController.deleteDepartment);
     return router
 }

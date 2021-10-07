@@ -64,13 +64,12 @@ class EmployeeController {
 
     updateEmployee = async (req, res) => {
         try {
-            const { id } = req.params;
-            const { post_id, dept_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, username, role, start_hour, end_hour, salary_monthly, ot_pay_entitled, ot_hourly_salary, annual_leave_count } = req.body;
+            const { id, post_id, dept_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, username, role, start_hour, end_hour, salary_monthly, ot_pay_entitled, ot_hourly_salary, annual_leave_count } = req.body;
             let { password } = req.body;
             if (password) password = await hashPassword(password)
             const employee = await this.employeeService.updateEmployee(id, post_id, dept_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, username, password, role, start_hour, end_hour, salary_monthly, ot_pay_entitled, ot_hourly_salary, annual_leave_count)
             return res.status(200).json({
-                success: `Successfully updated employee record ID: ${employee.id}`,
+                success: employee.length > 1 ? `Successfully batch updated employee record.` : `Successfully updated employee ID: ${employee[0].id}`,
             })
         } catch (err) {
             console.log(err)
@@ -80,7 +79,7 @@ class EmployeeController {
 
     deleteEmployee = async (req, res) => {
         try {
-            const { id } = req.params;
+            const { id } = req.query;
             const employee = await this.employeeService.deleteEmployee(id);
             return res.status(200).json({
                 success: `Successfully deleted employee record ID: ${employee.id}`,
@@ -103,36 +102,6 @@ class EmployeeController {
         }
     }
 
-    batchUpdateEmployee = async (req, res) => {
-        try {
-            const { id, start_hour, end_hour, status, role, ot_pay_entitled, ot_hourly_salary, salary_monthly } = req.body;
-            const employee = await this.employeeService.batchUpdateEmployee(id, start_hour, end_hour, status, role, ot_pay_entitled, ot_hourly_salary, salary_monthly)
-            return res.status(200).json({
-                success: `Successfully batch updated employee records.`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({ error: err })
-        }
-    }
-
-    batchDeleteEmployee = async (req, res) => {
-        try {
-            const { id } = req.query
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Please provide ID of employee records to be deleted!'
-                })
-            }
-            const employee = await this.employeeService.batchDeleteEmployee(id)
-            return res.status(200).json({
-                success: 'Successfully deleted employee records'
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({ error: err })
-        }
-    }
 }
 
 module.exports = EmployeeController

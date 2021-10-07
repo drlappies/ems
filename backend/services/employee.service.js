@@ -77,36 +77,38 @@ class EmployeeService {
     }
 
     updateEmployee = async (id, post_id, dept_id, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, status, username, password, role, start_hour, end_hour, salary_monthly, ot_pay_entitled, ot_hourly_salary, annual_leave_count) => {
-        let update = {
-            dept_id: dept_id,
-            post_id: post_id,
-            firstname: firstname,
-            lastname: lastname,
-            address: address,
-            phone_number: phone_number,
-            emergency_contact_person: emergency_contact_person,
-            emergency_contact_number: emergency_contact_number,
-            onboard_date: onboard_date,
-            status: status,
-            ot_pay_entitled: ot_pay_entitled,
-            ot_hourly_salary: ot_hourly_salary,
-            salary_monthly: salary_monthly,
-            start_hour: start_hour,
-            end_hour: end_hour,
-            role: role,
-            username: username,
-            annual_leave_count: annual_leave_count
-        }
+        let update = {}
+        if (username) update.username = username
+        if (onboard_date) update.onboard_date = onboard_date
+        if (firstname) update.firstname = firstname
+        if (lastname) update.lastname = lastname
+        if (address) update.address = address
+        if (phone_number) update.phone_number = phone_number
+        if (emergency_contact_person) update.emergency_contact_person = emergency_contact_person
+        if (emergency_contact_number) update.emergency_contact_number = emergency_contact_number
+        if (start_hour) update.start_hour = start_hour
+        if (end_hour) update.end_hour = end_hour
+        if (dept_id) update.dept_id = dept_id
+        if (post_id) update.post_id = post_id
         if (password) update.password = password
+        if (start_hour) update.start_hour = start_hour;
+        if (end_hour) update.end_hour = end_hour;
+        if (status) update.status = status;
+        if (role) update.role = role;
+        if (ot_pay_entitled) update.ot_pay_entitled = ot_pay_entitled;
+        if (ot_hourly_salary) update.ot_hourly_salary = ot_hourly_salary;
+        if (salary_monthly) update.salary_monthly = salary_monthly;
 
-        const [employee] = await this.knex('employee')
-            .where('id', id)
+        if (!Array.isArray(id)) id = [id]
+        const employee = await this.knex('employee')
+            .whereIn('id', id)
             .update(update, ['id'])
         return employee
     }
 
     deleteEmployee = async (id) => {
-        const [employee] = await this.knex('employee').where('id', id).del(['id']);
+        if (!Array.isArray(id)) id = [id];
+        const [employee] = await this.knex('employee').whereIn('id', id).del(['id']);
         return employee
     }
 
@@ -120,25 +122,6 @@ class EmployeeService {
             .count('id')
             .where('status', 'available')
         return count.count
-    }
-
-    batchUpdateEmployee = async (id, start_hour, end_hour, status, role, ot_pay_entitled, ot_hourly_salary, salary_monthly) => {
-        let update = {}
-        if (start_hour) update.start_hour = start_hour;
-        if (end_hour) update.end_hour = end_hour;
-        if (status) update.status = status;
-        if (role) update.role = role;
-        if (ot_pay_entitled) update.ot_pay_entitled = ot_pay_entitled;
-        if (ot_hourly_salary) update.ot_hourly_salary = ot_hourly_salary;
-        if (salary_monthly) update.salary_monthly = salary_monthly;
-
-        const employee = await this.knex('employee').whereIn('id', id).update(update)
-        return employee
-    }
-
-    batchDeleteEmployee = async (id) => {
-        const employee = await this.knex('employee').whereIn('id', id).del()
-        return employee
     }
 }
 

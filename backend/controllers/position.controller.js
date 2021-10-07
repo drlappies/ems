@@ -20,11 +20,15 @@ class PositionController {
 
     updatePosition = async (req, res) => {
         try {
-            const { id } = req.params
-            const { name } = req.body
+            const { id, name } = req.body
+            if (!name) {
+                return res.status(400).json({
+                    error: 'Missing required fields!'
+                })
+            }
             const position = await this.PositionService.updatePosition(id, name)
             return res.status(200).json({
-                success: `Successfully updated position ID: ${position.id}`,
+                success: position.length > 1 ? "Successfully batch updated positions" : `Successfully updated position ID: ${position[0].id}`,
             })
         } catch (err) {
             console.log(err)
@@ -36,15 +40,11 @@ class PositionController {
 
     getAllPosition = async (req, res) => {
         try {
-            const { page, name, limit } = req.query
-            const query = await this.PositionService.getAllPosition(page, name, limit)
+            const { offset, limit, search } = req.query
+            const query = await this.PositionService.getAllPosition(offset, limit, search)
             return res.status(200).json({
                 position: query.position,
-                currentPage: query.currentPage,
-                currentPageStart: query.currentPageStart,
-                currentPageEnd: query.currentPageEnd,
-                pageLength: query.count,
-                currentLimit: query.currentLimit
+                rowCount: query.count
             })
         } catch (err) {
             console.log(err)
@@ -71,10 +71,10 @@ class PositionController {
 
     deletePosition = async (req, res) => {
         try {
-            const { id } = req.params
+            const { id } = req.query
             const position = await this.PositionService.deletePosition(id)
             return res.status(200).json({
-                success: `Successfully deleted position ID: ${position.id}`
+                success: position.length > 1 ? "Successfully batch deleted positions" : `Successfully deleted position ID: ${position[0].id}`
             })
         } catch (err) {
             console.log(err)
@@ -89,22 +89,6 @@ class PositionController {
             const positionCount = await this.PositionService.getPositionCount();
             return res.status(200).json({
                 positionCount: positionCount
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchDeletePosition = async (req, res) => {
-        try {
-            let { id } = req.query
-            if (!Array.isArray(id)) id = [id]
-            const position = await this.PositionService.batchDeletePosition(id)
-            return res.status(200).json({
-                success: 'Successfully deleted position records.'
             })
         } catch (err) {
             console.log(err)

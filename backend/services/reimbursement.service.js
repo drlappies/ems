@@ -14,102 +14,54 @@ class ReimbursementService {
     }
 
     updateReimbursement = async (id, status, reason, date, amount) => {
-        const [reimbursement] = await this.knex('reimbursement')
-            .where('id', id)
-            .update({
-                status: status,
-                reason: reason,
-                date: date,
-                amount: amount
-            }, ['id', 'amount', 'reason', 'date', 'status'])
+        if (!Array.isArray(id)) id = [id]
+        let update = { id: id };
+        if (status) update.status = status
+        if (reason) update.reason = reason
+        if (amount) update.amount = amount
+        if (date) update.date = date
+
+        const reimbursement = await this.knex('reimbursement')
+            .whereIn('id', id)
+            .update(update, ['id'])
         return reimbursement
     }
 
-    getAllReimbursement = async (page, limit, text, dateFrom, dateTo, amountFrom, amountTo, status, employee_id) => {
-        if (!page || page < 0) page = 0;
-        if (!limit || limit < 0) limit = 10;
-        let currentPage = parseInt(page)
-        let currentPageStart = parseInt(page) + 1
-        let currentPageEnd = parseInt(page) + parseInt(limit)
-        let currentLimit = parseInt(limit)
-
+    getAllReimbursement = async (offset, limit, search, employeeId, status, dateFrom, dateTo, amountFrom, amountTo) => {
         const [count] = await this.knex('reimbursement')
-            .count()
-            .from(queryBuilder => {
-                queryBuilder
-                    .select(['employee.firstname', 'employee.lastname', 'reimbursement.reason '])
-                    .from('reimbursement')
-                    .join('employee', 'reimbursement.employee_id', 'employee.id')
-                    .modify((queryBuilder) => {
-                        if (text) {
-                            queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || reimbursement.reason || ' ' || reimbursement.id || ' ' || reimbursement.employee_id) @@ plainto_tsquery('${text}')`)
-                        }
-                        if (dateFrom) {
-                            queryBuilder.where('reimbursement.date', '>=', dateFrom)
-                        }
-                        if (dateTo) {
-                            queryBuilder.where('reimbursement.date', '<=', dateTo)
-                        }
-                        if (amountFrom) {
-                            queryBuilder.where('reimbursement.amount', '>=', amountFrom)
-                        }
-                        if (amountTo) {
-                            queryBuilder.where('reimbursement.amount', '<=', amountTo)
-                        }
-                        if (status) {
-                            queryBuilder.where('reimbursement.status', status)
-                        }
-                        if (employee_id) {
-                            queryBuilder.where('reimbursement.employee_id', employee_id)
-                        }
-                    })
-                    .as('count')
+            .join('employee', 'reimbursement.employee_id', 'employee.id')
+            .modify(qb => {
+                if (amountFrom && amountTo) qb.whereBetween('reimbursement.amount', [amountFrom, amountTo])
+                if (dateFrom && dateTo) qb.whereBetween('reimbursement.date', [dateFrom, dateTo])
+                if (status) qb.where('reimbursement.status', '=', status)
+                if (employeeId) qb.where('reimbursement.employee_id', '=', employeeId)
+                if (search) qb.whereRaw(`to_tsvector(reimbursement.id || ' ' || reimbursement.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || reimbursement.reason || ' ' || reimbursement.date || ' ' || reimbursement.amount || reimbursement.status) @@ plainto_tsquery('${search}')`)
             })
-
+            .count()
 
         const reimbursement = await this.knex('reimbursement')
             .join('employee', 'reimbursement.employee_id', 'employee.id')
             .select(['reimbursement.id', 'reimbursement.employee_id', 'employee.firstname', 'employee.lastname', 'reimbursement.reason', 'reimbursement.date', 'reimbursement.amount', 'reimbursement.status',])
-            .limit(currentLimit)
-            .offset(currentPage)
-            .orderBy('id')
-            .modify((queryBuilder) => {
-                if (text) {
-                    queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || reimbursement.reason || ' ' || reimbursement.id || ' ' || reimbursement.employee_id) @@ plainto_tsquery('${text}')`)
-                }
-                if (dateFrom) {
-                    queryBuilder.where('reimbursement.date', '>=', dateFrom)
-                }
-                if (dateTo) {
-                    queryBuilder.where('reimbursement.date', '<=', dateTo)
-                }
-                if (amountFrom) {
-                    queryBuilder.where('reimbursement.amount', '>=', amountFrom)
-                }
-                if (amountTo) {
-                    queryBuilder.where('reimbursement.amount', '<=', amountTo)
-                }
-                if (status) {
-                    queryBuilder.where('reimbursement.status', status)
-                }
-                if (employee_id) {
-                    queryBuilder.where('reimbursement.employee_id', employee_id)
-                }
+            .modify(qb => {
+                if (amountFrom && amountTo) qb.whereBetween('reimbursement.amount', [amountFrom, amountTo])
+                if (dateFrom && dateTo) qb.whereBetween('reimbursement.date', [dateFrom, dateTo])
+                if (status) qb.where('reimbursement.status', '=', status)
+                if (employeeId) qb.where('reimbursement.employee_id', '=', employeeId)
+                if (search) qb.whereRaw(`to_tsvector(reimbursement.id || ' ' || reimbursement.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || reimbursement.reason || ' ' || reimbursement.date || ' ' || reimbursement.amount || reimbursement.status) @@ plainto_tsquery('${search}')`)
             })
-
-        if (currentPageEnd >= count.count) {
-            currentPageEnd = parseInt(count.count)
-        }
+            .limit(parseInt(limit))
+            .offset(parseInt(limit) * parseInt(offset))
+            .orderBy('id')
 
         const employee = await this.knex('employee').select(['id', 'firstname', 'lastname']).where('status', 'available')
 
-        return { reimbursement: reimbursement, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count, currentLimit: currentLimit, employeeList: employee }
+        return { count: count, reimbursement: reimbursement, employee: employee }
     }
 
     getReimbursement = async (id) => {
         const [reimbursement] = await this.knex('reimbursement')
             .join('employee', 'reimbursement.employee_id', 'employee.id')
-            .select(['reimbursement.id', 'reimbursement.reason', 'reimbursement.status', 'reimbursement.amount', 'reimbursement.date', 'employee.firstname', 'employee.lastname'])
+            .select(['reimbursement.id', 'reimbursement.reason', 'reimbursement.status', 'reimbursement.amount', 'reimbursement.date', 'employee.firstname', 'employee.lastname', 'reimbursement.employee_id'])
             .where('reimbursement.id', id)
         return reimbursement
     }
@@ -129,23 +81,6 @@ class ReimbursementService {
     }
 
     deleteReimbursement = async (id) => {
-        const [reimbursement] = await this.knex('reimbursement').where('id', id).del(['id'])
-        return reimbursement
-    }
-
-    batchUpdateReimbursement = async (id, amount, date, reason, status) => {
-        if (!Array.isArray(id)) id = [id]
-        let update = {}
-        if (amount) update.amount = amount;
-        if (date) update.date = date;
-        if (reason) update.reason = reason;
-        if (status) update.status = status;
-
-        const reimbursement = await this.knex('reimbursement').whereIn('id', id).update(update, ['id', 'amount', 'date', 'reason', 'status'])
-        return reimbursement
-    }
-
-    batchDeleteReimbursement = async (id) => {
         if (!Array.isArray(id)) id = [id]
         const reimbursement = await this.knex('reimbursement').whereIn('id', id).del(['id'])
         return reimbursement

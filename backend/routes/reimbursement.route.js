@@ -8,8 +8,6 @@ module.exports.ReimbursementRoute = (ReimbursementController) => {
     router.get('/', ReimbursementController.getAllReimbursement);
     router.get('/:id', ReimbursementController.getReimbursement);
     router.get('/user/:id', ReimbursementController.getReimbursementByEmployee);
-    router.delete('/:id', ReimbursementController.deleteReimbursement);
-    router.put("/", ReimbursementController.batchUpdateReimbursement);
-    router.delete('/', ReimbursementController.batchDeleteReimbursement)
+    router.delete('/', ReimbursementController.deleteReimbursement);
     return router
 }

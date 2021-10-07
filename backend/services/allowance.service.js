@@ -3,106 +3,59 @@ class AllowanceService {
         this.knex = knex
     }
 
-    createAllowance = async (name, description, amount, rma, rate) => {
+    createAllowance = async (name, description, amount, status) => {
         const [allowance] = await this.knex('allowance').insert({
             name: name,
             description: description,
             amount: amount,
-            minimum_attendance_required: rma,
-            required_attendance_rate: rate
+            status: status
         }).returning(['id', 'name', 'description', 'amount'])
         return allowance
     }
 
     deleteAllowance = async (id) => {
+        if (!Array.isArray(id)) id = [id];
         const [allowance] = await this.knex('allowance')
-            .where('id', id)
+            .whereIn('id', id)
             .del(['id', 'name'])
         return allowance
     }
 
-    editAllowance = async (id, name, description, amount, status, minimum_attendance_required, required_attendance_rate) => {
+    editAllowance = async (id, name, description, amount, status) => {
+        if (!Array.isArray(id)) id = [id];
+        let update = {}
+        if (name) update.name = name;
+        if (description) update.description = description;
+        if (amount) update.amount = amount;
+        if (status) update.status = status;
+
         const [allowance] = await this.knex('allowance')
-            .where('id', id)
-            .update({
-                name: name,
-                description: description,
-                amount: amount,
-                status: status,
-                minimum_attendance_required: minimum_attendance_required,
-                required_attendance_rate: required_attendance_rate
-            }, ['id', 'name', 'amount', 'status', 'description'])
+            .whereIn('id', id)
+            .update(update, ['id', 'name', 'amount', 'status', 'description'])
         return allowance
     }
 
-    getAllAllowance = async (page, limit, text, amountFrom, amountTo, status, isAttendRequired, requiredAttendRateFrom, requiredAttendRateTo) => {
-        if (!page || page < 0) page = 0;
-        if (!limit || limit < 0) limit = 10;
-
-        let currentPage = parseInt(page)
-        let currentPageStart = parseInt(page) + 1
-        let currentPageEnd = parseInt(page) + parseInt(limit)
-        let currentLimit = parseInt(limit)
-
+    getAllAllowance = async (offset, limit, search, amountFrom, amountTo, status) => {
         const [count] = await this.knex('allowance')
-            .count('id')
-            .modify((queryBuilder) => {
-                if (amountFrom) {
-                    queryBuilder.where('amount', '>=', amountFrom)
-                }
-                if (amountTo) {
-                    queryBuilder.where('amount', '<=', amountTo)
-                }
-                if (status) {
-                    queryBuilder.where('status', status)
-                }
-                if (text) {
-                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description || ' ' || name) @@ to_tsquery('${text}')`)
-                }
-                if (isAttendRequired === "yes") {
-                    queryBuilder.where('minimum_attendance_required', isAttendRequired)
-                }
-                if (requiredAttendRateFrom) {
-                    queryBuilder.where('required_attendance_rate', '>=', requiredAttendRateFrom)
-                }
-                if (requiredAttendRateTo) {
-                    queryBuilder.where('required_attendance_rate', '<=', requiredAttendRateTo)
-                }
+            .modify(qb => {
+                if (status) qb.where('status', '=', status)
+                if (amountFrom && amountTo) qb.whereBetween('amount', [amountFrom, amountTo])
+                if (search) qb.whereRaw(`to_tsvector(name || ' ' || description || ' ' || amount || ' ' || status) @@ plainto_tsquery('${search}')`)
             })
+            .count('id')
 
         const allowance = await this.knex('allowance')
             .select(['id', 'name', 'description', 'amount', 'status'])
-            .limit(currentLimit)
-            .offset(currentPage)
-            .orderBy('id')
-            .modify((queryBuilder) => {
-                if (amountFrom) {
-                    queryBuilder.where('amount', '>=', amountFrom)
-                }
-                if (amountTo) {
-                    queryBuilder.where('amount', '<=', amountTo)
-                }
-                if (status) {
-                    queryBuilder.where('status', status)
-                }
-                if (text) {
-                    queryBuilder.whereRaw(`to_tsvector(name || ' ' || description || ' ' || name) @@ to_tsquery('${text}')`)
-                }
-                if (isAttendRequired === "yes") {
-                    queryBuilder.where('minimum_attendance_required', isAttendRequired)
-                }
-                if (requiredAttendRateFrom) {
-                    queryBuilder.where('required_attendance_rate', '>=', requiredAttendRateFrom)
-                }
-                if (requiredAttendRateTo) {
-                    queryBuilder.where('required_attendance_rate', '<=', requiredAttendRateTo)
-                }
+            .modify(qb => {
+                if (status) qb.where('status', '=', status)
+                if (amountFrom && amountTo) qb.whereBetween('amount', [amountFrom, amountTo])
+                if (search) qb.whereRaw(`to_tsvector(name || ' ' || description || ' ' || amount || ' ' || status) @@ plainto_tsquery('${search}')`)
             })
+            .limit(parseInt(limit))
+            .offset(parseInt(limit) * parseInt(offset))
+            .orderBy('id')
 
-        if (currentPageEnd >= count.count) {
-            currentPageEnd = parseInt(count.count)
-        }
-        return { allowance: allowance, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count, currentLimit: currentLimit }
+        return { allowance: allowance, count: count }
     }
 
     getAllowance = async (id) => {
@@ -130,7 +83,7 @@ class AllowanceService {
             .insert({
                 allowance_id: allowanceId,
                 employee_id: employeeId
-            }).returning(['employee_id', 'allowance_id'])
+            }).returning(['employee_id'])
         return employee
     }
 

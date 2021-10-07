@@ -11,47 +11,30 @@ class PositionService {
     }
 
     updatePosition = async (id, name) => {
-        const [position] = await this.knex('positions')
-            .where('id', id)
-            .update({
-                post: name
-            }, ['id', 'post'])
+        if (!Array.isArray(id)) id = [id];
+        const position = await this.knex('positions')
+            .whereIn('id', id)
+            .update({ post: name }, ['id'])
         return position
     }
 
-    getAllPosition = async (page, name, limit) => {
-        if (!page || page < 0) page = 0;
-        if (!limit || limit < 0) limit = 10;
-
-        let currentPage = parseInt(page)
-        let currentPageStart = parseInt(page) + 1
-        let currentPageEnd = parseInt(page) + parseInt(limit)
-        let currentLimit = parseInt(limit)
-
+    getAllPosition = async (offset, limit, search) => {
         const [count] = await this.knex('positions')
-            .count('id')
-            .modify((queryBuilder) => {
-                if (name) {
-                    queryBuilder.whereRaw(`to_tsvector(post) @@ to_tsquery('${name}')`)
-                }
+            .modify(qb => {
+                if (search) qb.whereRaw(`to_tsvector(id || ' ' || post) @@ plainto_tsquery('${search}')`)
             })
+            .count('id')
 
         const position = await this.knex('positions')
-            .select()
-            .limit(currentLimit)
-            .offset(currentPage)
-            .orderBy('id')
-            .modify((queryBuilder) => {
-                if (name) {
-                    queryBuilder.whereRaw(`to_tsvector(post) @@ to_tsquery('${name}')`)
-                }
+            .select(['id', 'post'])
+            .modify(qb => {
+                if (search) qb.whereRaw(`to_tsvector(id || ' ' || post) @@ plainto_tsquery('${search}')`)
             })
+            .limit(parseInt(limit))
+            .offset(parseInt(offset) * parseInt(limit))
+            .orderBy('id')
 
-        if (currentPageEnd >= count.count) {
-            currentPageEnd = parseInt(count.count)
-        }
-
-        return { position: position, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, count: count.count, currentLimit: currentLimit }
+        return { count: count, position: position }
     }
 
     getPosition = async (id) => {
@@ -62,9 +45,10 @@ class PositionService {
     }
 
     deletePosition = async (id) => {
-        const [position] = await this.knex('positions')
-            .where('id', id)
-            .del(['id', 'post'])
+        if (!Array.isArray(id)) id = [id];
+        const position = await this.knex('positions')
+            .whereIn('id', id)
+            .del(['id'])
         return position
     }
 
@@ -72,11 +56,6 @@ class PositionService {
         const [count] = await this.knex('positions')
             .count()
         return count.count
-    }
-
-    batchDeletePosition = async (id) => {
-        const position = await this.knex('positions').whereIn('id', id).del(['id'])
-        return position
     }
 }
 

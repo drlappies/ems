@@ -6,11 +6,6 @@ class DepartmentController {
     getDepartment = async (req, res) => {
         try {
             const { id } = req.params;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
             const dept = await this.departmentService.getDepartment(id);
             return res.status(200).json({
                 id: dept.id,
@@ -25,16 +20,11 @@ class DepartmentController {
 
     getAllDepartment = async (req, res) => {
         try {
-            const { page, limit, text } = req.query
-            console.log(text)
-            const dept = await this.departmentService.getAllDepartment(page, limit, text);
+            const { offset, limit, search } = req.query
+            const query = await this.departmentService.getAllDepartment(offset, limit, search);
             return res.status(200).json({
-                dept: dept.dept,
-                count: dept.count,
-                currentPage: dept.currentPage,
-                currentPageStart: dept.currentPageStart,
-                currentPageEnd: dept.currentPageEnd,
-                currentLimit: dept.currentLimit
+                dept: query.dept,
+                rowCount: query.count
             })
         } catch (err) {
             console.log(err)
@@ -62,19 +52,15 @@ class DepartmentController {
 
     updateDepartment = async (req, res) => {
         try {
-            const { id } = req.params;
-            const { name, description } = req.body;
-            if (!id || !name || !description) {
+            const { id, name, desc } = req.body;
+            if (!id || !name) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
             }
-            const dept = await this.departmentService.updateDepartment(id, name, description);
+            const dept = await this.departmentService.updateDepartment(id, name, desc);
             return res.status(200).json({
-                success: `Successfully updated department: ${dept.name} id: ${dept.id}`,
-                id: dept.id,
-                name: dept.name,
-                desc: dept.description
+                success: dept.length > 1 ? "Successfully batch updated departments" : `Successfully updated department ${dept[0].id}`,
             })
         } catch (err) {
             console.log(err)
@@ -84,32 +70,12 @@ class DepartmentController {
 
     deleteDepartment = async (req, res) => {
         try {
-            const { id } = req.params;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
+            const { id } = req.query;
             const dept = await this.departmentService.deleteDepartment(id);
             return res.status(200).json({
-                success: `Successfully deleted department: ${dept.name} id: ${dept.id}`,
-                dept: dept
+                success: dept.length > 1 ? "Successfully batch deleted departments" : `Successfully deleted department ID: ${dept.id}`,
             })
         } catch (err) {
-            console.log(err)
-            return res.status(500).json({ error: err })
-        }
-    }
-
-    batchDeleteDepartment = async (req, res) => {
-        try {
-            const { id } = req.query
-            const dept = await this.departmentService.batchDeleteDepartment(id);
-            return res.status(200).json({
-                success: 'Successfully batch deleted department records.'
-            })
-        } catch {
-            console.log(err)
             return res.status(500).json({ error: err })
         }
     }

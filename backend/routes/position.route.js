@@ -6,8 +6,7 @@ module.exports.PositionRoute = (positionController) => {
     router.get('/metric', positionController.getPositionCount)
     router.get('/:id', positionController.getPosition)
     router.post('/', positionController.createPosition)
-    router.put('/:id', positionController.updatePosition)
-    router.delete('/', positionController.batchDeletePosition)
-    router.delete('/:id', positionController.deletePosition)
+    router.put('/', positionController.updatePosition)
+    router.delete('/', positionController.deletePosition)
     return router
 }

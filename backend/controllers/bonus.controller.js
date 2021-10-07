@@ -13,7 +13,7 @@ class BonusController {
             }
             const bonus = await this.BonusService.createBonus(employeeId, reason, amount, date);
             return res.status(200).json({
-                success: `Successfully created bonus ${bonus.id}. Amount: ${bonus.amount}. Date: ${bonus.date}`
+                success: `Successfully created bonus ${bonus.id}. Amount: ${bonus.amount}.`
             })
         } catch (err) {
             console.log(err)
@@ -25,7 +25,7 @@ class BonusController {
 
     deleteBonus = async (req, res) => {
         try {
-            const { id } = req.params;
+            const { id } = req.query;
             if (!id) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
@@ -33,7 +33,7 @@ class BonusController {
             }
             const bonus = await this.BonusService.deleteBonus(id);
             return res.status(200).json({
-                success: `Successfully deleted bonus ${bonus.id}`
+                success: bonus.length > 1 ? "Successfully batch deleted bonus" : `Successfully deleted bonus ID: ${bonus[0].id}.`
             })
         } catch (err) {
             console.log(err)
@@ -45,8 +45,7 @@ class BonusController {
 
     editBonus = async (req, res) => {
         try {
-            const { id } = req.params;
-            const { employeeId, reason, amount, date } = req.body;
+            const { id, employeeId, reason, amount, date } = req.body;
             if (!id && !employeeId && !reason && !amount && !date) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
@@ -66,16 +65,12 @@ class BonusController {
 
     getAllBonus = async (req, res) => {
         try {
-            const { page, limit, dateFrom, dateTo, amountFrom, amountTo, text, employee_id } = req.query
-            const bonus = await this.BonusService.getAllBonus(page, limit, dateFrom, dateTo, amountFrom, amountTo, text, employee_id);
+            const { offset, limit, search, employee, amountFrom, amountTo } = req.query
+            const query = await this.BonusService.getAllBonus(offset, limit, search, employee, amountFrom, amountTo);
             return res.status(200).json({
-                bonus: bonus.bonus,
-                employee: bonus.employee,
-                currentPage: bonus.currentPage,
-                currentPageStart: bonus.currentPageStart,
-                currentPageEnd: bonus.currentPageEnd,
-                pageLength: bonus.pageLength,
-                currentLimit: bonus.currentLimit
+                bonus: query.bonus,
+                rowCount: query.count,
+                employee: query.employee
             })
         } catch (err) {
             console.log(err)
@@ -111,36 +106,6 @@ class BonusController {
             const bonus = await this.BonusService.getBonusByEmployee(id);
             return res.status(200).json({
                 bonus: bonus
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchUpdateBonus = async (req, res) => {
-        try {
-            const { id, employee_id, date, reason, amount } = req.body
-            const bonus = await this.BonusService.batchUpdateBonus(id, employee_id, date, reason, amount)
-            return res.status(200).json({
-                success: 'Successfully batch updated bonus records.'
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchDeleteBonus = async (req, res) => {
-        try {
-            const { id } = req.query
-            const bonus = await this.BonusService.batchDeleteBonus(id)
-            return res.status(200).json({
-                success: 'Successfully batch deleted bonus records.'
             })
         } catch (err) {
             console.log(err)

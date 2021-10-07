@@ -5,13 +5,13 @@ class AllowanceController {
 
     createAllowance = async (req, res) => {
         try {
-            const { name, description, amount, rma, rate, limit } = req.body;
+            const { name, description, amount, status } = req.body;
             if (!name || !description || !amount) {
                 return res.status(400).json({
                     error: 'Missing required fields'
                 })
             }
-            const allowance = await this.AllowanceService.createAllowance(name, description, amount, rma, rate, limit);
+            const allowance = await this.AllowanceService.createAllowance(name, description, amount, status);
             return res.status(200).json({
                 success: `Successfully created allowance ${allowance.name} ID: ${allowance.id}`
             })
@@ -25,12 +25,7 @@ class AllowanceController {
 
     deleteAllowance = async (req, res) => {
         try {
-            const { id } = req.params;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
+            const { id } = req.query;
             const allowance = await this.AllowanceService.deleteAllowance(id);
             return res.status(200).json({
                 success: `Successfully removed allowance : ${allowance.name} ID: ${allowance.id}`
@@ -45,17 +40,10 @@ class AllowanceController {
 
     editAllowance = async (req, res) => {
         try {
-            const { id } = req.params
-            const { name, description, amount, status, minimum_attendance_required, required_attendance_rate } = req.body;
-            if (!id || !name || !description || !amount || !status) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const allowance = await this.AllowanceService.editAllowance(id, name, description, amount, status, minimum_attendance_required, required_attendance_rate)
+            const { id, name, description, amount, status } = req.body;
+            const allowance = await this.AllowanceService.editAllowance(id, name, description, amount, status)
             return res.status(200).json({
                 success: `Successfully updated allowance : ${allowance.name} ID: ${allowance.id}`,
-                allowance: allowance
             })
         } catch (err) {
             console.log(err)
@@ -67,15 +55,11 @@ class AllowanceController {
 
     getAllAllowance = async (req, res) => {
         try {
-            const { page, limit, text, amountFrom, amountTo, status, isAttendRequired, requiredAttendRateFrom, requiredAttendRateTo } = req.query
-            const allowance = await this.AllowanceService.getAllAllowance(page, limit, text, amountFrom, amountTo, status, isAttendRequired, requiredAttendRateFrom, requiredAttendRateTo)
+            const { offset, limit, search, amountFrom, amountTo, status } = req.query
+            const query = await this.AllowanceService.getAllAllowance(offset, limit, search, amountFrom, amountTo, status)
             return res.status(200).json({
-                allowance: allowance.allowance,
-                currentPage: allowance.currentPage,
-                currentPageStart: allowance.currentPageStart,
-                currentPageEnd: allowance.currentPageEnd,
-                pageLength: allowance.pageLength,
-                currentLimit: allowance.currentLimit
+                allowance: query.allowance,
+                rowCount: query.count
             })
         } catch (err) {
             console.log(err)
@@ -124,7 +108,7 @@ class AllowanceController {
             }
             const employee = await this.AllowanceService.addEmployeeToAllowance(employeeId, id)
             return res.status(200).json({
-                success: `Sucessfully added employee to the allowance`
+                success: `Sucessfully added employee ID: ${employee.employee_id} to the allowance`
             })
         } catch (err) {
             console.log(err)
@@ -139,38 +123,7 @@ class AllowanceController {
             const { allowanceId, employeeId } = req.params
             const employee = await this.AllowanceService.removeEmployeeFromAllowance(employeeId, allowanceId)
             return res.status(200).json({
-                success: `Successfully removed employee from the allowance`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchUpdateAllowance = async (req, res) => {
-        try {
-            const { id, amount, status, minimum_attendance_required, required_attendance_rate } = req.body;
-            const allowance = await this.AllowanceService.batchUpdateAllowance(id, amount, status, minimum_attendance_required, required_attendance_rate)
-            return res.status(200).json({
-                success: `Successfully batch updated allowance record.`,
-                allowance: allowance
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchDeleteAllowance = async (req, res) => {
-        try {
-            const { id } = req.query;
-            const allowance = await this.AllowanceService.batchDeleteAllowance(id);
-            return res.status(200).json({
-                success: 'Successfully batch deleted allowance record.'
+                success: `Successfully removed employee ID: ${employee.employee_id} from the allowance`
             })
         } catch (err) {
             console.log(err)

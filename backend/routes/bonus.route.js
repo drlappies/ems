@@ -3,12 +3,10 @@ const express = require('express');
 module.exports.BonusRoute = (BonusController) => {
     const router = express.Router();
     router.post('/', BonusController.createBonus);
-    router.put('/:id', BonusController.editBonus);
-    router.delete('/:id', BonusController.deleteBonus)
+    router.put('/', BonusController.editBonus);
+    router.delete('/', BonusController.deleteBonus)
     router.get('/', BonusController.getAllBonus);
     router.get('/:id', BonusController.getBonus)
     router.get('/user/:id', BonusController.getBonusByEmployee)
-    router.put('/', BonusController.batchUpdateBonus)
-    router.delete('/', BonusController.batchDeleteBonus)
     return router
 }
