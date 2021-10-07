@@ -1,253 +1,316 @@
-import React, { useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { confirmDeductionUpdate, createDeduction, deleteDeduction, fetchDeduction, toggleDeleting, toggleCreating, updateDeduction, fetchNextDeductionPage, fetchPreviousDeductionPage, fetchDeductionByEntries, toggleUpdating, toggleFiltering, fetchDeductionByFilter, resetDeductionFilter, selectDeduction, selectAllDeduction, toggleBatchUpdating, toggleBatchDeleting, batchUpdateDeduction } from '../actions/deduction'
-import { Grid, Table, Form, Button, Header } from 'semantic-ui-react'
-import TableHeader from './TableHeader'
-import TableBody from './TableBody'
-import TableFooter from './TableFooter'
-import Config from './Config'
-import '../css/main.css'
+import React, { useEffect, useState, useCallback } from 'react'
+import { useDispatch } from 'react-redux'
+import { popMessage } from '../actions/ui';
+import { DataGrid } from '@mui/x-data-grid';
+import Toolbar from './Toolbar';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Modal from '@mui/material/Modal';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Button from '@mui/material/Button';
+import DateAdapter from '@mui/lab/AdapterMoment';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import DesktopDatePicker from '@mui/lab/DesktopDatePicker';
+import axios from 'axios'
+import moment from 'moment'
 
 function Deduction() {
     const dispatch = useDispatch()
-    const deduction = useSelector(state => state.deduction)
+    const [state, setState] = useState({
+        deduction: [],
+        selectedRow: [],
+        employeeList: [],
+        offset: 0,
+        limit: 25,
+        rowCount: 0,
+        isCreating: false,
+        isUpdating: false,
+        isDeleting: false,
+        search: "",
+        employee: "",
+        amountFrom: null,
+        amountTo: null,
+        createEmployee: "",
+        createAmount: "",
+        createReason: "",
+        createDate: null
+    })
 
-    useEffect(() => {
-        dispatch(fetchDeduction())
+    const columns = [
+        { field: 'id', headerName: 'ID', flex: 1 },
+        { field: 'employee_id', headerName: 'Employee ID', flex: 1 },
+        { field: 'firstname', headerName: 'Firstname', flex: 1 },
+        { field: 'lastname', headerName: 'Lastname', flex: 1 },
+        { field: 'date', headerName: 'date', flex: 1 },
+        { field: 'reason', headerName: 'Reason', flex: 1 },
+        { field: 'amount', headerName: 'Amount', flex: 1 },
+    ]
+
+    const fetchDeduction = useCallback(async (offset, limit, search, employee, amountFrom, amountTo) => {
+        try {
+            const res = await axios.get('/api/deduction', {
+                params: {
+                    offset: offset,
+                    limit: limit,
+                    search: search,
+                    employee: employee === 'any' ? null : employee,
+                    amountFrom: amountFrom,
+                    amountTo: amountTo
+                }
+            })
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    deduction: res.data.deduction.map(el => {
+                        return {
+                            ...el,
+                            date: `${new Date(el.date).getDate().toString().padStart(2, 0)}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear()}`
+                        }
+                    }),
+                    employeeList: res.data.employee,
+                    rowCount: parseInt(res.data.rowCount.count),
+                    isCreating: false,
+                    isUpdating: false,
+                    isDeleting: false,
+                    createEmployee: "",
+                    createAmount: "",
+                    createReason: "",
+                    createDate: null
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.reponse.data.error, 'error'))
+        }
     }, [dispatch])
 
+    const createDeduction = useCallback(async () => {
+        try {
+            const res = await axios.post('/api/deduction', {
+                employeeId: state.createEmployee,
+                reason: state.createReason,
+                amount: state.createAmount,
+                date: state.createDate ? state.createDate.format('YYYY-MM-DD') : null
+            })
+            dispatch(popMessage(res.data.success, 'success'))
+            fetchDeduction(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchDeduction, state.amountFrom, state.amountTo, state.createAmount, state.createDate, state.createEmployee, state.createReason, state.employee, state.limit, state.offset, state.search])
+
+    const updateDeduction = useCallback(async () => {
+        try {
+            const res = await axios.put('/api/deduction', {
+                id: state.selectedRow,
+                employeeId: state.createEmployee,
+                reason: state.createReason,
+                amount: state.createAmount,
+                date: state.createDate ? state.createDate.format('YYYY-MM-DD') : null
+            })
+            dispatch(popMessage(res.data.success, 'success'))
+            fetchDeduction(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchDeduction, state.amountFrom, state.amountTo, state.createAmount, state.createDate, state.createEmployee, state.createReason, state.employee, state.limit, state.offset, state.search, state.selectedRow])
+
+    const deleteDeduction = useCallback(async () => {
+        try {
+            const res = await axios.delete(`/api/deduction/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            dispatch(popMessage(res.data.success, 'success'))
+            fetchDeduction(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchDeduction, state.amountFrom, state.amountTo, state.employee, state.limit, state.offset, state.search, state.selectedRow])
+
+    const toggleUpdating = useCallback(async () => {
+        try {
+            if (state.isUpdating) {
+                return setState(prevState => { return { ...prevState, isUpdating: false } })
+            }
+
+            if (state.selectedRow.length > 1) {
+                setState(prevState => {
+                    return {
+                        ...prevState,
+                        isUpdating: true,
+                        createEmployee: "",
+                        createReason: "",
+                        createAmount: "",
+                        createDate: null
+                    }
+                })
+            } else {
+                const res = await axios.get(`/api/deduction/${[state.selectedRow]}`);
+                setState(prevState => {
+                    return {
+                        ...prevState,
+                        isUpdating: true,
+                        createEmployee: res.data.deduction.employee_id,
+                        createReason: res.data.deduction.reason,
+                        createAmount: res.data.deduction.amount,
+                        createDate: moment(res.data.deduction.date)
+                    }
+                })
+            }
+        } catch (err) {
+
+        }
+    }, [state.isUpdating, state.selectedRow])
+
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
+    const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
+    const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
+    const handleChange = (e) => {
+        let { name, value } = e.target;
+        if (name === 'createAmount') {
+            if (value > 99999.99) {
+                value = 99999.99
+            } else if (value < 0) {
+                value = 0
+            }
+        }
+        setState(prevState => { return { ...prevState, [name]: value } })
+    }
+
+
+    useEffect(() => {
+        fetchDeduction(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
+    }, [fetchDeduction, state.amountFrom, state.amountTo, state.employee, state.limit, state.offset, state.search])
+
     return (
-        <div className="record">
-            <Grid>
-                <Grid.Row>
-                    <Grid.Column textAlign="left">
-                        <Header>Employee Payroll Deduction Management</Header>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row columns="1">
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" color="blue" onClick={() => dispatch(toggleBatchUpdating(deduction.isBatchUpdating))} disabled={deduction.selectedRecord.length < 2}>Batch Update</Button>
-                        <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(deduction.isBatchDeleting))} disabled={deduction.selectedRecord.length < 2}>Batch Delete</Button>
-                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(deduction.isFiltering))}>Filter</Button>
-                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(deduction.isCreating))}>Create Deduction</Button>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row>
-                    <Grid.Column>
-                        <Table celled compact selectable size="small">
-                            <TableHeader
-                                header={['id', 'Employee id', 'Firstname', 'Lastname', 'Date', 'Reason', 'Deducted Amount', 'Actions']}
-                                checkFunc={(e) => dispatch(selectAllDeduction(e, deduction.record))}
-                            />
-                            <TableBody
-                                data={deduction.record}
-                                primaryAction={"Update"}
-                                primaryActionColor={"blue"}
-                                primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
-                                secondaryAction={"Delete"}
-                                secondaryActionColor={"red"}
-                                secondaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
-                                checkedRows={deduction.selectedRecord}
-                                checkFunc={(e) => dispatch(selectDeduction(e))}
-                            />
-                            <TableFooter
-                                colSpan={9}
-                                pageStart={deduction.currentPageStart}
-                                pageEnd={deduction.currentPageEnd}
-                                pageTotal={deduction.pageLength}
-                                onNext={() => dispatch(fetchNextDeductionPage(deduction.currentPage, deduction.currentLimit, deduction.pageLength, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
-                                onPrevious={() => dispatch(fetchPreviousDeductionPage(deduction.currentPage, deduction.currentLimit, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
-                                entriesNum={deduction.currentLimit}
-                                entriesFunc={(e) => dispatch(fetchDeductionByEntries(deduction.currentPage, e.target.value, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
-                            />
-                        </Table>
-                    </Grid.Column>
-                </Grid.Row>
+        <Grid container>
+            <Grid item xs={12}>
+                <DataGrid
+                    paginationMode="server"
+                    checkboxSelection
+                    disableColumnFilter
+                    rows={state.deduction}
+                    columns={columns}
+                    pageSize={state.limit}
+                    rowCount={state.rowCount}
+                    rowsPerPageOptions={[25, 50, 100]}
+                    style={{ height: '75vh', width: "100%" }}
+                    onSelectionModelChange={(row) => handleSelect(row)}
+                    onPageSizeChange={(size) => changePageSize(size)}
+                    onPageChange={(page) => changePage(page)}
+                    components={{ Toolbar: Toolbar }}
+                    componentsProps={{
+                        toolbar: {
+                            create: toggleCreating,
+                            update: toggleUpdating,
+                            destroy: toggleDeleting,
+                            isUpdateDisabled: state.selectedRow.length < 1,
+                            isDestroyDisabled: state.selectedRow.length < 1,
+                            filterOption: (
+                                <Grid container spacing={2}>
+                                    <Grid item xs={4}>
+                                        <TextField fullWidth variant="standard" size="small" label="Search" name="search" value={state.search} onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={2}>
+                                        <TextField fullWidth variant="standard" select size="small" label="Employee" name="employee" value={state.employee} onChange={handleChange}>
+                                            <MenuItem value="any">Any</MenuItem>
+                                            {state.employeeList.map((el, i) =>
+                                                <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                            )}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField fullWidth size="small" variant="standard" label="Amount range from" type="number" name="amountFrom" value={state.amountFrom} onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField fullWidth size="small" variant="standard" label="Amount range to" type="number" name="amountTo" value={state.amountTo} onChange={handleChange} />
+                                    </Grid>
+                                </Grid>
+                            )
+                        }
+                    }}
+                />
             </Grid>
-            <Config
-                isConfigOpen={deduction.isUpdating}
-                configType={"Update Deduction Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleUpdating())}
-                configSecondaryAction={"Update"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(confirmDeductionUpdate(deduction.deductionId, deduction.employeeId, deduction.reason, deduction.amount, deduction.date, deduction.currentPage, deduction.currentLimit, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="deductionId">Deduction ID</label>
-                        <input id="deductionId" name="deductionId" value={deduction.deductionId} disabled />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="employeeId">Employee</label>
-                        <select id="employeeId" name="employeeId" defaultValue={deduction.employeeId} onChange={(e) => dispatch(updateDeduction(e))}>
-                            {deduction.employeeRecord.map((el, i) =>
-                                <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                            )}
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="reason">Deduction Reason</label>
-                        <input id="reason" name="reason" value={deduction.reason} onChange={(e) => dispatch(updateDeduction(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="amount">Deduction Amount</label>
-                        <input type="number" id="amount" name="amount" value={deduction.amount} onChange={(e) => dispatch(updateDeduction(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="date">Date</label>
-                        <input type="date" id="date" name="date" value={deduction.date} onChange={(e) => dispatch(updateDeduction(e))} />
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={deduction.isDeleting}
-                configType={"Delete Deduction Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleDeleting())}
-                configSecondaryAction={"Delete"}
-                configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(deleteDeduction(deduction.deductionId, deduction.currentPage, deduction.currentLimit, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
-            >
-                <p><strong>Are you sure to delete the following deduction record?</strong></p>
-                <p><strong>Deduction ID:</strong> {deduction.deductionId}</p>
-                <p><strong>Employee:</strong> {deduction.firstname} {deduction.lastname}</p>
-                <p><strong>Deduction Reason:</strong> {deduction.reason}</p>
-                <p><strong>Deduction Amount:</strong> {deduction.amount}</p>
-                <p><strong>Deduction Date:</strong> {deduction.date}</p>
-            </Config>
-            <Config
-                isConfigOpen={deduction.isCreating}
-                configType={"Create Deduction Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleCreating(deduction.isCreating))}
-                configSecondaryAction={"Create"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(createDeduction(deduction.createEmployeeId, deduction.createReason, deduction.createAmount, deduction.createDate, deduction.currentPage, deduction.currentLimit, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="createEmployeeId">Employee</label>
-                        <select id="createEmployeeId" name="createEmployeeId" defaultValue={deduction.createEmployeeId} onChange={(e) => dispatch(updateDeduction(e))}>
-                            {deduction.employeeRecord.map((el, i) =>
-                                <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                            )}
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="createReason">Deduction Reason</label>
-                        <input id="createReason" name="createReason" value={deduction.createReason} onChange={(e) => dispatch(updateDeduction(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="createAmount">Deduction Amount</label>
-                        <input type="number" id="createAmount" name="createAmount" value={deduction.createAmount} onChange={(e) => dispatch(updateDeduction(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="createDate">Date</label>
-                        <input type="date" id="createDate" name="createDate" value={deduction.createDate} onChange={(e) => dispatch(updateDeduction(e))} />
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={deduction.isFiltering}
-                configType={"Search and Filter"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleFiltering(deduction.isFiltering))}
-                configSecondaryAction={"Reset"}
-                configSecondaryColor={"grey"}
-                configSecondaryFunc={() => dispatch(resetDeductionFilter())}
-                configTertiaryAction={"Search"}
-                configTertiaryFunc={() => dispatch(fetchDeductionByFilter(deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo, deduction.queryEmployeeId))}
-                configTertiaryColor={"green"}
-            >
-                <Form>
-                    <Grid>
-                        <Grid.Row>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryText">Keywords</label>
-                                    <input id="queryText" name="queryText" value={deduction.queryText} onChange={(e) => dispatch(updateDeduction(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryEmployeeId">Employee</label>
-                                    <select id="queryEmployeeId" name="queryEmployeeId" value={deduction.queryEmployeeId} onChange={(e) => dispatch(updateDeduction(e))}>
-                                        <option value="" hidden> Employee</option>
-                                        {deduction.employeeRecord.map((el, i) =>
-                                            <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                                        )}
-                                    </select>
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryAmountFrom">Amount From</label>
-                                    <input id="queryAmountFrom" name="queryAmountFrom" value={deduction.queryAmountFrom} onChange={(e) => dispatch(updateDeduction(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryAmountTo">Amount To</label>
-                                    <input id="queryAmountTo" name="queryAmountTo" value={deduction.queryAmountTo} onChange={(e) => dispatch(updateDeduction(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryDateFrom">Date From</label>
-                                    <input id="queryDateFrom" name="queryDateFrom" value={deduction.queryDateFrom} type="date" onChange={(e) => dispatch(updateDeduction(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryDateTo">Date To</label>
-                                    <input id="queryDateTo" name="queryDateTo" value={deduction.queryDateTo} type="date" onChange={(e) => dispatch(updateDeduction(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
+            <Modal open={state.isCreating} onClose={toggleCreating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Create Dededuction" subheader="Apply deduction to an employee" />
+                            <CardContent>
+                                <TextField fullWidth select margin="normal" size="small" label="Employee" name="createEmployee" value={state.createEmployee} onChange={handleChange}>
+                                    {state.employeeList.map((el, i) =>
+                                        <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                    )}
+                                </TextField>
+                                <TextField fullWidth margin="normal" size="small" label="Amount" name="createAmount" type="number" value={state.createAmount} onChange={handleChange} />
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DesktopDatePicker
+                                        label="Date"
+                                        value={state.createDate}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createDate: newValue } }) }}
+                                        renderInput={(params) => <TextField fullWidth margin="normal" size="small"{...params} />}
+                                    />
+                                </LocalizationProvider>
+                                <TextField fullWidth margin="normal" size="small" label="Reason" name="createReason" multiline rows={4} value={state.createReason} onChange={handleChange} />
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleCreating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={createDeduction}>Create</Button>
+                            </CardActions>
+                        </Card>
                     </Grid>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={deduction.isBatchUpdating}
-                configType={"Batch Update Deduction"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchUpdating(deduction.isBatchUpdating))}
-                configSecondaryAction={"Batch Update"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(batchUpdateDeduction(deduction.selectedRecord, deduction.updateEmployeeId, deduction.updateDate, deduction.updateReason, deduction.updateAmount, deduction.currentPage, deduction.currentLimit, deduction.queryText, deduction.queryDateFrom, deduction.queryDateTo, deduction.queryAmountFrom, deduction.queryAmountTo))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="updateEmployeeId">Employee</label>
-                        <select id="updateEmployeeId" name="updateEmployeeId" value={deduction.updateEmployeeId} onChange={(e) => dispatch(updateDeduction(e))}>
-                            <option value="" hidden>Employee</option>
-                            {deduction.employeeRecord.map((el, i) =>
-                                <option value={el.id} key={i}>{el.id} {el.firstname} {el.lastname}</option>
-                            )}
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="updateDate">Date</label>
-                        <input type="date" id="updateDate" name="updateDate" value={deduction.updateDate} onChange={(e) => dispatch(updateDeduction(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="updateReason">Reason</label>
-                        <textarea id="updateReason" name="updateReason" value={deduction.updateReason} onChange={(e) => dispatch(updateDeduction(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="updateAmount">Amount</label>
-                        <input id="updateAmount" name="updateAmount" type="number" value={deduction.updateAmount} onChange={(e) => dispatch(updateDeduction(e))} />
-                    </Form.Field>
-                </Form>
-            </Config>
-        </div >
+                </Grid>
+            </Modal>
+            <Modal open={state.isUpdating} onClose={toggleUpdating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Update Deduction Record" />
+                            <CardContent>
+                                <TextField fullWidth select margin="normal" size="small" label="Employee" name="createEmployee" value={state.createEmployee} onChange={handleChange}>
+                                    {state.employeeList.map((el, i) =>
+                                        <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                    )}
+                                </TextField>
+                                <TextField fullWidth margin="normal" size="small" label="Amount" name="createAmount" type="number" value={state.createAmount} onChange={handleChange} />
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DesktopDatePicker
+                                        label="Date"
+                                        value={state.createDate}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createDate: newValue } }) }}
+                                        renderInput={(params) => <TextField fullWidth margin="normal" size="small"{...params} />}
+                                    />
+                                </LocalizationProvider>
+                                <TextField fullWidth margin="normal" size="small" label="Reason" name="createReason" multiline rows={4} value={state.createReason} onChange={handleChange} />
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleUpdating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={updateDeduction}>Update</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+            <Modal open={state.isDeleting} onClose={toggleDeleting}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Delete Deduction Record" />
+                            <CardContent>
+                                Are you sure?
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleDeleting}>Cancel</Button>
+                                <Button variant="contained" color="error" onClick={deleteDeduction}>Delete</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+        </Grid >
     )
 }
 

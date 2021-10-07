@@ -25,15 +25,10 @@ class DeductionController {
 
     deleteDeduction = async (req, res) => {
         try {
-            const { id } = req.params;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
+            const { id } = req.query;
             const deduction = await this.DeductionService.deleteDeduction(id)
             return res.status(200).json({
-                success: `Successfully removed deduction. id: ${deduction.id}`
+                success: `Successfully removed deduction record.`
             })
         } catch (err) {
             console.log(err)
@@ -45,16 +40,15 @@ class DeductionController {
 
     updateDeduction = async (req, res) => {
         try {
-            const { id } = req.params;
-            const { employeeId, reason, amount, date } = req.body;
-            if (!id || !employeeId || !reason || !amount || !date) {
+            const { id, employeeId, reason, amount, date } = req.body;
+            if (!id) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
             }
             const deduction = await this.DeductionService.updateDeduction(id, employeeId, reason, amount, date)
             return res.status(200).json({
-                success: `Successfully updated deduction. ID: ${deduction.id}`
+                success: deduction.length > 1 ? "Successfully batch updated deduction" : `Successfully updated deduction. ID: ${deduction[0].id}`
             })
         } catch (err) {
             console.log(err)
@@ -66,16 +60,12 @@ class DeductionController {
 
     getAllDeduction = async (req, res) => {
         try {
-            const { page, limit, dateFrom, dateTo, amountFrom, amountTo, text, employee_id } = req.query
-            const deduction = await this.DeductionService.getAllDeduction(page, limit, dateFrom, dateTo, amountFrom, amountTo, text, employee_id)
+            const { offset, limit, search, employee, amountFrom, amountTo } = req.query
+            const query = await this.DeductionService.getAllDeduction(offset, limit, search, employee, amountFrom, amountTo)
             return res.status(200).json({
-                deduction: deduction.deduction,
-                employee: deduction.employee,
-                currentPage: deduction.currentPage,
-                currentPageStart: deduction.currentPageStart,
-                currentPageEnd: deduction.currentPageEnd,
-                pageLength: deduction.pageLength,
-                currentLimit: deduction.currentLimit
+                deduction: query.deduction,
+                employee: query.employee,
+                rowCount: query.count
             })
         } catch (err) {
             console.log(err)
@@ -113,21 +103,6 @@ class DeductionController {
                 deduction: deduction
             })
         } catch (err) {
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchUpdateDeduction = async (req, res) => {
-        try {
-            const { id, employee_id, date, reason, amount } = req.body;
-            const deduction = await this.DeductionService.batchUpdateDeduction(id, employee_id, date, reason, amount)
-            return res.status(200).json({
-                success: 'Successfully batch updated deduction records.'
-            })
-        } catch (err) {
-            console.log(err)
             return res.status(500).json({
                 error: err
             })

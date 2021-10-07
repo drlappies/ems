@@ -14,92 +14,49 @@ class DeductionService {
     }
 
     deleteDeduction = async (id) => {
-        const [deduction] = await this.knex('deduction').where('id', id).del(['id'])
+        if (!Array.isArray(id)) id = [id]
+        const [deduction] = await this.knex('deduction').whereIn('id', id).del(['id'])
         return deduction
     }
 
     updateDeduction = async (id, employeeId, reason, amount, date) => {
-        const [deduction] = await this.knex('deduction').where('id', id).update({
-            employee_id: employeeId,
-            reason: reason,
-            amount: amount,
-            date: date
-        }, ['id', 'employee_id', 'reason', 'amount', 'date'])
+        if (!Array.isArray(id)) id = [id]
+        let update = {}
+        if (employeeId) update.employee_id = employeeId
+        if (reason) update.reason = reason
+        if (amount) update.amount = amount
+        if (date) update.date = date
+
+        const deduction = await this.knex('deduction')
+            .whereIn('id', id).update(update, ['id'])
         return deduction
     }
 
-    getAllDeduction = async (page, limit, dateFrom, dateTo, amountFrom, amountTo, text, employee_id) => {
-        if (!page || page < 0) page = 0;
-        if (!limit || limit < 10) limit = 10;
-        let currentPage = parseInt(page)
-        let currentPageStart = parseInt(page) + 1
-        let currentPageEnd = parseInt(page) + 15
-        let currentLimit = parseInt(limit)
+    getAllDeduction = async (offset, limit, search, employeeId, amountFrom, amountTo) => {
+        const employee = await this.knex('employee').select(['id', 'firstname', 'lastname']).where('status', '=', 'available')
 
-        const employee = await this.knex('employee').select(['id', 'firstname', 'lastname'])
-
-        const [count] = await this.knex
-            .count()
-            .from(queryBuilder => {
-                queryBuilder
-                    .select(['deduction.id', 'deduction.reason', 'deduction.employee_id', 'employee.firstname', 'employee.lastname'])
-                    .from('deduction')
-                    .join('employee', 'deduction.employee_id', 'employee.id')
-                    .modify(queryBuilder => {
-                        if (dateFrom) {
-                            queryBuilder.where('deduction.date', '>=', dateFrom)
-                        }
-                        if (dateTo) {
-                            queryBuilder.where('deduction.date', '<=', dateTo)
-                        }
-                        if (amountFrom) {
-                            queryBuilder.where('amount', '>=', amountFrom)
-                        }
-                        if (amountTo) {
-                            queryBuilder.where('amount', '<=', amountTo)
-                        }
-                        if (text) {
-                            queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || deduction.reason) @@ plainto_tsquery('${text}')`)
-                        }
-                        if (employee_id) {
-                            queryBuilder.where('deduction.employee_id', employee_id)
-                        }
-                    })
-                    .as('count')
+        const [count] = await this.knex('deduction')
+            .join('employee', 'deduction.employee_id', 'employee.id')
+            .modify(qb => {
+                if (employeeId) qb.where('deduction.employee_id', '=', employeeId)
+                if (amountFrom && amountTo) qb.whereBetween('deduction.amount', [amountFrom, amountTo])
+                if (search) qb.whereRaw(`to_tsvector(deduction.id || ' ' || deduction.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || deduction.date || ' ' || deduction.reason || ' ' || deduction.amount) @@ plainto_tsquery('${search}')`)
             })
+            .count()
 
         const deduction = await this.knex('deduction')
             .join('employee', 'deduction.employee_id', 'employee.id')
             .select(['deduction.id', 'deduction.employee_id', 'employee.firstname', 'employee.lastname', 'deduction.date', 'deduction.reason', 'deduction.amount'])
-            .limit(currentLimit)
-            .offset(currentPage)
-            .orderBy('deduction.id')
-            .modify(queryBuilder => {
-                if (dateFrom) {
-                    queryBuilder.where('deduction.date', '>=', dateFrom)
-                }
-                if (dateTo) {
-                    queryBuilder.where('deduction.date', '<=', dateTo)
-                }
-                if (amountFrom) {
-                    queryBuilder.where('amount', '>=', amountFrom)
-                }
-                if (amountTo) {
-                    queryBuilder.where('amount', '<=', amountTo)
-                }
-                if (text) {
-                    queryBuilder.whereRaw(`to_tsvector(employee.firstname || ' ' || employee.lastname || ' ' || deduction.reason) @@ plainto_tsquery('${text}')`)
-                }
-                if (employee_id) {
-                    queryBuilder.where('deduction.employee_id', employee_id)
-                }
+            .modify(qb => {
+                if (amountFrom && amountTo) qb.whereBetween('deduction.amount', [amountFrom, amountTo])
+                if (employeeId) qb.where('deduction.employee_id', '=', employeeId)
+                if (search) qb.whereRaw(`to_tsvector(deduction.id || ' ' || deduction.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || deduction.date || ' ' || deduction.reason || ' ' || deduction.amount) @@ plainto_tsquery('${search}')`)
             })
+            .limit(parseInt(limit))
+            .offset(parseInt(limit) * parseInt(offset))
+            .orderBy('deduction.id')
 
-        if (currentPageEnd >= parseInt(count.count)) {
-            currentPageEnd = parseInt(count.count)
-        }
-
-        return { deduction: deduction, employee: employee, currentPage: currentPage, currentPageStart: currentPageStart, currentPageEnd: currentPageEnd, pageLength: count.count, currentLimit: currentLimit }
+        return { employee: employee, count: count, deduction: deduction }
     }
 
     getDeduction = async (id) => {
