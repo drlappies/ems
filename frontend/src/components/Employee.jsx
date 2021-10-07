@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { popMessage } from '../actions/ui'
 import { DataGrid } from '@mui/x-data-grid';
 import Toolbar from './Toolbar';
@@ -14,15 +14,9 @@ import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
 import DateAdapter from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
-import DesktopDateRangePicker from '@mui/lab/DesktopDateRangePicker';
 import DesktopDatePicker from '@mui/lab/DesktopDatePicker';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Box from '@mui/material/Box';
-import LocalPrintshopOutlinedIcon from '@mui/icons-material/LocalPrintshopOutlined';
+import TimePicker from '@mui/lab/TimePicker';
+import moment from 'moment';
 import axios from 'axios'
 
 function Employee() {
@@ -45,7 +39,24 @@ function Employee() {
         status: "any",
         salaryFrom: null,
         salaryTo: null,
-        hasOTpay: "any"
+        hasOTpay: "any",
+        createFirstname: "",
+        createLastname: "",
+        createAddress: "",
+        createNum: "",
+        createContactPerson: "",
+        createContactNum: "",
+        createOnboardDate: null,
+        createSalary: "",
+        createStartHour: null,
+        createEndHour: null,
+        createPos: "unassigned",
+        createDept: "unassigned",
+        createHasOTpay: "entitled",
+        createOTpay: 0,
+        createUsername: "",
+        createPassword: "",
+        createRole: "employee",
     })
 
     const columns = [
@@ -95,7 +106,27 @@ function Employee() {
                     }),
                     posList: res.data.positions,
                     deptList: res.data.departments,
-                    rowCount: parseInt(res.data.rowCount.count)
+                    rowCount: parseInt(res.data.rowCount.count),
+                    createFirstname: "",
+                    createLastname: "",
+                    createAddress: "",
+                    createNum: "",
+                    createContactPerson: "",
+                    createContactNum: "",
+                    createOnboardDate: null,
+                    createSalary: "",
+                    createStartHour: null,
+                    createEndHour: null,
+                    createPos: "unassigned",
+                    createDept: "unassigned",
+                    createHasOTpay: "entitled",
+                    createOTpay: "",
+                    createUsername: "",
+                    createPassword: "",
+                    createRole: "employee",
+                    isCreating: false,
+                    isUpdating: false,
+                    isDeleting: false,
                 }
             })
         } catch (err) {
@@ -103,15 +134,138 @@ function Employee() {
         }
     }, [dispatch])
 
+    const createEmployee = useCallback(async () => {
+        try {
+            const body = {
+                username: state.createUsername,
+                password: state.createPassword,
+                firstname: state.createFirstname,
+                lastname: state.createLastname,
+                address: state.createAddress,
+                phone_number: state.createNum,
+                emergency_contact_person: state.createContactPerson,
+                emergency_contact_number: state.createContactNum,
+                onboard_date: state.createOnboardDate ? state.createOnboardDate.format('YYYY-MM-DD') : null,
+                salary_monthly: state.createSalary,
+                start_hour: state.createStartHour ? state.createStartHour.format('HH:mm:ss') : null,
+                end_hour: state.createEndHour ? state.createEndHour.format('HH:mm:ss') : null,
+                post_id: state.createPos === 'unassigned' ? null : state.createPos,
+                dept_id: state.createDept === 'unassigned' ? null : state.createDept,
+                ot_pay_entitled: state.createHasOTpay === 'entitled' ? true : false,
+                ot_hourly_salary: state.createHasOTpay === 'entitled' ? state.createOTpay : null,
+                role: state.createRole
+            }
+            const res = await axios.post('/api/employee', body)
+            dispatch(popMessage(res.data.success, 'success'))
+            return fetchEmployee(state.offset, state.limit, state.search, state.position, state.department, state.role, state.status, state.salaryFrom, state.salaryTo, state.hasOTpay)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchEmployee, state.createAddress, state.createContactNum, state.createContactPerson, state.createDept, state.createEndHour, state.createFirstname, state.createHasOTpay, state.createLastname, state.createNum, state.createOTpay, state.createOnboardDate, state.createPassword, state.createPos, state.createRole, state.createSalary, state.createStartHour, state.createUsername, state.department, state.hasOTpay, state.limit, state.offset, state.position, state.role, state.salaryFrom, state.salaryTo, state.search, state.status])
+
+    const updateEmployee = useCallback(async () => {
+        try {
+            if (state.selectedRow.length < 2) {
+                const body = {
+                    id: [state.selectedRow],
+                    username: state.createUsername,
+                    password: state.createPassword,
+                    firstname: state.createFirstname,
+                    lastname: state.createLastname,
+                    address: state.createAddress,
+                    phone_number: state.createNum,
+                    emergency_contact_person: state.createContactPerson,
+                    emergency_contact_number: state.createContactNum,
+                    onboard_date: state.createOnboardDate ? state.createOnboardDate.format('YYYY-MM-DD') : null,
+                    salary_monthly: state.createSalary,
+                    start_hour: state.createStartHour ? state.createStartHour.format('HH:mm:ss') : null,
+                    end_hour: state.createEndHour ? state.createEndHour.format('HH:mm:ss') : null,
+                    post_id: state.createPos === 'unassigned' ? null : state.createPos,
+                    dept_id: state.createDept === 'unassigned' ? null : state.createDept,
+                    ot_pay_entitled: state.createHasOTpay === 'entitled' ? true : false,
+                    ot_hourly_salary: state.createOTpay,
+                    role: state.createRole
+                }
+                const res = await axios.put('/api/employee', body)
+                dispatch(popMessage(res.data.success, 'success'))
+            } else {
+                const body = {
+                    id: state.selectedRow,
+                    onboard_date: state.createOnboardDate ? state.createOnboardDate.format('YYYY-MM-DD') : null,
+                    start_hour: state.createStartHour ? state.createStartHour.format('HH:mm:ss') : null,
+                    end_hour: state.createEndHour ? state.createEndHour.format('HH:mm:ss') : null,
+                    post_id: state.createPos === 'unassigned' ? null : state.createPos,
+                    dept_id: state.createDept === 'unassigned' ? null : state.createDept,
+                    ot_pay_entitled: state.createHasOTpay === 'entitled' ? true : false,
+                    ot_hourly_salary: state.createOTpay,
+                }
+                const res = await axios.put('/api/employee', body)
+                dispatch(popMessage(res.data.success, 'success'))
+            }
+
+            return fetchEmployee(state.offset, state.limit, state.search, state.position, state.department, state.role, state.status, state.salaryFrom, state.salaryTo, state.hasOTpay)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchEmployee, state.createAddress, state.createContactNum, state.createContactPerson, state.createDept, state.createEndHour, state.createFirstname, state.createHasOTpay, state.createLastname, state.createNum, state.createOTpay, state.createOnboardDate, state.createPassword, state.createPos, state.createRole, state.createSalary, state.createStartHour, state.createUsername, state.department, state.hasOTpay, state.limit, state.offset, state.position, state.role, state.salaryFrom, state.salaryTo, state.search, state.selectedRow, state.status])
+
+    const deleteEmployee = useCallback(async () => {
+        try {
+            const res = await axios.delete(`/api/employee/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            dispatch(popMessage(res.data.success, 'success'))
+            return fetchEmployee(state.offset, state.limit, state.search, state.position, state.department, state.role, state.status, state.salaryFrom, state.salaryTo, state.hasOTpay)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchEmployee, state.department, state.hasOTpay, state.limit, state.offset, state.position, state.role, state.salaryFrom, state.salaryTo, state.search, state.selectedRow, state.status])
+
     const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
     const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
     const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
-    const toggleUpdating = () => { setState(prevState => { return { ...prevState, isUpdating: !prevState.isUpdating } }) }
+    const toggleUpdating = async () => {
+        if (state.isUpdating) {
+            return setState(prevState => { return { ...prevState, isUpdating: false } })
+        }
+        if (state.selectedRow.length < 2) {
+            const res = await axios.get(`/api/employee/${[state.selectedRow]}`)
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    createFirstname: res.data.employee.firstname,
+                    createLastname: res.data.employee.lastname,
+                    createAddress: res.data.employee.address,
+                    createNum: res.data.employee.phone_number,
+                    createContactPerson: res.data.employee.emergency_contact_person,
+                    createContactNum: res.data.employee.emergency_contact_number,
+                    createOnboardDate: moment(res.data.employee.onboard_date),
+                    createSalary: res.data.employee.salary_monthly,
+                    createStartHour: moment(`2017-03-13 ${res.data.employee.start_hour}`),
+                    createEndHour: moment(`2017-03-13 ${res.data.employee.end_hour}`),
+                    createPos: res.data.employee.post_id,
+                    createDept: res.data.employee.dept_id,
+                    createHasOTpay: res.data.employee.ot_pay_entitled ? "entitled" : "unentitled",
+                    createOTpay: res.data.employee.ot_hourly_salary,
+                    createUsername: res.data.employee.username,
+                    createRole: res.data.employee.role,
+                    isUpdating: true
+                }
+            })
+        } else {
+            setState(prevState => { return { ...prevState, isUpdating: true } })
+        }
+    }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
     const handleChange = (e) => {
         let { name, value, type, checked } = e.target;
         if (type === 'checkbox') value = checked
+        if (name === 'createSalary' || name === 'createOTpay') {
+            if (value > 99999.99) {
+                value = 99999.99
+            } else if (value < 0) {
+                value = 0
+            }
+        }
         setState(prevState => { return { ...prevState, [name]: value } })
     }
 
@@ -196,6 +350,316 @@ function Employee() {
                     }}
                 />
             </Grid>
+            <Modal open={state.isCreating} onClose={toggleCreating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={6}>
+                        <Card>
+                            <CardHeader title="Add Employee" />
+                            <CardContent style={{ maxHeight: "70vh", overflowY: "scroll" }}>
+                                <Grid container spacing={2}>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" fullWidth label="Employee Firstname" value={state.createFirstname} name="createFirstname" onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" fullWidth label="Employee Lastname" value={state.createLastname} name="createLastname" onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField size="small" fullWidth multiline rows={3} label="Address" value={state.createAddress} name="createAddress" onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField size="small" fullWidth label="Contact Number" value={state.createNum} name="createNum" onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" fullWidth label="Emergency Contact Person" value={state.createContactPerson} name="createContactPerson" onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" fullWidth label="Emergency Contact Number" value={state.createContactNum} name="createContactNum" onChange={handleChange} />
+                                    </Grid>
+                                    <LocalizationProvider dateAdapter={DateAdapter}>
+                                        <Grid item xs={12}>
+                                            <DesktopDatePicker
+                                                label="Onboard Date"
+                                                value={state.createOnboardDate}
+                                                onChange={(newValue) => { setState(prevState => { return { ...prevState, createOnboardDate: newValue } }) }}
+                                                renderInput={(params) => <TextField fullWidth size="small"{...params} />}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={6}>
+                                            <TimePicker
+                                                ampm={false}
+                                                openTo="hours"
+                                                views={['hours', 'minutes', 'seconds']}
+                                                inputFormat="HH:mm:ss"
+                                                mask="__:__:__"
+                                                label="Work From"
+                                                value={state.createStartHour}
+                                                onChange={(newValue) => { setState(prevState => { return { ...prevState, createStartHour: newValue } }) }}
+                                                renderInput={(params) => <TextField fullWidth size="small" {...params} />}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={6}>
+                                            <TimePicker
+                                                ampm={false}
+                                                openTo="hours"
+                                                views={['hours', 'minutes', 'seconds']}
+                                                inputFormat="HH:mm:ss"
+                                                mask="__:__:__"
+                                                label="Work To"
+                                                value={state.createEndHour}
+                                                onChange={(newValue) => { setState(prevState => { return { ...prevState, createEndHour: newValue } }) }}
+                                                renderInput={(params) => <TextField fullWidth size="small" {...params} />}
+                                            />
+                                        </Grid>
+                                    </LocalizationProvider>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" select fullWidth value={state.createPos} name="createPos" label="Position" onChange={handleChange}>
+                                            <MenuItem value="unassigned">Unassigned</MenuItem>
+                                            {state.posList.map((el, i) =>
+                                                <MenuItem key={i} value={el.id}>{el.post}</MenuItem>
+                                            )}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" select fullWidth value={state.createDept} name="createDept" label="Department" onChange={handleChange}>
+                                            <MenuItem value="unassigned">Unassigned</MenuItem>
+                                            {state.deptList.map((el, i) =>
+                                                <MenuItem key={i} value={el.id}>{el.name}</MenuItem>
+                                            )}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField size="small" type="number" fullWidth label="Salary" value={state.createSalary} name="createSalary" onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" select fullWidth value={state.createHasOTpay} name="createHasOTpay" label="OT Compensation" onChange={handleChange}>
+                                            <MenuItem value="entitled">Entitled</MenuItem>
+                                            <MenuItem value="unentitled">Unentitled</MenuItem>
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" type="number" fullWidth value={state.createOTpay} name="createOTpay" label="OT Hourly Compensation" onChange={handleChange} disabled={state.createHasOTpay === 'unentitled'} />
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" fullWidth value={state.createUsername} name="createUsername" label="Username" onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <TextField size="small" type="password" fullWidth value={state.createPassword} name="createPassword" label="Password" onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField size="small" select fullWidth value={state.createRole} name="createRole" label="Role" onChange={handleChange}>
+                                            <MenuItem value="employee">Employee</MenuItem>
+                                            <MenuItem value="admin">Admin</MenuItem>
+                                        </TextField>
+                                    </Grid>
+                                </Grid>
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleCreating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={createEmployee}>Create</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+            <Modal open={state.isUpdating} onClose={toggleUpdating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={6}>
+                        <Card>
+                            <CardHeader title="Update Employee" />
+                            <CardContent style={{ maxHeight: "70vh", overflowY: "scroll" }}>
+                                {state.selectedRow.length === 1 ?
+                                    <React.Fragment>
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" fullWidth label="Employee Firstname" value={state.createFirstname} name="createFirstname" onChange={handleChange} />
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" fullWidth label="Employee Lastname" value={state.createLastname} name="createLastname" onChange={handleChange} />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <TextField size="small" fullWidth multiline rows={3} label="Address" value={state.createAddress} name="createAddress" onChange={handleChange} />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <TextField size="small" fullWidth label="Contact Number" value={state.createNum} name="createNum" onChange={handleChange} />
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" fullWidth label="Emergency Contact Person" value={state.createContactPerson} name="createContactPerson" onChange={handleChange} />
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" fullWidth label="Emergency Contact Number" value={state.createContactNum} name="createContactNum" onChange={handleChange} />
+                                            </Grid>
+                                            <LocalizationProvider dateAdapter={DateAdapter}>
+                                                <Grid item xs={12}>
+                                                    <DesktopDatePicker
+                                                        label="Onboard Date"
+                                                        value={state.createOnboardDate}
+                                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createOnboardDate: newValue } }) }}
+                                                        renderInput={(params) => <TextField fullWidth size="small"{...params} />}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={6}>
+                                                    <TimePicker
+                                                        ampm={false}
+                                                        openTo="hours"
+                                                        views={['hours', 'minutes', 'seconds']}
+                                                        inputFormat="HH:mm:ss"
+                                                        mask="__:__:__"
+                                                        label="Work From"
+                                                        value={state.createStartHour}
+                                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createStartHour: newValue } }) }}
+                                                        renderInput={(params) => <TextField fullWidth size="small" {...params} />}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={6}>
+                                                    <TimePicker
+                                                        ampm={false}
+                                                        openTo="hours"
+                                                        views={['hours', 'minutes', 'seconds']}
+                                                        inputFormat="HH:mm:ss"
+                                                        mask="__:__:__"
+                                                        label="Work To"
+                                                        value={state.createEndHour}
+                                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createEndHour: newValue } }) }}
+                                                        renderInput={(params) => <TextField fullWidth size="small" {...params} />}
+                                                    />
+                                                </Grid>
+                                            </LocalizationProvider>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" select fullWidth value={state.createPos} name="createPos" label="Position" onChange={handleChange}>
+                                                    <MenuItem value="unassigned">Unassigned</MenuItem>
+                                                    {state.posList.map((el, i) =>
+                                                        <MenuItem key={i} value={el.id}>{el.post}</MenuItem>
+                                                    )}
+                                                </TextField>
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" select fullWidth value={state.createDept} name="createDept" label="Department" onChange={handleChange}>
+                                                    <MenuItem value="unassigned">Unassigned</MenuItem>
+                                                    {state.deptList.map((el, i) =>
+                                                        <MenuItem key={i} value={el.id}>{el.name}</MenuItem>
+                                                    )}
+                                                </TextField>
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <TextField size="small" type="number" fullWidth label="Salary" value={state.createSalary} name="createSalary" onChange={handleChange} />
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" select fullWidth value={state.createHasOTpay} name="createHasOTpay" label="OT Compensation" onChange={handleChange}>
+                                                    <MenuItem value="entitled">Entitled</MenuItem>
+                                                    <MenuItem value="unentitled">Unentitled</MenuItem>
+                                                </TextField>
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" type="number" fullWidth value={state.createOTpay} name="createOTpay" label="OT Hourly Compensation" onChange={handleChange} disabled={state.createHasOTpay === 'unentitled'} />
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" fullWidth value={state.createUsername} name="createUsername" label="Username" onChange={handleChange} />
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" type="password" fullWidth value={state.createPassword} name="createPassword" label="New Password" onChange={handleChange} />
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <TextField size="small" select fullWidth value={state.createRole} name="createRole" label="Role" onChange={handleChange}>
+                                                    <MenuItem value="employee">Employee</MenuItem>
+                                                    <MenuItem value="admin">Admin</MenuItem>
+                                                </TextField>
+                                            </Grid>
+                                        </Grid>
+                                    </React.Fragment>
+                                    :
+                                    <React.Fragment>
+                                        <Grid container spacing={2}>
+                                            <LocalizationProvider dateAdapter={DateAdapter}>
+                                                <Grid item xs={12}>
+                                                    <DesktopDatePicker
+                                                        label="Onboard Date"
+                                                        value={state.createOnboardDate}
+                                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createOnboardDate: newValue } }) }}
+                                                        renderInput={(params) => <TextField fullWidth size="small"{...params} />}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={6}>
+                                                    <TimePicker
+                                                        ampm={false}
+                                                        openTo="hours"
+                                                        views={['hours', 'minutes', 'seconds']}
+                                                        inputFormat="HH:mm:ss"
+                                                        mask="__:__:__"
+                                                        label="Work From"
+                                                        value={state.createStartHour}
+                                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createStartHour: newValue } }) }}
+                                                        renderInput={(params) => <TextField fullWidth size="small" {...params} />}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={6}>
+                                                    <TimePicker
+                                                        ampm={false}
+                                                        openTo="hours"
+                                                        views={['hours', 'minutes', 'seconds']}
+                                                        inputFormat="HH:mm:ss"
+                                                        mask="__:__:__"
+                                                        label="Work To"
+                                                        value={state.createEndHour}
+                                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createEndHour: newValue } }) }}
+                                                        renderInput={(params) => <TextField fullWidth size="small" {...params} />}
+                                                    />
+                                                </Grid>
+                                            </LocalizationProvider>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" select fullWidth value={state.createPos} name="createPos" label="Position" onChange={handleChange}>
+                                                    <MenuItem value="unassigned">Unassigned</MenuItem>
+                                                    {state.posList.map((el, i) =>
+                                                        <MenuItem key={i} value={el.id}>{el.post}</MenuItem>
+                                                    )}
+                                                </TextField>
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" select fullWidth value={state.createDept} name="createDept" label="Department" onChange={handleChange}>
+                                                    <MenuItem value="unassigned">Unassigned</MenuItem>
+                                                    {state.deptList.map((el, i) =>
+                                                        <MenuItem key={i} value={el.id}>{el.name}</MenuItem>
+                                                    )}
+                                                </TextField>
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                                <TextField size="small" type="number" fullWidth label="Salary" value={state.createSalary} name="createSalary" onChange={handleChange} />
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" select fullWidth value={state.createHasOTpay} name="createHasOTpay" label="OT Compensation" onChange={handleChange}>
+                                                    <MenuItem value="entitled">Entitled</MenuItem>
+                                                    <MenuItem value="unentitled">Unentitled</MenuItem>
+                                                </TextField>
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <TextField size="small" type="number" fullWidth value={state.createOTpay} name="createOTpay" label="OT Hourly Compensation" onChange={handleChange} disabled={state.createHasOTpay === 'unentitled'} />
+                                            </Grid>
+                                        </Grid>
+                                    </React.Fragment>}
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleUpdating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={updateEmployee}>Update</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+            <Modal open={state.isDeleting} onClose={toggleDeleting}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={6}>
+                        <Card>
+                            <CardHeader title="Delete Employee" />
+                            <CardContent>
+                                Are you sure?
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleDeleting}>Cancel</Button>
+                                <Button variant="contained" color="error" onClick={deleteEmployee}>Delete</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
         </Grid>
     )
 }

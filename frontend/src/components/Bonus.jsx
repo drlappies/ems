@@ -1,269 +1,315 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchBonus, updateBonus, confirmBonusUpdate, deleteBonus, createBonus, fetchNextBonusPage, fetchPreviousBonusPage, fetchBonusByEntries, toggleCreating, toggleFiltering, fetchBonusByFilter, resetBonusFilter, toggleUpdating, handleSelect, handleSelectAll, toggleBatchUpdating, batchUpdateBonus, toggleBatchDeleting, batchDeleteBonus, toggleDeleting } from '../actions/bonus';
-import { Grid, Table, Form, Header, Button } from 'semantic-ui-react'
-import TableBody from './TableBody';
-import TableFooter from './TableFooter'
-import TableHeader from './TableHeader'
-import Config from './Config'
-import '../css/main.css'
+import React, { useEffect, useState, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
+import { popMessage } from '../actions/ui';
+import { DataGrid } from '@mui/x-data-grid';
+import Toolbar from './Toolbar';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Modal from '@mui/material/Modal';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Button from '@mui/material/Button';
+import DateAdapter from '@mui/lab/AdapterMoment';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import DesktopDatePicker from '@mui/lab/DesktopDatePicker';
+import axios from 'axios'
+import moment from 'moment'
 
 function Bonus() {
     const dispatch = useDispatch();
-    const bonus = useSelector(state => state.bonus)
+    const [state, setState] = useState({
+        bonus: [],
+        selectedRow: [],
+        employeeList: [],
+        offset: 0,
+        limit: 25,
+        rowCount: 0,
+        isCreating: false,
+        isUpdating: false,
+        isDeleting: false,
+        createEmployee: "",
+        createReason: "",
+        createAmount: "",
+        createDate: null,
+        search: "",
+        employee: "",
+        amountFrom: null,
+        amountTo: null
+    })
 
-    useEffect(() => {
-        dispatch(fetchBonus())
+    const columns = [
+        { field: 'id', headerName: 'ID', flex: 1 },
+        { field: 'employee_id', headerName: 'Employee ID', flex: 1 },
+        { field: 'firstname', headerName: 'Firstname', flex: 1 },
+        { field: 'lastname', headerName: 'Lastname', flex: 1 },
+        { field: 'reason', headerName: 'Reason', flex: 1 },
+        { field: 'date', headerName: 'Date', flex: 1 },
+        { field: 'amount', headerName: 'Amount', flex: 1 },
+    ]
+
+    const fetchBonus = useCallback(async (offset, limit, search, employee, amountFrom, amountTo) => {
+        try {
+            const res = await axios.get('/api/bonus', {
+                params: {
+                    offset: offset,
+                    limit: limit,
+                    search: search,
+                    employee: employee === 'any' ? null : employee,
+                    amountFrom: amountFrom,
+                    amountTo: amountTo
+                }
+            })
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    bonus: res.data.bonus.map(el => {
+                        return {
+                            ...el,
+                            date: `${new Date(el.date).getDate().toString().padStart(2, 0)}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear()}`
+                        }
+                    }),
+                    rowCount: parseInt(res.data.rowCount.count),
+                    employeeList: res.data.employee,
+                    isCreating: false,
+                    isUpdating: false,
+                    isDeleting: false,
+                    createEmployee: "",
+                    createReason: "",
+                    createAmount: "",
+                    createDate: null
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
     }, [dispatch])
 
+    const createBonus = useCallback(async () => {
+        try {
+            const res = await axios.post('/api/bonus', {
+                employeeId: state.createEmployee,
+                reason: state.createReason,
+                amount: state.createAmount,
+                date: state.createDate ? state.createDate.format('YYYY-MM-DD') : null
+            })
+            dispatch(popMessage(res.data.success, 'success'))
+            fetchBonus(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchBonus, state.amountFrom, state.amountTo, state.createAmount, state.createDate, state.createEmployee, state.createReason, state.employee, state.limit, state.offset, state.search])
+
+    const updateBonus = useCallback(async () => {
+        try {
+            const res = await axios.put('/api/bonus', {
+                id: state.selectedRow,
+                employeeId: state.createEmployee,
+                reason: state.createReason,
+                amount: state.createAmount,
+                date: state.createDate ? state.createDate.format('YYYY-MM-DD') : null
+            })
+            dispatch(popMessage(res.data.success, 'success'))
+            fetchBonus(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchBonus, state.amountFrom, state.amountTo, state.createAmount, state.createDate, state.createEmployee, state.createReason, state.employee, state.limit, state.offset, state.search, state.selectedRow])
+
+    const deleteBonus = useCallback(async () => {
+        try {
+            const res = await axios.delete(`/api/bonus/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            dispatch(popMessage(res.data.success, 'success'))
+            fetchBonus(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchBonus, state.amountFrom, state.amountTo, state.employee, state.limit, state.offset, state.search, state.selectedRow])
+
+    const toggleUpdating = useCallback(async () => {
+        try {
+            if (state.isUpdating) {
+                return setState(prevState => { return { ...prevState, isUpdating: false } })
+            }
+
+            if (state.selectedRow.length > 1) {
+                setState(prevState => {
+                    return {
+                        ...prevState,
+                        isUpdating: true,
+                        createEmployee: "",
+                        createReason: "",
+                        createAmount: "",
+                        createDate: null
+                    }
+                })
+            } else {
+                const res = await axios.get(`/api/bonus/${[state.selectedRow]}`);
+                setState(prevState => {
+                    return {
+                        ...prevState,
+                        isUpdating: true,
+                        createEmployee: res.data.bonus.employee_id,
+                        createReason: res.data.bonus.reason,
+                        createAmount: res.data.bonus.amount,
+                        createDate: moment(res.data.bonus.date)
+                    }
+                })
+            }
+        } catch (err) {
+
+        }
+    }, [state.isUpdating, state.selectedRow])
+
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
+    const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
+    const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
+    const handleChange = (e) => {
+        let { name, value } = e.target;
+        if (name === 'createAmount') {
+            if (value > 99999.99) {
+                value = 99999.99
+            } else if (value < 0) {
+                value = 0
+            }
+        }
+        setState(prevState => { return { ...prevState, [name]: value } })
+    }
+
+    useEffect(() => {
+        fetchBonus(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
+    }, [fetchBonus, state.limit, state.offset, state.search, state.employee, state.amountFrom, state.amountTo])
+
     return (
-        <div className="record">
-            <Grid>
-                <Grid.Row >
-                    <Grid.Column textAlign="left">
-                        <Header>Employee Bonus Management</Header>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row columns="1">
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" color="blue" disabled={bonus.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchUpdating(bonus.isBatchUpdating))}>Batch Update</Button>
-                        <Button size="tiny" color="red" disabled={bonus.selectedRecord.length < 2} onClick={() => dispatch(toggleBatchDeleting(bonus.isBatchDeleting))}>Batch Delete</Button>
-                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(bonus.isFiltering))}>Filter</Button>
-                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(bonus.isCreating))}>Create Bonus</Button>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row>
-                    <Grid.Column>
-                        <Table celled compact selectable size="small">
-                            <TableHeader
-                                header={['id', 'Employee Id', 'Firstname', 'Lastname', 'Date', 'Reason', 'Amount', 'Actions']}
-                                checkFunc={(e) => dispatch(handleSelectAll(e, bonus.record))}
-                            />
-                            <TableBody
-                                data={bonus.record}
-                                primaryAction={"Update"}
-                                primaryActionColor={"blue"}
-                                primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
-                                secondaryAction={"Delete"}
-                                secondaryActionColor={"red"}
-                                secondaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
-                                checkedRows={bonus.selectedRecord}
-                                checkFunc={(e) => dispatch(handleSelect(e))}
-                            />
-                            <TableFooter
-                                colSpan={9}
-                                pageTotal={bonus.pageLength}
-                                pageStart={bonus.currentPageStart}
-                                pageEnd={bonus.currentPageEnd}
-                                onNext={() => dispatch(fetchNextBonusPage(bonus.currentPage, bonus.currentLimit, bonus.pageLength, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
-                                onPrevious={() => dispatch(fetchPreviousBonusPage(bonus.currentPage, bonus.currentLimit, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
-                                entriesNum={bonus.currentLimit}
-                                entriesFunc={(e) => dispatch(fetchBonusByEntries(bonus.currentPage, e.target.value, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
-                            />
-                        </Table>
-                    </Grid.Column>
-                </Grid.Row>
-            </Grid >
-            <Config
-                isConfigOpen={bonus.isUpdating}
-                configType={"Update Bonus Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleUpdating())}
-                configSecondaryColor={"green"}
-                configSecondaryAction={"Update"}
-                configSecondaryFunc={() => dispatch(confirmBonusUpdate(bonus.bonusId, bonus.employeeId, bonus.reason, bonus.date, bonus.amount))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="bonusId">ID</label>
-                        <input id="bonusId" name="bonusId" value={bonus.bonusId} disabled />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="employeeId">Recipient Employee</label>
-                        <select id="employeeId" name="employeeId" defaultValue={bonus.employeeId} onChange={(e) => dispatch(updateBonus(e))}>
-                            {bonus.employeeRecord.map((el, i) =>
-                                <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                            )}
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="reason">Reason</label>
-                        <input id="reason" name="reason" value={bonus.reason} onChange={(e) => dispatch(updateBonus(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="amount">Amount</label>
-                        <input type="number" id="amount" name="amount" value={bonus.amount} onChange={(e) => dispatch(updateBonus(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="date">Date</label>
-                        <input type="date" id="date" name="date" defaultValue={bonus.date} onChange={(e) => dispatch(updateBonus(e))} />
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={bonus.isDeleting}
-                configType={"Delete Bonus Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleDeleting())}
-                configSecondaryAction={"Delete"}
-                configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(deleteBonus(bonus.bonusId, bonus.currentPage, bonus.currentLimit, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
-            >
-                <p><strong>Are you sure to delete the following bonus record?</strong></p>
-                <p><strong>ID:</strong> {bonus.bonusId}</p>
-                <p><strong>Recipient Employee ID:</strong> {bonus.employeeId}</p>
-                <p><strong>Recipient Employee:</strong> {bonus.firstname} {bonus.lastname}</p>
-                <p><strong>Reason:</strong> {bonus.reason}</p>
-                <p><strong>Amount:</strong> {bonus.amount}</p>
-                <p><strong>Date: </strong> {bonus.date}</p>
-            </Config>
-            <Config
-                isConfigOpen={bonus.isCreating}
-                configType={"Create Bonus Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleCreating(bonus.isCreating))}
-                configSecondaryAction={"Create"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(createBonus(bonus.createEmployeeId, bonus.createBonusReason, bonus.createBonusAmount, bonus.createBonusDate, bonus.currentPage, bonus.currentLimit, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="createEmployeeId">Recipient Employee</label>
-                        <select id="createEmployeeId" name="createEmployeeId" value={bonus.createEmployeeId} onChange={(e) => dispatch(updateBonus(e))}>
-                            <option value="" hidden>Employee</option>
-                            {bonus.employeeRecord.map((el, i) =>
-                                <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                            )}
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="createBonusReason">Reason</label>
-                        <input id="createBonusReason" name="createBonusReason" value={bonus.createBonusReason} onChange={(e) => dispatch(updateBonus(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="createBonusAmount">Amount</label>
-                        <input type="number" id="createBonusAmount" name="createBonusAmount" value={bonus.createBonusAmount} onChange={(e) => dispatch(updateBonus(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="createBonusDate">Date</label>
-                        <input type="date" id="createBonusDate" name="createBonusDate" defaultValue={bonus.createBonusDate} onChange={(e) => dispatch(updateBonus(e))} />
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={bonus.isFiltering}
-                configType={"Search and Filter"}
-                configPrimaryAction={"Cancel"}
-                configSecondaryAction={"Reset"}
-                configSecondaryColor={"grey"}
-                configTertiaryAction={"Search"}
-                configTertiaryColor={"green"}
-                configPrimaryFunc={() => dispatch(toggleFiltering(bonus.isFiltering))}
-                configTertiaryFunc={() => dispatch(fetchBonusByFilter(bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo, bonus.queryEmployeeId))}
-                configSecondaryFunc={() => dispatch(resetBonusFilter())}
-            >
-                <Form>
-                    <Grid>
-                        <Grid.Row>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryText">Contains</label>
-                                    <input id="queryText" name="queryText" value={bonus.queryText} onChange={(e) => dispatch(updateBonus(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryEmployeeId">Employee</label>
-                                    <select id="queryEmployeeId" name="queryEmployeeId" value={bonus.queryEmployeeId} onChange={(e) => dispatch(updateBonus(e))}>
-                                        <option value="" hidden>Employee</option>
-                                        {bonus.employeeRecord.map((el, i) =>
-                                            <option value={el.id} key={i}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                                        )}
-                                    </select>
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryDateFrom">Date From</label>
-                                    <input type="date" id="queryDateFrom" name="queryDateFrom" value={bonus.queryDateFrom} onChange={(e) => dispatch(updateBonus(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryDateTo">Date To</label>
-                                    <input type="date" id="queryDateTo" name="queryDateTo" value={bonus.queryDateTo} onChange={(e) => dispatch(updateBonus(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryAmountFrom">Amount From</label>
-                                    <input id="queryAmountFrom" name="queryAmountFrom" value={bonus.queryAmountFrom} onChange={(e) => dispatch(updateBonus(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryAmountTo">Amount To</label>
-                                    <input id="queryAmountTo" name="queryAmountTo" value={bonus.queryAmountTo} onChange={(e) => dispatch(updateBonus(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
+        <Grid container>
+            <Grid item xs={12}>
+                <DataGrid
+                    paginationMode="server"
+                    checkboxSelection
+                    disableColumnFilter
+                    rows={state.bonus}
+                    columns={columns}
+                    pageSize={state.limit}
+                    rowCount={state.rowCount}
+                    rowsPerPageOptions={[25, 50, 100]}
+                    style={{ height: '75vh', width: "100%" }}
+                    onSelectionModelChange={(row) => handleSelect(row)}
+                    onPageSizeChange={(size) => changePageSize(size)}
+                    onPageChange={(page) => changePage(page)}
+                    components={{ Toolbar: Toolbar }}
+                    componentsProps={{
+                        toolbar: {
+                            create: toggleCreating,
+                            update: toggleUpdating,
+                            destroy: toggleDeleting,
+                            isUpdateDisabled: state.selectedRow.length < 1,
+                            isDestroyDisabled: state.selectedRow.length < 1,
+                            filterOption: (
+                                <Grid container spacing={2}>
+                                    <Grid item xs={4}>
+                                        <TextField fullWidth variant="standard" size="small" label="Search" name="search" value={state.search} onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={2}>
+                                        <TextField fullWidth variant="standard" select size="small" label="Employee" name="employee" value={state.employee} onChange={handleChange}>
+                                            <MenuItem value="any">Any</MenuItem>
+                                            {state.employeeList.map((el, i) =>
+                                                <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                            )}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField fullWidth size="small" variant="standard" label="Amount range from" type="number" name="amountFrom" value={state.amountFrom} onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField fullWidth size="small" variant="standard" label="Amount range to" type="number" name="amountTo" value={state.amountTo} onChange={handleChange} />
+                                    </Grid>
+                                </Grid>
+                            )
+                        }
+                    }}
+                />
+            </Grid>
+            <Modal open={state.isCreating} onClose={toggleCreating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Create Bonus" subheader="Grant a bonus to an employee." />
+                            <CardContent>
+                                <TextField fullWidth select margin="normal" size="small" label="Employee" name="createEmployee" value={state.createEmployee} onChange={handleChange}>
+                                    {state.employeeList.map((el, i) =>
+                                        <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                    )}
+                                </TextField>
+                                <TextField fullWidth margin="normal" size="small" label="Amount" name="createAmount" type="number" value={state.createAmount} onChange={handleChange} />
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DesktopDatePicker
+                                        label="Date"
+                                        value={state.createDate}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createDate: newValue } }) }}
+                                        renderInput={(params) => <TextField fullWidth margin="normal" size="small"{...params} />}
+                                    />
+                                </LocalizationProvider>
+                                <TextField fullWidth margin="normal" size="small" label="Reason" name="createReason" multiline rows={4} value={state.createReason} onChange={handleChange} />
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleCreating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={createBonus}>Create</Button>
+                            </CardActions>
+                        </Card>
                     </Grid>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={bonus.isBatchUpdating}
-                configType={"Batch Update Bonus Records"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchUpdating(bonus.isBatchUpdating))}
-                configSecondaryAction={"Batch Update"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(batchUpdateBonus(bonus.selectedRecord, bonus.updateEmployeeId, bonus.updateDate, bonus.updateReason, bonus.updateAmount, bonus.currentPage, bonus.currentLimit, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="updateEmployeeId">Employee</label>
-                        <select id="updateEmployeeId" name="updateEmployeeId" value={bonus.updateEmployeeId} onChange={(e) => dispatch(updateBonus(e))}>
-                            <option value="" hidden>Employee</option>
-                            {bonus.employeeRecord.map((el, i) =>
-                                <option key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</option>
-                            )}
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="updateDate">Date</label>
-                        <input id="updateDate" name="updateDate" type="date" value={bonus.updateDate} onChange={(e) => dispatch(updateBonus(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="updateAmount">Amount</label>
-                        <input id="updateAmount" name="updateAmount" type="number" value={bonus.updateAmount} onChange={(e) => dispatch(updateBonus(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="updateReason">Reason</label>
-                        <textarea id="updateReason" name="updateReason" value={bonus.updateReason} onChange={(e) => dispatch(updateBonus(e))} />
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={bonus.isBatchDeleting}
-                configType={"Batch Delete Bonus Records"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchDeleting(bonus.isBatchDeleting))}
-                configSecondaryAction={"Batch Delete"}
-                configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(batchDeleteBonus(bonus.selectedRecord, bonus.currentPage, bonus.currentLimit, bonus.queryText, bonus.queryDateFrom, bonus.queryDateTo, bonus.queryAmountFrom, bonus.queryAmountTo))}
-            >
-                <p><strong>Are you sure to delete the following records?</strong></p>
-                {bonus.selectedRecord.map((el, i) =>
-                    <p key={i}><strong>ID:</strong> {el}</p>
-                )}
-            </Config>
-        </div>
+                </Grid>
+            </Modal>
+            <Modal open={state.isUpdating} onClose={toggleUpdating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Update Payroll Record" />
+                            <CardContent>
+                                <TextField fullWidth select margin="normal" size="small" label="Employee" name="createEmployee" value={state.createEmployee} onChange={handleChange}>
+                                    {state.employeeList.map((el, i) =>
+                                        <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                    )}
+                                </TextField>
+                                <TextField fullWidth margin="normal" size="small" label="Amount" name="createAmount" type="number" value={state.createAmount} onChange={handleChange} />
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DesktopDatePicker
+                                        label="Date"
+                                        value={state.createDate}
+                                        onChange={(newValue) => { setState(prevState => { return { ...prevState, createDate: newValue } }) }}
+                                        renderInput={(params) => <TextField fullWidth margin="normal" size="small"{...params} />}
+                                    />
+                                </LocalizationProvider>
+                                <TextField fullWidth margin="normal" size="small" label="Reason" name="createReason" multiline rows={4} value={state.createReason} onChange={handleChange} />
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleUpdating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={updateBonus}>Update</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+            <Modal open={state.isDeleting} onClose={toggleDeleting}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Delete Leave Record" />
+                            <CardContent>
+                                Are you sure?
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleDeleting}>Cancel</Button>
+                                <Button variant="contained" color="error" onClick={deleteBonus}>Delete</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+        </Grid >
     )
 }
 

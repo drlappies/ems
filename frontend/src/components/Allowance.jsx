@@ -1,333 +1,388 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchAllowance, updateAllowance, confirmAllowanceUpdate, deleteAllowance, addToEntitleList, removeFromEntitleList, gotoNextAllowancePage, gotoPreviousAllowancePage, createAllowance, fetchAllowanceByQuery, handleEntriesChange, toggleFiltering, resetAllowanceQuery, toggleCreating, toggleUpdating, toggleDeleting, handleSelect, handleSelectAll, toggleBatchUpdating, toggleBatchDeleting, batchUpdateAllowance, batchDeleteAllowance, toggleManaging } from '../actions/allowance';
-import { Form, Grid, Table, Button, List, Header } from 'semantic-ui-react'
-import TableHeader from './TableHeader';
-import TableBody from './TableBody';
-import TableFooter from './TableFooter';
-import Config from './Config';
-import '../css/main.css'
+import React, { useEffect, useState, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
+import { popMessage } from '../actions/ui';
+import { DataGrid } from '@mui/x-data-grid';
+import Toolbar from './Toolbar';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Modal from '@mui/material/Modal';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import axios from 'axios'
+
 
 function Allowance() {
     const dispatch = useDispatch()
-    const allowance = useSelector(state => state.allowance)
+    const [state, setState] = useState({
+        offset: 0,
+        limit: 25,
+        rowCount: 0,
+        allowance: [],
+        employeeList: [],
+        employeeEntitledList: [],
+        selectedRow: [],
+        isCreating: false,
+        isUpdating: false,
+        isDeleting: false,
+        queryStatus: "any",
+        amountFrom: null,
+        amountTo: null,
+        search: "",
+        name: "",
+        amount: "",
+        desc: "",
+        status: "active",
+        addEmployee: ""
+    })
 
-    useEffect(() => {
-        dispatch(fetchAllowance())
+    const columns = [
+        { field: 'id', headerName: 'ID', flex: 1 },
+        { field: 'name', headerName: 'Name', flex: 1 },
+        { field: 'description', headerName: 'Description', flex: 1 },
+        { field: 'amount', headerName: 'Amount', flex: 1 },
+        { field: 'status', headerName: 'Status', flex: 1 }
+    ]
+
+    const fetchAllowance = useCallback(async (offset, limit, search, amountFrom, amountTo, status) => {
+        try {
+            const res = await axios.get('/api/allowance', {
+                params: {
+                    offset: offset,
+                    limit: limit,
+                    search: search,
+                    amountFrom: amountFrom,
+                    amountTo: amountTo,
+                    status: status === 'any' ? null : status
+                }
+            })
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    allowance: res.data.allowance,
+                    rowCount: parseInt(res.data.rowCount.count),
+                    isCreating: false,
+                    isUpdating: false,
+                    isDeleting: false,
+                    name: "",
+                    amount: "",
+                    desc: "",
+                    status: "active"
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
     }, [dispatch])
 
+    const createAllowance = useCallback(async () => {
+        try {
+            const res = await axios.post('/api/allowance', {
+                name: state.name,
+                description: state.desc,
+                amount: state.amount,
+                status: state.status
+            })
+            dispatch(popMessage(res.data.success, 'success'))
+            fetchAllowance(state.offset, state.limit, state.search, state.amountFrom, state.amountTo, state.queryStatus)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchAllowance, state.amount, state.amountFrom, state.amountTo, state.desc, state.limit, state.name, state.offset, state.queryStatus, state.search, state.status])
+
+    const updateAllowance = useCallback(async () => {
+        try {
+            const res = await axios.put('/api/allowance', {
+                id: state.selectedRow,
+                name: state.name,
+                description: state.desc,
+                amount: state.amount,
+                status: state.status,
+            })
+            dispatch(popMessage(res.data.success, 'success'))
+            fetchAllowance(state.offset, state.limit, state.search, state.amountFrom, state.amountTo, state.queryStatus)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchAllowance, state.amount, state.amountFrom, state.amountTo, state.desc, state.limit, state.name, state.offset, state.queryStatus, state.search, state.selectedRow, state.status])
+
+    const deleteAllowance = useCallback(async () => {
+        try {
+            const res = await axios.delete(`/api/allowance/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            dispatch(popMessage(res.data.success, 'success'))
+            fetchAllowance(state.offset, state.limit, state.search, state.amountFrom, state.amountTo, state.queryStatus)
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, fetchAllowance, state.amountFrom, state.amountTo, state.limit, state.offset, state.queryStatus, state.search, state.selectedRow])
+
+    const entitleEmployee = useCallback(async () => {
+        try {
+            const res = await axios.post(`/api/allowance/entitlement/${[state.selectedRow]}`, {
+                employeeId: state.addEmployee
+            })
+            dispatch(popMessage(res.data.success, 'success'))
+            const res2 = await axios.get(`/api/allowance/${[state.selectedRow]}`)
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    isUpdating: true,
+                    addEmployee: null,
+                    employeeList: res2.data.employee,
+                    name: res2.data.allowance.name,
+                    desc: res2.data.allowance.description,
+                    amount: res2.data.allowance.amount,
+                    status: res2.data.allowance.status,
+                    employeeEntitledList: res2.data.allowance_employee
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, state.addEmployee, state.selectedRow])
+
+    const disentitleEmployee = useCallback(async (id) => {
+        try {
+            const res = await axios.delete(`/api/allowance/entitlement/${[state.selectedRow]}/employee/${id}`)
+            dispatch(popMessage(res.data.success, 'success'))
+            const res2 = await axios.get(`/api/allowance/${[state.selectedRow]}`)
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    isUpdating: true,
+                    employeeList: res2.data.employee,
+                    name: res2.data.allowance.name,
+                    desc: res2.data.allowance.description,
+                    amount: res2.data.allowance.amount,
+                    status: res2.data.allowance.status,
+                    employeeEntitledList: res2.data.allowance_employee
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [dispatch, state.selectedRow])
+
+    const toggleUpdating = async () => {
+        try {
+            if (state.isUpdating) {
+                return setState(prevState => { return { ...prevState, isUpdating: false } })
+            }
+
+            if (state.selectedRow.length > 1) {
+                setState(prevState => {
+                    return {
+                        ...prevState,
+                        isUpdating: true,
+                        name: "",
+                        amount: "",
+                        desc: "",
+                        status: "active"
+                    }
+                })
+            } else {
+                const res = await axios.get(`/api/allowance/${[state.selectedRow]}`)
+                setState(prevState => {
+                    return {
+                        ...prevState,
+                        isUpdating: true,
+                        employeeList: res.data.employee,
+                        name: res.data.allowance.name,
+                        desc: res.data.allowance.description,
+                        amount: res.data.allowance.amount,
+                        status: res.data.allowance.status,
+                        employeeEntitledList: res.data.allowance_employee
+                    }
+                })
+            }
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }
+
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
+    const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
+    const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
+    const handleChange = (e) => {
+        let { name, value } = e.target;
+        if (name === 'amount') {
+            if (value > 99999.99) {
+                value = 99999.99
+            } else if (value < 0) {
+                value = 0
+            }
+        }
+        setState(prevState => { return { ...prevState, [name]: value } })
+    }
+
+    useEffect(() => {
+        fetchAllowance(state.offset, state.limit, state.search, state.amountFrom, state.amountTo, state.queryStatus)
+    }, [fetchAllowance, state.limit, state.offset, state.search, state.amountFrom, state.amountTo, state.queryStatus])
+
     return (
-        <div className="record">
-            <Grid>
-                <Grid.Row >
-                    <Grid.Column>
-                        <Header>Employee Allowance Management</Header>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row columns="1">
-                    <Grid.Column textAlign="right">
-                        <Button size="tiny" color="blue" onClick={() => dispatch(toggleBatchUpdating(allowance.isBatchUpdating))} disabled={!allowance.selectedRecord.length}>Batch Update</Button>
-                        <Button size="tiny" color="red" onClick={() => dispatch(toggleBatchDeleting(allowance.isBatchDeleting))} disabled={!allowance.selectedRecord.length}>Batch Delete</Button>
-                        <Button size="tiny" color="teal" onClick={() => dispatch(toggleFiltering(allowance.isFiltering))}>Filter</Button>
-                        <Button size="tiny" color="green" onClick={() => dispatch(toggleCreating(allowance.isCreating))}>Create Allowance</Button>
-                    </Grid.Column>
-                </Grid.Row>
-                <Grid.Row>
-                    <Grid.Column>
-                        <Table celled compact selectable size="small">
-                            <TableHeader
-                                header={['id', 'Allowance Name', 'Description', 'Amount', 'Status', 'Actions']}
-                                checkFunc={(e) => dispatch(handleSelectAll(e, allowance.record))}
-                            />
-                            <TableBody
-                                data={allowance.record}
-                                primaryAction={"Update"}
-                                primaryActionColor={"blue"}
-                                primaryFunc={(e) => dispatch(toggleUpdating(e.target.value))}
-                                tertiaryAction={"Delete"}
-                                tertiaryActionColor={"red"}
-                                tertiaryFunc={(e) => dispatch(toggleDeleting(e.target.value))}
-                                secondaryAction={"Manage"}
-                                secondaryFunc={(e) => dispatch(toggleManaging(e.target.value))}
-                                secondaryActionColor={'orange'}
-                                checkedRows={allowance.selectedRecord}
-                                checkFunc={(e) => dispatch(handleSelect(e))}
-                            />
-                            <TableFooter
-                                colSpan={7}
-                                pageTotal={allowance.pageLength}
-                                pageStart={allowance.currentPageStart}
-                                pageEnd={allowance.currentPageEnd}
-                                onNext={() => dispatch(gotoNextAllowancePage(allowance.currentPage, allowance.pageLength, allowance.currentLimit, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
-                                onPrevious={() => dispatch(gotoPreviousAllowancePage(allowance.currentPage, allowance.currentLimit, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
-                                entriesNum={allowance.currentLimit}
-                                entriesFunc={(e) => dispatch(handleEntriesChange(e.target.value, allowance.currentPage, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
-                            />
-                        </Table>
-                    </Grid.Column>
-                </Grid.Row>
+        <Grid container>
+            <Grid item xs={12}>
+                <DataGrid
+                    paginationMode="server"
+                    checkboxSelection
+                    disableColumnFilter
+                    rows={state.allowance}
+                    columns={columns}
+                    pageSize={state.limit}
+                    rowCount={state.rowCount}
+                    rowsPerPageOptions={[25, 50, 100]}
+                    style={{ height: '75vh', width: "100%" }}
+                    onSelectionModelChange={(row) => handleSelect(row)}
+                    onPageSizeChange={(size) => changePageSize(size)}
+                    onPageChange={(page) => changePage(page)}
+                    components={{ Toolbar: Toolbar }}
+                    componentsProps={{
+                        toolbar: {
+                            create: toggleCreating,
+                            update: toggleUpdating,
+                            destroy: toggleDeleting,
+                            isUpdateDisabled: state.selectedRow.length < 1,
+                            isDestroyDisabled: state.selectedRow.length < 1,
+                            filterOption: (
+                                <Grid container spacing={2}>
+                                    <Grid item xs={4}>
+                                        <TextField fullWidth variant="standard" size="small" label="Search" name="search" value={state.search} onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item xs={2}>
+                                        <TextField fullWidth variant="standard" select size="small" label="Status" name="queryStatus" value={state.queryStatus} onChange={handleChange}>
+                                            <MenuItem value="any">Any</MenuItem>
+                                            <MenuItem value="active">Active</MenuItem>
+                                            <MenuItem value="disabled">Disabled</MenuItem>
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField fullWidth size="small" variant="standard" label="Amount range from" type="number" name="amountFrom" value={state.amountFrom} onChange={handleChange} />
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField fullWidth size="small" variant="standard" label="Amount range to" type="number" name="amountTo" value={state.amountTo} onChange={handleChange} />
+                                    </Grid>
+                                </Grid>
+                            )
+                        }
+                    }}
+                />
             </Grid>
-            <Config
-                isConfigOpen={allowance.isUpdating}
-                configType={"Update Allowance"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleUpdating())}
-                configSecondaryAction={"Update"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(confirmAllowanceUpdate(allowance.allowanceId, allowance.allowanceName, allowance.allowanceDescription, allowance.allowanceAmount, allowance.allowanceStatus, allowance.allowanceMinimumAttendanceRequired, allowance.allowanceRequiredAttendanceRate))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="allowaneID">ID</label>
-                        <input id="allowanceId" name="allowanceId" value={allowance.allowanceId} disabled />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="allowanceName">Name</label>
-                        <input id="allowanceName" name="allowanceName" value={allowance.allowanceName} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="allowanceDescription">Description</label>
-                        <input id="allowanceDescription" name="allowanceDescription" value={allowance.allowanceDescription} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="allowanceAmount">Amount</label>
-                        <input type="number" id="allowanceAmount" name="allowanceAmount" value={allowance.allowanceAmount} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="allowanceStatus">Status</label>
-                        <select id="allowanceStatus" name="allowanceStatus" value={allowance.allowanceStatus} onChange={(e) => dispatch(updateAllowance(e))}>
-                            <option value="active">Active</option>
-                            <option value="disabled">Disabled</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="allowanceMinimumAttendanceRequired">Minimum Attendance Required</label>
-                        <input type="checkbox" id="allowanceMinimumAttendanceRequired" name="allowanceMinimumAttendanceRequired" checked={allowance.allowanceMinimumAttendanceRequired} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="allowanceRequiredAttendanceRate">Allowance Required Attendance Rate</label>
-                        <input type="number" id="allowanceRequiredAttendanceRate" name="allowanceRequiredAttendanceRate" value={allowance.allowanceRequiredAttendanceRate} disabled={!allowance.allowanceMinimumAttendanceRequired} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={allowance.isDeleting}
-                configType={"Delete Allowance"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={(e) => dispatch(toggleDeleting())}
-                configSecondaryAction={"Delete"}
-                configSecondaryFunc={() => dispatch(deleteAllowance(allowance.allowanceId, allowance.currentPage, allowance.currentLimit, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
-                configSecondaryColor={'red'}
-            >
-                <p><strong>Are you sure to delete the following allowance record?</strong></p>
-                <p><strong>ID:</strong> {allowance.allowanceId}</p>
-                <p><strong>Name:</strong> {allowance.allowanceName}</p>
-                <p><strong>Description:</strong> {allowance.allowanceDescription}</p>
-                <p><strong>Amount:</strong> {allowance.allowanceAmount}</p>
-            </Config>
-            <Config
-                isConfigOpen={allowance.isManaging}
-                configSize={"large"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleManaging())}
-                configType={"Manage Employee Entitlement"}
-            >
-                <Grid>
-                    <Grid.Row columns={2}>
-                        <Grid.Column>
-                            <List celled>
-                                <Header>Entitled Employees:</Header>
-                                {allowance.entitledEmployee.map((el, i) =>
-                                    <List.Item>
-                                        <List.Content floated="right">
-                                            <Button color="red" size="tiny" onClick={() => dispatch(removeFromEntitleList(el.id, allowance.allowanceId, el.firstname, el.lastname))}>Remove</Button>
-                                        </List.Content>
-                                        <List.Content key={i}>
-                                            <List.Header>
-                                                ID: {el.id}
-                                            </List.Header>
-                                            {el.firstname} {el.lastname}
-                                        </List.Content>
-                                    </List.Item>
-                                )}
-                            </List>
-                        </Grid.Column>
-                        <Grid.Column>
-                            <List celled>
-                                <Header>Employees:</Header>
-                                {allowance.notEntitledEmployee.map((el, i) =>
-                                    <List.Item key={i}>
-                                        <List.Content floated="right">
-                                            <Button color="green" size="tiny" onClick={() => dispatch(addToEntitleList(el.id, allowance.allowanceId, el.firstname, el.lastname))}>Add</Button>
-                                        </List.Content>
-                                        <List.Content>
-                                            <List.Header>
-                                                ID: {el.id}
-                                            </List.Header>
-                                            {el.firstname} {el.lastname}
-                                        </List.Content>
-                                    </List.Item>
-                                )}
-                            </List>
-                        </Grid.Column>
-                    </Grid.Row>
-                </Grid>
-            </Config>
-            <Config
-                isConfigOpen={allowance.isCreating}
-                configType={"Create Allowance"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleCreating(allowance.isCreating))}
-                configSecondaryAction={"Create"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(createAllowance(allowance.createAllowanceName, allowance.createAllowanceDescription, allowance.createAllowanceAmount, allowance.rma, allowance.rate))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="createAllowanceName">Name</label>
-                        <input id="createAllowanceName" name="createAllowanceName" value={allowance.createAllowanceName} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="createAllowanceDescription">Description</label>
-                        <input id="createAllowanceDescription" name="createAllowanceDescription" value={allowance.createAllowanceDescription} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="createAllowanceAmount">Amount</label>
-                        <input type="number" id="createAllowanceAmount" name="createAllowanceAmount" value={allowance.createAllowanceAmount} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="rma">Require minimum attendance?</label>
-                        <input type="checkbox" id="rma" name="rma" value={allowance.rma} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="rate">Required minimum attendance rate:</label>
-                        <input type="number" min="0" max="100" id="rate" name="rate" value={allowance.rate} onChange={(e) => dispatch(updateAllowance(e))} disabled={!allowance.rma} />
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={allowance.isFiltering}
-                configType={"Search and Filter"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleFiltering(allowance.isFiltering))}
-                configSecondaryAction={"Reset"}
-                configSecondaryFunc={() => dispatch(resetAllowanceQuery())}
-                configTertiaryAction={"Search"}
-                configTertiaryColor={"green"}
-                configSecondaryColor={"grey"}
-                configTertiaryFunc={() => dispatch(fetchAllowanceByQuery(allowance.currentPage, allowance.currentLimit, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
-            >
-                <Form>
-                    <Grid>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryText">Keywords</label>
-                                    <input placeholder="Allowance name, description ..." id="queryText" name="queryText" value={allowance.queryText} onChange={(e) => dispatch(updateAllowance(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryStatus">Status</label>
-                                    <select id="queryStatus" name="queryStatus" value={allowance.queryStatus} onChange={(e) => dispatch(updateAllowance(e))}>
-                                        <option value="" hidden>Status</option>
-                                        <option value="active">Active</option>
-                                        <option value="disabled">Disabled</option>
-                                    </select>
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="2">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryAmountFrom">Allowance Amount From</label>
-                                    <input type="number" id="queryAmountFrom" name="queryAmountFrom" value={allowance.queryAmountFrom} onChange={(e) => dispatch(updateAllowance(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryAmountTo">Allowance Amount To</label>
-                                    <input type="number" id="queryAmountTo" name="queryAmountTo" value={allowance.queryAmountTo} onChange={(e) => dispatch(updateAllowance(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
-                        <Grid.Row columns="3">
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryIsAttendRequired">Is Minimum Attendance Required?</label>
-                                    <select type="queryIsAttendRequired" name="queryIsAttendRequired" value={allowance.queryIsAttendRequired} onChange={(e) => dispatch(updateAllowance(e))}>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryRequiredAttendRateFrom">Required Attendance Rate From</label>
-                                    <input type="number" id="queryRequiredAttendRateFrom" name="queryRequiredAttendRateFrom" value={allowance.queryRequiredAttendRateFrom} onChange={(e) => dispatch(updateAllowance(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Form.Field>
-                                    <label htmlFor="queryRequiredAttendRateTo">Required Attendance Rate To</label>
-                                    <input type="number" id="queryRequiredAttendRateTo" name="queryRequiredAttendRateTo" value={allowance.queryRequiredAttendRateTo} onChange={(e) => dispatch(updateAllowance(e))} />
-                                </Form.Field>
-                            </Grid.Column>
-                        </Grid.Row>
+            <Modal open={state.isCreating} onClose={toggleCreating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Create Allowance" />
+                            <CardContent>
+                                <TextField fullWidth margin="normal" size="small" label="Name" name="name" value={state.name} onChange={handleChange} />
+                                <TextField fullWidth margin="normal" size="small" label="Description" multiline rows={3} name="desc" value={state.desc} onChange={handleChange} />
+                                <TextField fullWidth margin="normal" size="small" type="number" label="Amount" name="amount" value={state.amount} onChange={handleChange} />
+                                <TextField fullWidth select margin="normal" size="small" label="Status" name="status" value={state.status} onChange={handleChange}>
+                                    <MenuItem value="active">Active</MenuItem>
+                                    <MenuItem value="disabled">Disabled</MenuItem>
+                                </TextField>
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleCreating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={createAllowance}>Create</Button>
+                            </CardActions>
+                        </Card>
                     </Grid>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={allowance.isBatchUpdating}
-                configType={"Batch Update Employee Allowance Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchUpdating(allowance.isBatchUpdating))}
-                configSecondaryAction={"Update"}
-                configSecondaryColor={"green"}
-                configSecondaryFunc={() => dispatch(batchUpdateAllowance(allowance.selectedRecord, allowance.updateAllowanceAmount, allowance.updateAllowanceStatus, allowance.updateAllowanceMinimumAttendanceRequired, allowance.updateAllowanceRequiredAttendanceRate))}
-            >
-                <Form>
-                    <Form.Field>
-                        <label htmlFor="updateAllowanceAmount">Amount</label>
-                        <input type="number" id="updateAllowanceAmount" name="updateAllowanceAmount" value={allowance.updateAllowanceAmount} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="updateAllowanceStatus">Status</label>
-                        <select id="updateAllowanceStatus" name="updateAllowanceStatus" value={allowance.updateAllowanceStatus} onChange={(e) => dispatch(updateAllowance(e))}>
-                            <option value="" hidden>Status</option>
-                            <option value="active">Active</option>
-                            <option value="disabled">Disabled</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="updateAllowanceMinimumAttendanceRequired">Minimum Attendance Required</label>
-                        <select id="updateAllowanceMinimumAttendanceRequired" name="updateAllowanceMinimumAttendanceRequired" checked={allowance.updateAllowanceMinimumAttendanceRequired} onChange={(e) => dispatch(updateAllowance(e))}>
-                            <option value="" hidden>Required?</option>
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                        </select>
-                    </Form.Field>
-                    <Form.Field>
-                        <label htmlFor="updateAllowanceRequiredAttendanceRate">Allowance Required Attendance Rate</label>
-                        <input type="number" id="updateAllowanceRequiredAttendanceRate" name="updateAllowanceRequiredAttendanceRate" value={allowance.updateAllowanceRequiredAttendanceRate} disabled={!allowance.updateAllowanceMinimumAttendanceRequired} onChange={(e) => dispatch(updateAllowance(e))} />
-                    </Form.Field>
-                </Form>
-            </Config>
-            <Config
-                isConfigOpen={allowance.isBatchDeleting}
-                configType={"Batch Delete Allowance Record"}
-                configPrimaryAction={"Cancel"}
-                configPrimaryFunc={() => dispatch(toggleBatchDeleting(allowance.isBatchDeleting))}
-                configSecondaryAction={"Batch Delete"}
-                configSecondaryColor={"red"}
-                configSecondaryFunc={() => dispatch(batchDeleteAllowance(allowance.selectedRecord, allowance.currentPage, allowance.currentLimit, allowance.queryText, allowance.queryAmountFrom, allowance.queryAmountTo, allowance.queryStatus, allowance.queryIsAttendRequired, allowance.queryRequiredAttendRateFrom, allowance.queryRequiredAttendRateTo))}
-            >
-                <p><strong>Are you sure to delete the following allowance records?</strong></p>
-                {allowance.selectedRecord.map((el, i) =>
-                    <p key={i}><strong>ID: </strong>{el}</p>
-                )}
-            </Config>
-        </div>
+                </Grid>
+            </Modal>
+            <Modal open={state.isUpdating} onClose={toggleUpdating}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={state.selectedRow.length > 1 ? 5 : 9}>
+                        <Card>
+                            <CardHeader title="Update Allowance" />
+                            <CardContent>
+                                {state.selectedRow.length > 1 ?
+                                    <React.Fragment>
+                                        <TextField fullWidth margin="normal" size="small" type="number" label="Amount" name="amount" value={state.amount} onChange={handleChange} />
+                                        <TextField fullWidth select margin="normal" size="small" label="Status" name="status" value={state.status} onChange={handleChange}>
+                                            <MenuItem value="active">Active</MenuItem>
+                                            <MenuItem value="disabled">Disabled</MenuItem>
+                                        </TextField>
+                                    </React.Fragment>
+                                    :
+                                    <Grid container spacing={3}>
+                                        <Grid item xs={6}>
+                                            <TextField fullWidth margin="normal" size="small" label="Name" name="name" value={state.name} onChange={handleChange} />
+                                            <TextField fullWidth margin="normal" size="small" label="Description" multiline rows={3} name="desc" value={state.desc} onChange={handleChange} />
+                                            <TextField fullWidth margin="normal" size="small" type="number" label="Amount" name="amount" value={state.amount} onChange={handleChange} />
+                                            <TextField fullWidth select margin="normal" size="small" label="Status" name="status" value={state.status} onChange={handleChange}>
+                                                <MenuItem value="active">Active</MenuItem>
+                                                <MenuItem value="disabled">Disabled</MenuItem>
+                                            </TextField>
+                                        </Grid>
+                                        <Grid item xs={6}>
+                                            <Stack direction="row" spacing={1} justifyContent="space-between" alignItems="center">
+                                                <TextField select fullWidth margin="normal" size="small" label="Employee" name="addEmployee" value={state.addEmployee} onChange={handleChange}>
+                                                    {state.employeeList.map((el, i) =>
+                                                        <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
+                                                    )}
+                                                </TextField>
+                                                <Button variant="contained" onClick={entitleEmployee} disabled={state.employeeList.length < 1 || !state.addEmployee}>Add</Button>
+                                            </Stack>
+                                            <div style={{ overflowY: "scroll" }}>
+                                                <Table size="small">
+                                                    <TableHead>
+                                                        <TableRow>
+                                                            <TableCell>ID</TableCell>
+                                                            <TableCell>Entitled Employee</TableCell>
+                                                            <TableCell align="right">Action</TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        {state.employeeEntitledList.map((el, i) =>
+                                                            <TableRow key={i}>
+                                                                <TableCell>{el.id}</TableCell>
+                                                                <TableCell>{el.firstname} {el.lastname}</TableCell>
+                                                                <TableCell align="right"><Button onClick={() => disentitleEmployee(el.id)} size="small" variant="contained" color="error">Remove</Button></TableCell>
+                                                            </TableRow>
+                                                        )}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                        </Grid>
+                                    </Grid>}
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleUpdating}>Cancel</Button>
+                                <Button variant="contained" color="success" onClick={updateAllowance}>Update</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+            <Modal open={state.isDeleting} onClose={toggleDeleting}>
+                <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+                    <Grid item xs={5}>
+                        <Card>
+                            <CardHeader title="Delete Allowance" />
+                            <CardContent>
+                                Are you sure?
+                            </CardContent>
+                            <CardActions>
+                                <Button variant="contained" onClick={toggleDeleting}>Cancel</Button>
+                                <Button variant="contained" color="error" onClick={deleteAllowance} >Delete</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Modal>
+
+        </Grid>
     )
 }
 

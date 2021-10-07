@@ -90,6 +90,12 @@ function Navbar(props) {
                         </ListItemIcon>
                         <ListItemText>Leave Application</ListItemText>
                     </ListItem>
+                    <ListItem button component={Link} to="/reimbursement/application">
+                        <ListItemIcon>
+                            <LocalAtmOutlinedIcon />
+                        </ListItemIcon>
+                        <ListItemText>Reimbursement Application</ListItemText>
+                    </ListItem>
                 </List>
                 <Divider />
                 {auth.role === 'admin' ?

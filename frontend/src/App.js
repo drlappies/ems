@@ -45,7 +45,7 @@ function App() {
               <AdminRoute exact path="/employee/department" component={Department} />
               <AdminRoute exact path="/employee/position" component={Position} />
               <AdminRoute exact path="/allowance" component={Allowance} />
-              <AdminRoute exact path="/reimbursement/apply" component={Reimbursement} />
+              <AdminRoute exact path="/reimbursement/application" component={Reimbursement} />
               <AdminRoute exact path="/reimbursement/management" component={ReimbursementManagement} />
               <AdminRoute exact path="/bonus/management" component={Bonus} />
               <AdminRoute exact path="/payroll" component={Payroll} />
