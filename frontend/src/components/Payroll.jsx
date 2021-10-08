@@ -32,6 +32,7 @@ function Payroll() {
     const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
     const handlePrint = useReactToPrint({ content: () => componentRef.current, });
+    const [rows, setRows] = useState([])
     const [state, setState] = useState({
         payrollHistory: [],
         employeeList: [],
@@ -59,7 +60,8 @@ function Payroll() {
         updateStatus: "",
         isDeleting: false,
         isPrinting: false,
-        toBePrinted: []
+        toBePrinted: [],
+        isLoading: true
     })
 
     const columns = [
@@ -78,7 +80,7 @@ function Payroll() {
 
     const fetchPayroll = useCallback(async (offset, limit, search, employee, status, date, amountFrom, amountTo) => {
         try {
-            const res = await axios.get('/api/payroll', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/payroll`, {
                 params: {
                     offset: offset,
                     limit: limit,
@@ -91,17 +93,17 @@ function Payroll() {
                     amountTo: amountTo,
                 }
             })
+            setRows(res.data.payroll.map(el => {
+                return {
+                    ...el,
+                    from: `${new Date(el.from).getDate().toString().padStart(2, 0)}/${(new Date(el.from).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.from).getFullYear()}`,
+                    to: `${new Date(el.to).getDate().toString().padStart(2, 0)}/${(new Date(el.to).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.to).getFullYear()}`,
+                    payday: `${new Date(el.payday).getDate().toString().padStart(2, 0)}/${(new Date(el.payday).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.payday).getFullYear()}`
+                }
+            }))
             setState(prevState => {
                 return {
                     ...prevState,
-                    payrollHistory: res.data.payroll.map(el => {
-                        return {
-                            ...el,
-                            from: `${new Date(el.from).getDate().toString().padStart(2, 0)}/${(new Date(el.from).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.from).getFullYear()}`,
-                            to: `${new Date(el.to).getDate().toString().padStart(2, 0)}/${(new Date(el.to).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.to).getFullYear()}`,
-                            payday: `${new Date(el.payday).getDate().toString().padStart(2, 0)}/${(new Date(el.payday).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.payday).getFullYear()}`
-                        }
-                    }),
                     employeeList: res.data.employee,
                     rowCount: parseInt(res.data.rowCount.count),
                     isCreating: false,
@@ -118,6 +120,7 @@ function Payroll() {
                     updateStatus: "",
                     isDeleting: false,
                     isPrinting: false,
+                    isLoading: false
                 }
             })
         } catch (err) {
@@ -139,7 +142,7 @@ function Payroll() {
                 isReimbursementCaled: state.createIsReimbursementCaled,
                 isLeaveCaled: state.createIsLeaveCaled
             }
-            const res = await axios.post('/api/payroll', body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/payroll`, body)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -153,7 +156,7 @@ function Payroll() {
                 id: state.selectedRow,
                 status: state.updateStatus
             }
-            const res = await axios.put('/api/payroll', body)
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/payroll`, body)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -163,7 +166,7 @@ function Payroll() {
 
     const deletePayroll = useCallback(async () => {
         try {
-            const res = await axios.delete(`/api/payroll/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/payroll/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -177,7 +180,7 @@ function Payroll() {
                 return setState(prevState => { return { ...prevState, toBePrinted: [], isPrinting: false } })
             } else {
                 state.selectedRow.forEach(async (el) => {
-                    const res = await axios.get(`/api/payroll/${el}`)
+                    const res = await axios.get(`${process.env.REACT_APP_API}/api/payroll/${el}`)
                     setState(prevState => { return { ...prevState, toBePrinted: prevState.toBePrinted.concat(res.data), isPrinting: true } })
                 })
             }
@@ -186,8 +189,8 @@ function Payroll() {
         }
     }, [dispatch, state.isPrinting, state.selectedRow])
 
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
     const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
     const toggleUpdating = () => { setState(prevState => { return { ...prevState, isUpdating: !prevState.isUpdating } }) }
@@ -211,7 +214,7 @@ function Payroll() {
                     paginationMode="server"
                     checkboxSelection
                     disableColumnFilter
-                    rows={state.payrollHistory}
+                    rows={rows}
                     columns={columns}
                     pageSize={state.limit}
                     rowCount={state.rowCount}

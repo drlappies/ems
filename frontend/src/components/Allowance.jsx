@@ -23,6 +23,7 @@ import axios from 'axios'
 
 function Allowance() {
     const dispatch = useDispatch()
+    const [rows, setRows] = useState([])
     const [state, setState] = useState({
         offset: 0,
         limit: 25,
@@ -42,7 +43,8 @@ function Allowance() {
         amount: "",
         desc: "",
         status: "active",
-        addEmployee: ""
+        addEmployee: "",
+        isLoading: true
     })
 
     const columns = [
@@ -55,7 +57,7 @@ function Allowance() {
 
     const fetchAllowance = useCallback(async (offset, limit, search, amountFrom, amountTo, status) => {
         try {
-            const res = await axios.get('/api/allowance', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/allowance`, {
                 params: {
                     offset: offset,
                     limit: limit,
@@ -65,10 +67,10 @@ function Allowance() {
                     status: status === 'any' ? null : status
                 }
             })
+            setRows(res.data.allowance)
             setState(prevState => {
                 return {
                     ...prevState,
-                    allowance: res.data.allowance,
                     rowCount: parseInt(res.data.rowCount.count),
                     isCreating: false,
                     isUpdating: false,
@@ -76,7 +78,8 @@ function Allowance() {
                     name: "",
                     amount: "",
                     desc: "",
-                    status: "active"
+                    status: "active",
+                    isLoading: false
                 }
             })
         } catch (err) {
@@ -86,7 +89,7 @@ function Allowance() {
 
     const createAllowance = useCallback(async () => {
         try {
-            const res = await axios.post('/api/allowance', {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/allowance`, {
                 name: state.name,
                 description: state.desc,
                 amount: state.amount,
@@ -101,7 +104,7 @@ function Allowance() {
 
     const updateAllowance = useCallback(async () => {
         try {
-            const res = await axios.put('/api/allowance', {
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/allowance`, {
                 id: state.selectedRow,
                 name: state.name,
                 description: state.desc,
@@ -117,7 +120,7 @@ function Allowance() {
 
     const deleteAllowance = useCallback(async () => {
         try {
-            const res = await axios.delete(`/api/allowance/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/allowance/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popMessage(res.data.success, 'success'))
             fetchAllowance(state.offset, state.limit, state.search, state.amountFrom, state.amountTo, state.queryStatus)
         } catch (err) {
@@ -127,11 +130,11 @@ function Allowance() {
 
     const entitleEmployee = useCallback(async () => {
         try {
-            const res = await axios.post(`/api/allowance/entitlement/${[state.selectedRow]}`, {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/allowance/entitlement/${[state.selectedRow]}`, {
                 employeeId: state.addEmployee
             })
             dispatch(popMessage(res.data.success, 'success'))
-            const res2 = await axios.get(`/api/allowance/${[state.selectedRow]}`)
+            const res2 = await axios.get(`${process.env.REACT_APP_API}/api/allowance/${[state.selectedRow]}`)
             setState(prevState => {
                 return {
                     ...prevState,
@@ -152,9 +155,9 @@ function Allowance() {
 
     const disentitleEmployee = useCallback(async (id) => {
         try {
-            const res = await axios.delete(`/api/allowance/entitlement/${[state.selectedRow]}/employee/${id}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/allowance/entitlement/${[state.selectedRow]}/employee/${id}`)
             dispatch(popMessage(res.data.success, 'success'))
-            const res2 = await axios.get(`/api/allowance/${[state.selectedRow]}`)
+            const res2 = await axios.get(`${process.env.REACT_APP_API}/api/allowance/${[state.selectedRow]}`)
             setState(prevState => {
                 return {
                     ...prevState,
@@ -190,7 +193,7 @@ function Allowance() {
                     }
                 })
             } else {
-                const res = await axios.get(`/api/allowance/${[state.selectedRow]}`)
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/allowance/${[state.selectedRow]}`)
                 setState(prevState => {
                     return {
                         ...prevState,
@@ -209,8 +212,8 @@ function Allowance() {
         }
     }
 
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
     const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
@@ -237,7 +240,7 @@ function Allowance() {
                     paginationMode="server"
                     checkboxSelection
                     disableColumnFilter
-                    rows={state.allowance}
+                    rows={rows}
                     columns={columns}
                     pageSize={state.limit}
                     rowCount={state.rowCount}

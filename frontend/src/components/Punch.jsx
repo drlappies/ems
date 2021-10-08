@@ -27,7 +27,7 @@ function Punch() {
 
     const fetchStatus = useCallback(async (employeeId) => {
         try {
-            const res = await axios.get(`/api/attendance/user/${employeeId}/status`)
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/attendance/user/${employeeId}/status`)
             if (res.data.hasOwnProperty('id')) {
                 setState({
                     checkInTime: res.data.check_in,
@@ -42,7 +42,7 @@ function Punch() {
 
     const checkIn = useCallback(async () => {
         try {
-            const res = await axios.post('/api/attendance/checkin', {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/attendance/checkin`, {
                 employeeId: auth.id
             })
             dispatch(popMessage(res.data.success, 'success'))
@@ -53,7 +53,7 @@ function Punch() {
 
     const checkOut = useCallback(async () => {
         try {
-            const res = await axios.post('/api/attendance/checkout', {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/attendance/checkout`, {
                 employeeId: auth.id
             })
             dispatch(popMessage(res.data.success, 'success'))

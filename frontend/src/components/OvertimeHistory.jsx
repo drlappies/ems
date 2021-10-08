@@ -23,6 +23,7 @@ import '../css/main.css'
 
 function OvertimeHistory() {
     const dispatch = useDispatch()
+    const [overtime, setOvertime] = useState([])
     const [state, setState] = useState({
         overtimeHistory: [],
         employeeList: [],
@@ -45,7 +46,9 @@ function OvertimeHistory() {
         updateDate: null,
         updateCheckIn: null,
         updateCheckOut: null,
-        updateStatus: ""
+        updateStatus: "",
+        isLoading: true,
+        isFetching: true
     })
 
     const columns = [
@@ -61,7 +64,7 @@ function OvertimeHistory() {
 
     const fetchOvertime = useCallback(async (offset, limit, search, date, employee, status) => {
         try {
-            const res = await axios.get('/api/overtime', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/overtime`, {
                 params: {
                     offset: offset,
                     limit: limit,
@@ -72,12 +75,12 @@ function OvertimeHistory() {
                     employee: employee === "any" ? null : employee
                 }
             })
+            setOvertime(res.data.overtime.map(el => {
+                return { ...el, date: `${new Date(el.date).getDate()}/${new Date(el.date).getMonth() + 1}/${new Date(el.date).getFullYear()}` }
+            }))
             setState(prevState => {
                 return {
                     ...prevState,
-                    overtimeHistory: res.data.overtime.map(el => {
-                        return { ...el, date: `${new Date(el.date).getDate()}/${new Date(el.date).getMonth() + 1}/${new Date(el.date).getFullYear()}` }
-                    }),
                     employeeList: res.data.employee,
                     rowCount: parseInt(res.data.count.count),
                     isCreating: false,
@@ -91,7 +94,9 @@ function OvertimeHistory() {
                     updateDate: null,
                     updateCheckIn: null,
                     updateCheckOut: null,
-                    updateStatus: ""
+                    updateStatus: "",
+                    isLoading: false,
+                    isFetching: false
                 }
             })
         } catch (err) {
@@ -108,7 +113,7 @@ function OvertimeHistory() {
                 date: state.createDate.format('YYYY-MM-DD'),
                 status: state.createStatus
             }
-            const res = await axios.post('/api/overtime', body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/overtime`, body)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchOvertime(state.offset, state.limit, state.search, state.date, state.employee, state.status)
         } catch (err) {
@@ -119,10 +124,10 @@ function OvertimeHistory() {
     const deleteOvertime = useCallback(async () => {
         try {
             if (state.selectedRow.length > 1) {
-                const res = await axios.delete(`/api/overtime/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+                const res = await axios.delete(`${process.env.REACT_APP_API}/api/overtime/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
                 dispatch(popMessage(res.data.success, 'success'))
             } else {
-                const res = await axios.delete(`/api/overtime/${[state.selectedRow]}`)
+                const res = await axios.delete(`${process.env.REACT_APP_API}/api/overtime/${[state.selectedRow]}`)
                 dispatch(popMessage(res.data.success, 'success'))
             }
             return fetchOvertime(state.offset, state.limit, state.search, state.date, state.employee, state.status)
@@ -140,7 +145,7 @@ function OvertimeHistory() {
                     to: state.updateCheckOut ? state.updateCheckOut.format('HH:mm:ss') : null,
                     status: state.updateStatus
                 }
-                const res = await axios.put('/api/overtime', body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/overtime`, body)
                 dispatch(popMessage(res.data.success, 'success'))
             } else {
                 const body = {
@@ -149,7 +154,7 @@ function OvertimeHistory() {
                     to: state.updateCheckOut ? state.updateCheckOut.format('HH:mm:ss') : null,
                     status: state.updateStatus
                 }
-                const res = await axios.put('/api/overtime', body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/overtime`, body)
                 dispatch(popMessage(res.data.success, 'success'))
             }
             return fetchOvertime(state.offset, state.limit, state.search, state.date, state.employee, state.status)
@@ -158,9 +163,9 @@ function OvertimeHistory() {
         }
     }, [dispatch, fetchOvertime, state.date, state.employee, state.limit, state.offset, state.search, state.selectedRow, state.status, state.updateCheckIn, state.updateCheckOut, state.updateStatus])
 
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
-    const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
+    const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row } }) }
     const toggleUpdating = () => { setState(prevState => { return { ...prevState, isUpdating: !prevState.isUpdating } }) }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
@@ -176,71 +181,74 @@ function OvertimeHistory() {
     return (
         <Grid container spacing={1}>
             <Grid item xs={12}>
-                <DataGrid
-                    style={{ height: '75vh', width: "100%" }}
-                    rows={state.overtimeHistory} columns={columns}
-                    checkboxSelection
-                    disableColumnFilter
-                    pageSize={state.limit}
-                    rowCount={state.rowCount}
-                    rowsPerPageOptions={[25, 50, 100]}
-                    paginationMode="server"
-                    onPageSizeChange={(size) => changePageSize(size)}
-                    onPageChange={(page) => changePage(page)}
-                    onSelectionModelChange={(row) => handleSelect(row)}
-                    components={{ Toolbar: Toolbar }}
-                    componentsProps={{
-                        toolbar: {
-                            create: toggleCreating,
-                            update: toggleUpdating,
-                            destroy: toggleDeleting,
-                            isUpdateDisabled: state.selectedRow.length < 1,
-                            isDestroyDisabled: state.selectedRow.length < 1,
-                            filterOption: (
-                                <Grid container spacing={1}>
-                                    <Grid item xs={4}>
-                                        <TextField fullWidth variant="standard" size="small" margin="normal" label="Search" name="search" value={state.search} onChange={handleChange} />
-                                    </Grid>
-                                    <Grid item xs={2}>
-                                        <TextField select fullWidth variant="standard" size="small" margin="normal" label="Employee" name="employee" value={state.employee} onChange={handleChange}>
-                                            <MenuItem value={"any"}>Any</MenuItem>
-                                            {state.employeeList.map((el, i) =>
-                                                <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
-                                            )}
-                                        </TextField>
-                                    </Grid>
-                                    <Grid item xs={2}>
-                                        <TextField select fullWidth variant="standard" size="small" margin="normal" label="Status" name="status" value={state.status} onChange={handleChange}>
-                                            <MenuItem value={"any"}>Any</MenuItem>
-                                            <MenuItem value={"pending"}>Pending</MenuItem>
-                                            <MenuItem value={"approved"}>Approved</MenuItem>
-                                            <MenuItem value={"rejected"}>Rejected</MenuItem>
-                                        </TextField>
-                                    </Grid>
-                                    <Grid item xs={4}>
-                                        <LocalizationProvider dateAdapter={DateAdapter}>
-                                            <DesktopDateRangePicker
-                                                displayStaticWrapperAs="desktop"
-                                                startText="Date range from"
-                                                endText="Date range to"
-                                                value={state.date}
-                                                name="time"
-                                                onChange={(newValue) => { setState(prevState => { return { ...prevState, date: newValue } }) }}
-                                                renderInput={(startProps, endProps) => (
-                                                    <React.Fragment>
-                                                        <TextField fullWidth variant="standard" margin="normal" size="small"{...startProps} />
-                                                        <Box sx={{ mx: 2 }}> - </Box>
-                                                        <TextField fullWidth variant="standard" margin="normal" size="small" {...endProps} />
-                                                    </React.Fragment>
+                <div style={{ height: '75vh', width: "100%" }}>
+                    <DataGrid
+                        loading={state.isLoading}
+                        components={{ Toolbar: Toolbar }}
+                        componentsProps={{
+                            toolbar: {
+                                create: toggleCreating,
+                                update: toggleUpdating,
+                                destroy: toggleDeleting,
+                                isUpdateDisabled: state.selectedRow.length < 1,
+                                isDestroyDisabled: state.selectedRow.length < 1,
+                                filterOption: (
+                                    <Grid container spacing={1}>
+                                        <Grid item xs={4}>
+                                            <TextField fullWidth variant="standard" size="small" margin="normal" label="Search" name="search" value={state.search} onChange={handleChange} />
+                                        </Grid>
+                                        <Grid item xs={2}>
+                                            <TextField select fullWidth variant="standard" size="small" margin="normal" label="Employee" name="employee" value={state.employee} onChange={handleChange}>
+                                                <MenuItem value={"any"}>Any</MenuItem>
+                                                {state.employeeList.map((el, i) =>
+                                                    <MenuItem key={i} value={el.id}>ID: {el.id} {el.firstname} {el.lastname}</MenuItem>
                                                 )}
-                                            />
-                                        </LocalizationProvider>
+                                            </TextField>
+                                        </Grid>
+                                        <Grid item xs={2}>
+                                            <TextField select fullWidth variant="standard" size="small" margin="normal" label="Status" name="status" value={state.status} onChange={handleChange}>
+                                                <MenuItem value={"any"}>Any</MenuItem>
+                                                <MenuItem value={"pending"}>Pending</MenuItem>
+                                                <MenuItem value={"approved"}>Approved</MenuItem>
+                                                <MenuItem value={"rejected"}>Rejected</MenuItem>
+                                            </TextField>
+                                        </Grid>
+                                        <Grid item xs={4}>
+                                            <LocalizationProvider dateAdapter={DateAdapter}>
+                                                <DesktopDateRangePicker
+                                                    displayStaticWrapperAs="desktop"
+                                                    startText="Date range from"
+                                                    endText="Date range to"
+                                                    value={state.date}
+                                                    name="time"
+                                                    onChange={(newValue) => { setState(prevState => { return { ...prevState, date: newValue } }) }}
+                                                    renderInput={(startProps, endProps) => (
+                                                        <React.Fragment>
+                                                            <TextField fullWidth variant="standard" margin="normal" size="small"{...startProps} />
+                                                            <Box sx={{ mx: 2 }}> - </Box>
+                                                            <TextField fullWidth variant="standard" margin="normal" size="small" {...endProps} />
+                                                        </React.Fragment>
+                                                    )}
+                                                />
+                                            </LocalizationProvider>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                            )
-                        }
-                    }}
-                />
+                                )
+                            }
+                        }}
+                        rows={overtime}
+                        columns={columns}
+                        checkboxSelection
+                        disableColumnFilter
+                        pageSize={state.limit}
+                        rowCount={state.rowCount}
+                        rowsPerPageOptions={[25, 50, 100]}
+                        paginationMode="server"
+                        onPageSizeChange={(size) => changePageSize(size)}
+                        onPageChange={(page) => changePage(page)}
+                        onSelectionModelChange={(row) => handleSelect(row)}
+                    />
+                </div>
             </Grid>
             <Modal open={state.isCreating} onClose={toggleCreating}>
                 <Grid container justifyContent="center" alignItems="center" style={{ minHeight: "100vh" }}>

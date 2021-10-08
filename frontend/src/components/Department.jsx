@@ -15,6 +15,7 @@ import axios from 'axios'
 
 function Department() {
     const dispatch = useDispatch()
+    const [rows, setRows] = useState([])
     const [state, setState] = useState({
         isCreating: false,
         isUpdating: false,
@@ -26,7 +27,8 @@ function Department() {
         rowCount: 0,
         search: "",
         deptName: "",
-        deptDesc: ""
+        deptDesc: "",
+        isLoading: true
     })
 
     const columns = [
@@ -37,23 +39,24 @@ function Department() {
 
     const fetchDept = useCallback(async (offset, limit, search) => {
         try {
-            const res = await axios.get('/api/department', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/department`, {
                 params: {
                     offset: offset,
                     limit: limit,
                     search: search
                 }
             })
+            setRows(res.data.dept)
             setState(prevState => {
                 return {
                     ...prevState,
-                    departments: res.data.dept,
                     rowCount: parseInt(res.data.rowCount.count),
                     isCreating: false,
                     isUpdating: false,
                     isDeleting: false,
                     deptName: "",
-                    deptDesc: ""
+                    deptDesc: "",
+                    isLoading: false
                 }
             })
         } catch (err) {
@@ -63,7 +66,7 @@ function Department() {
 
     const createDepartment = useCallback(async () => {
         try {
-            const res = await axios.post('/api/department', {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/department`, {
                 name: state.deptName,
                 desc: state.deptDesc
             })
@@ -77,7 +80,7 @@ function Department() {
 
     const deleteDepartment = useCallback(async () => {
         try {
-            const res = await axios.delete(`/api/department/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/department/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchDept(state.offset, state.limit, state.search)
         } catch (err) {
@@ -87,7 +90,7 @@ function Department() {
 
     const updateDepartment = useCallback(async () => {
         try {
-            const res = await axios.put('/api/department', {
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/department`, {
                 id: state.selectedRow,
                 name: state.deptName,
                 desc: state.deptDesc
@@ -115,7 +118,7 @@ function Department() {
                     }
                 })
             } else {
-                const res = await axios.get(`/api/department/${[state.selectedRow]}`)
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/department/${[state.selectedRow]}`)
                 setState(prevState => {
                     return {
                         ...prevState,
@@ -131,8 +134,8 @@ function Department() {
         }
     }, [dispatch, state.isUpdating, state.selectedRow])
 
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
     const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
@@ -149,10 +152,11 @@ function Department() {
         <Grid container>
             <Grid item xs={12}>
                 <DataGrid
+                    loading={state.loading}
                     paginationMode="server"
                     checkboxSelection
                     disableColumnFilter
-                    rows={state.departments}
+                    rows={rows}
                     columns={columns}
                     pageSize={state.limit}
                     rowCount={state.rowCount}

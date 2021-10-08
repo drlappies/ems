@@ -27,7 +27,7 @@ function UserReimbursement() {
 
     const fetchReimbursementRecord = useCallback(async (offset, limit) => {
         try {
-            const res = await axios.get(`/api/reimbursement/user/${auth.id}`, {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/reimbursement/user/${auth.id}`, {
                 params: {
                     offset: offset,
                     limit: limit

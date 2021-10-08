@@ -5,7 +5,7 @@ import { LOGIN, LOGOUT } from '../types/auth'
 export const verifyThunk = (token, history) => {
     return async (dispatch) => {
         try {
-            const res = await axios.get('/api/auth/verify', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/auth/verify`, {
                 headers: {
                     'token': token
                 }
@@ -51,7 +51,7 @@ export const loginThunk = (username, password, history) => {
                 username: username,
                 password: password
             }
-            const res = await axios.post('/api/auth/login', body, {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/auth/login`, body, {
                 withCredentials: true
             })
             dispatch({
@@ -82,7 +82,7 @@ export const loginThunk = (username, password, history) => {
             history.push('/user')
         } catch (err) {
             console.log(err)
-            dispatch(popMessage(err.response.data.error, "error"))
+            // dispatch(popMessage(err.response.data.error, "error"))
         }
     }
 }

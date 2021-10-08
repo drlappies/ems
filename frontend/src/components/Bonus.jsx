@@ -20,6 +20,7 @@ import moment from 'moment'
 
 function Bonus() {
     const dispatch = useDispatch();
+    const [rows, setRows] = useState([])
     const [state, setState] = useState({
         bonus: [],
         selectedRow: [],
@@ -37,7 +38,8 @@ function Bonus() {
         search: "",
         employee: "",
         amountFrom: null,
-        amountTo: null
+        amountTo: null,
+        isLoading: true
     })
 
     const columns = [
@@ -52,7 +54,7 @@ function Bonus() {
 
     const fetchBonus = useCallback(async (offset, limit, search, employee, amountFrom, amountTo) => {
         try {
-            const res = await axios.get('/api/bonus', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/bonus`, {
                 params: {
                     offset: offset,
                     limit: limit,
@@ -62,15 +64,15 @@ function Bonus() {
                     amountTo: amountTo
                 }
             })
+            setRows(res.data.bonus.map(el => {
+                return {
+                    ...el,
+                    date: `${new Date(el.date).getDate().toString().padStart(2, 0)}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear()}`
+                }
+            }))
             setState(prevState => {
                 return {
                     ...prevState,
-                    bonus: res.data.bonus.map(el => {
-                        return {
-                            ...el,
-                            date: `${new Date(el.date).getDate().toString().padStart(2, 0)}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear()}`
-                        }
-                    }),
                     rowCount: parseInt(res.data.rowCount.count),
                     employeeList: res.data.employee,
                     isCreating: false,
@@ -79,7 +81,8 @@ function Bonus() {
                     createEmployee: "",
                     createReason: "",
                     createAmount: "",
-                    createDate: null
+                    createDate: null,
+                    isLoading: false
                 }
             })
         } catch (err) {
@@ -89,7 +92,7 @@ function Bonus() {
 
     const createBonus = useCallback(async () => {
         try {
-            const res = await axios.post('/api/bonus', {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/bonus`, {
                 employeeId: state.createEmployee,
                 reason: state.createReason,
                 amount: state.createAmount,
@@ -104,7 +107,7 @@ function Bonus() {
 
     const updateBonus = useCallback(async () => {
         try {
-            const res = await axios.put('/api/bonus', {
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/bonus`, {
                 id: state.selectedRow,
                 employeeId: state.createEmployee,
                 reason: state.createReason,
@@ -120,7 +123,7 @@ function Bonus() {
 
     const deleteBonus = useCallback(async () => {
         try {
-            const res = await axios.delete(`/api/bonus/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/bonus/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popMessage(res.data.success, 'success'))
             fetchBonus(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -146,7 +149,7 @@ function Bonus() {
                     }
                 })
             } else {
-                const res = await axios.get(`/api/bonus/${[state.selectedRow]}`);
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/bonus/${[state.selectedRow]}`);
                 setState(prevState => {
                     return {
                         ...prevState,
@@ -163,8 +166,8 @@ function Bonus() {
         }
     }, [state.isUpdating, state.selectedRow])
 
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
     const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
@@ -188,10 +191,11 @@ function Bonus() {
         <Grid container>
             <Grid item xs={12}>
                 <DataGrid
+                    loading={state.isLoading}
                     paginationMode="server"
                     checkboxSelection
                     disableColumnFilter
-                    rows={state.bonus}
+                    rows={rows}
                     columns={columns}
                     pageSize={state.limit}
                     rowCount={state.rowCount}

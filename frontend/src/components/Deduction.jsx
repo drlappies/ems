@@ -20,6 +20,7 @@ import moment from 'moment'
 
 function Deduction() {
     const dispatch = useDispatch()
+    const [rows, setRows] = useState([])
     const [state, setState] = useState({
         deduction: [],
         selectedRow: [],
@@ -37,7 +38,8 @@ function Deduction() {
         createEmployee: "",
         createAmount: "",
         createReason: "",
-        createDate: null
+        createDate: null,
+        isLoading: true
     })
 
     const columns = [
@@ -52,7 +54,7 @@ function Deduction() {
 
     const fetchDeduction = useCallback(async (offset, limit, search, employee, amountFrom, amountTo) => {
         try {
-            const res = await axios.get('/api/deduction', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/deduction`, {
                 params: {
                     offset: offset,
                     limit: limit,
@@ -62,15 +64,15 @@ function Deduction() {
                     amountTo: amountTo
                 }
             })
+            setRows(res.data.deduction.map(el => {
+                return {
+                    ...el,
+                    date: `${new Date(el.date).getDate().toString().padStart(2, 0)}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear()}`
+                }
+            }))
             setState(prevState => {
                 return {
                     ...prevState,
-                    deduction: res.data.deduction.map(el => {
-                        return {
-                            ...el,
-                            date: `${new Date(el.date).getDate().toString().padStart(2, 0)}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear()}`
-                        }
-                    }),
                     employeeList: res.data.employee,
                     rowCount: parseInt(res.data.rowCount.count),
                     isCreating: false,
@@ -79,7 +81,8 @@ function Deduction() {
                     createEmployee: "",
                     createAmount: "",
                     createReason: "",
-                    createDate: null
+                    createDate: null,
+                    isLoading: false
                 }
             })
         } catch (err) {
@@ -89,7 +92,7 @@ function Deduction() {
 
     const createDeduction = useCallback(async () => {
         try {
-            const res = await axios.post('/api/deduction', {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/deduction`, {
                 employeeId: state.createEmployee,
                 reason: state.createReason,
                 amount: state.createAmount,
@@ -104,7 +107,7 @@ function Deduction() {
 
     const updateDeduction = useCallback(async () => {
         try {
-            const res = await axios.put('/api/deduction', {
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/deduction`, {
                 id: state.selectedRow,
                 employeeId: state.createEmployee,
                 reason: state.createReason,
@@ -120,7 +123,7 @@ function Deduction() {
 
     const deleteDeduction = useCallback(async () => {
         try {
-            const res = await axios.delete(`/api/deduction/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/deduction/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popMessage(res.data.success, 'success'))
             fetchDeduction(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -146,7 +149,7 @@ function Deduction() {
                     }
                 })
             } else {
-                const res = await axios.get(`/api/deduction/${[state.selectedRow]}`);
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/deduction/${[state.selectedRow]}`);
                 setState(prevState => {
                     return {
                         ...prevState,
@@ -163,8 +166,8 @@ function Deduction() {
         }
     }, [state.isUpdating, state.selectedRow])
 
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
     const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
@@ -189,10 +192,11 @@ function Deduction() {
         <Grid container>
             <Grid item xs={12}>
                 <DataGrid
+                    loading={state.isLoading}
                     paginationMode="server"
                     checkboxSelection
                     disableColumnFilter
-                    rows={state.deduction}
+                    rows={rows}
                     columns={columns}
                     pageSize={state.limit}
                     rowCount={state.rowCount}

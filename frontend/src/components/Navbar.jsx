@@ -50,7 +50,7 @@ function Navbar(props) {
                 anchor="left"
                 open={auth.isAuthenticated}
             >
-                <List>
+                <List dense>
                     <ListItem secondaryAction={
                         <Tooltip title="Logout">
                             <IconButton onClick={() => dispatch(logoutThunk(history))}>
@@ -65,7 +65,7 @@ function Navbar(props) {
                     </ListItem>
                 </List>
                 <Divider />
-                <List>
+                <List dense>
                     <ListItem button component={Link} to="/user">
                         <ListItemIcon>
                             <PersonOutlineIcon />
@@ -99,7 +99,7 @@ function Navbar(props) {
                 </List>
                 <Divider />
                 {auth.role === 'admin' ?
-                    <List>
+                    <List dense>
                         <ListItem button component={Link} to="/attendance">
                             <ListItemIcon>
                                 <TimerOutlinedIcon />

@@ -28,7 +28,7 @@ function UserPayroll() {
 
     const fetchEmployeePayroll = useCallback(async (offset, limit) => {
         try {
-            const res = await axios.get(`/api/payroll/user/${auth.id}`, {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/payroll/user/${auth.id}`, {
                 params: {
                     offset: offset,
                     limit: limit

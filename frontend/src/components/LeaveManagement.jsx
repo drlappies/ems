@@ -21,6 +21,7 @@ import '../css/main.css'
 
 function LeaveManagement() {
     const dispatch = useDispatch()
+    const [rows, setRows] = useState([])
     const [state, setState] = useState({
         leaveHistory: [],
         employeeList: [],
@@ -45,7 +46,8 @@ function LeaveManagement() {
         updateReason: "",
         updateSpan: "",
         updateType: "",
-        updateStatus: ""
+        updateStatus: "",
+        isLoading: true
     })
 
     const columns = [
@@ -62,7 +64,7 @@ function LeaveManagement() {
 
     const fetchLeave = useCallback(async (offset, limit, search, employee, status, date) => {
         try {
-            const res = await axios.get('/api/leave', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/leave`, {
                 params: {
                     offset: offset,
                     limit: limit,
@@ -73,17 +75,17 @@ function LeaveManagement() {
                     dateTo: date[1] ? date[1].format('YYYY-MM-DD') : null
                 }
             })
+            setRows(res.data.leave.map(el => {
+                return {
+                    ...el,
+                    from: `${new Date(el.from).getDate().toString().padStart(2, 0)}/${(new Date(el.from).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.from).getFullYear()}`,
+                    to: `${new Date(el.to).getDate().toString().padStart(2, 0)}/${(new Date(el.to).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.to).getFullYear()}`,
+                    duration: el.duration === 'full_day' ? "Full Day" : "Half Day",
+                }
+            }))
             setState(prevState => {
                 return {
                     ...prevState,
-                    leaveHistory: res.data.leave.map(el => {
-                        return {
-                            ...el,
-                            from: `${new Date(el.from).getDate().toString().padStart(2, 0)}/${(new Date(el.from).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.from).getFullYear()}`,
-                            to: `${new Date(el.to).getDate().toString().padStart(2, 0)}/${(new Date(el.to).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.to).getFullYear()}`,
-                            duration: el.duration === 'full_day' ? "Full Day" : "Half Day",
-                        }
-                    }),
                     employeeList: res.data.employee,
                     rowCount: parseInt(res.data.rowCount.count),
                     isCreating: false,
@@ -99,7 +101,8 @@ function LeaveManagement() {
                     updateReason: "",
                     updateSpan: "",
                     updateType: "",
-                    updateStatus: ""
+                    updateStatus: "",
+                    isLoading: false
                 }
             })
         } catch (err) {
@@ -117,7 +120,7 @@ function LeaveManagement() {
                 duration: state.createSpan,
                 reason: state.createReason
             }
-            const res = await axios.post('/api/leave', body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/leave`, body)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
         } catch (err) {
@@ -133,7 +136,7 @@ function LeaveManagement() {
                 type: state.updateType,
                 status: state.updateStatus
             }
-            const res = await axios.put('/api/leave', body)
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/leave`, body)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
         } catch (err) {
@@ -143,7 +146,7 @@ function LeaveManagement() {
 
     const deleteLeave = useCallback(async () => {
         try {
-            const res = await axios.delete(`/api/leave/${state.selectedRow.map((el, i) => i === 0 ? `?ids=${el}` : `&ids=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/leave/${state.selectedRow.map((el, i) => i === 0 ? `?ids=${el}` : `&ids=${el}`).join("")}`)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
         } catch (err) {
@@ -151,8 +154,8 @@ function LeaveManagement() {
         }
     }, [dispatch, fetchLeave, state.date, state.employee, state.limit, state.offset, state.search, state.selectedRow, state.status])
 
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
     const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
     const toggleUpdating = () => { setState(prevState => { return { ...prevState, isUpdating: !prevState.isUpdating } }) }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
@@ -170,6 +173,7 @@ function LeaveManagement() {
         <Grid container>
             <Grid item xs={12}>
                 <DataGrid
+                    loading={state.isLoading}
                     checkboxSelection
                     paginationMode="server"
                     disableColumnFilter
@@ -177,7 +181,7 @@ function LeaveManagement() {
                     rowCount={state.rowCount}
                     rowsPerPageOptions={[25, 50, 100]}
                     style={{ height: '75vh', width: "100%" }}
-                    rows={state.leaveHistory}
+                    rows={rows}
                     columns={columns}
                     onSelectionModelChange={(row) => handleSelect(row)}
                     onPageSizeChange={(size) => changePageSize(size)}

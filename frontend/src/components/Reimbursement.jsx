@@ -5,7 +5,6 @@ import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
-import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
@@ -48,7 +47,7 @@ function Reimbursement() {
                 date: state.date.format('YYYY-MM-DD'),
                 employeeId: auth.id
             }
-            const res = await axios.post('/api/reimbursement', body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/reimbursement`, body)
             dispatch(popMessage(res.data.success, 'success'))
             setState({
                 amount: null,

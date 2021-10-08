@@ -21,6 +21,7 @@ import axios from 'axios'
 
 function Employee() {
     const dispatch = useDispatch()
+    const [rows, setRows] = useState([])
     const [state, setState] = useState({
         employeeList: [],
         posList: [],
@@ -79,7 +80,7 @@ function Employee() {
 
     const fetchEmployee = useCallback(async (offset, limit, search, position, department, role, status, salaryFrom, salaryTo, hasOTpay) => {
         try {
-            const res = await axios.get('/api/employee', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/employee`, {
                 params: {
                     offset: offset,
                     limit: limit,
@@ -93,17 +94,17 @@ function Employee() {
                     hasOTpay: hasOTpay === 'any' ? null : hasOTpay === 'entitled' ? true : false
                 }
             })
+            setRows(res.data.employee.map(el => {
+                return {
+                    ...el,
+                    onboard_date: `${new Date(el.onboard_date).getDate().toString().padStart(2, 0)}/${(new Date(el.onboard_date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.onboard_date).getFullYear()}`,
+                    post: el.post ? el.post : "Unassigned",
+                    name: el.name ? el.name : "Unassigned"
+                }
+            }))
             setState(prevState => {
                 return {
                     ...prevState,
-                    employeeList: res.data.employee.map(el => {
-                        return {
-                            ...el,
-                            onboard_date: `${new Date(el.onboard_date).getDate().toString().padStart(2, 0)}/${(new Date(el.onboard_date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.onboard_date).getFullYear()}`,
-                            post: el.post ? el.post : "Unassigned",
-                            name: el.name ? el.name : "Unassigned"
-                        }
-                    }),
                     posList: res.data.positions,
                     deptList: res.data.departments,
                     rowCount: parseInt(res.data.rowCount.count),
@@ -155,7 +156,7 @@ function Employee() {
                 ot_hourly_salary: state.createHasOTpay === 'entitled' ? state.createOTpay : null,
                 role: state.createRole
             }
-            const res = await axios.post('/api/employee', body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/employee`, body)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchEmployee(state.offset, state.limit, state.search, state.position, state.department, state.role, state.status, state.salaryFrom, state.salaryTo, state.hasOTpay)
         } catch (err) {
@@ -186,7 +187,7 @@ function Employee() {
                     ot_hourly_salary: state.createOTpay,
                     role: state.createRole
                 }
-                const res = await axios.put('/api/employee', body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/employee`, body)
                 dispatch(popMessage(res.data.success, 'success'))
             } else {
                 const body = {
@@ -199,7 +200,7 @@ function Employee() {
                     ot_pay_entitled: state.createHasOTpay === 'entitled' ? true : false,
                     ot_hourly_salary: state.createOTpay,
                 }
-                const res = await axios.put('/api/employee', body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/employee`, body)
                 dispatch(popMessage(res.data.success, 'success'))
             }
 
@@ -211,7 +212,7 @@ function Employee() {
 
     const deleteEmployee = useCallback(async () => {
         try {
-            const res = await axios.delete(`/api/employee/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/employee/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchEmployee(state.offset, state.limit, state.search, state.position, state.department, state.role, state.status, state.salaryFrom, state.salaryTo, state.hasOTpay)
         } catch (err) {
@@ -228,7 +229,7 @@ function Employee() {
             return setState(prevState => { return { ...prevState, isUpdating: false } })
         }
         if (state.selectedRow.length < 2) {
-            const res = await axios.get(`/api/employee/${[state.selectedRow]}`)
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/employee/${[state.selectedRow]}`)
             setState(prevState => {
                 return {
                     ...prevState,
@@ -280,7 +281,7 @@ function Employee() {
                     checkboxSelection
                     disableColumnFilter
                     style={{ height: '75vh', width: "100%" }}
-                    rows={state.employeeList}
+                    rows={rows}
                     columns={columns}
                     onSelectionModelChange={(row) => handleSelect(row)}
                     onPageSizeChange={(size) => changePageSize(size)}

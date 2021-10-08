@@ -25,6 +25,7 @@ import { Typography } from '@mui/material';
 
 function AttendanceHistory() {
     const dispatch = useDispatch()
+    const [attendance, setAttendance] = useState([])
     const [state, setState] = useState({
         limit: 25,
         offset: 0,
@@ -51,6 +52,7 @@ function AttendanceHistory() {
         updateStatus: "",
         updateCheckIn: moment(),
         updateCheckOut: moment(),
+        isLoading: true
     })
 
     const columns = [
@@ -66,7 +68,7 @@ function AttendanceHistory() {
 
     const fetchAttendance = useCallback(async (limit, offset, search, employeeId, status, time) => {
         try {
-            const res = await axios.get('/api/attendance', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/attendance`, {
                 params: {
                     limit: limit,
                     offset: offset,
@@ -77,16 +79,16 @@ function AttendanceHistory() {
                     dateTo: time[1] ? time[1].format('YYYY-MM-DD') : null
                 }
             });
+            setAttendance(res.data.attendance.map(el => {
+                return {
+                    ...el,
+                    date: `${new Date(el.date).getDate()}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear().toString().padStart(2, 0)}`,
+                    status: el.status === 'on_time' ? "On-Time" : "Late"
+                }
+            }))
             setState(prevState => {
                 return {
                     ...prevState,
-                    attendance: res.data.attendance.map(el => {
-                        return {
-                            ...el,
-                            date: `${new Date(el.date).getDate()}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear().toString().padStart(2, 0)}`,
-                            status: el.status === 'on_time' ? "On-Time" : "Late"
-                        }
-                    }),
                     updateStatus: "",
                     updateCheckIn: moment(),
                     updateCheckOut: moment(),
@@ -104,6 +106,7 @@ function AttendanceHistory() {
                     checkOut: moment(),
                     status: "",
                     date: moment(),
+                    isLoading: false
                 }
             })
         } catch (err) {
@@ -120,7 +123,7 @@ function AttendanceHistory() {
                 check_out: state.checkOut.format('HH:mm:ss'),
                 status: state.status
             }
-            const res = await axios.post('/api/attendance', body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/attendance`, body)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchAttendance(state.limit, state.offset, state.search, state.searchEmployeeId, state.searchStatus, state.searchTime)
         } catch (err) {
@@ -131,10 +134,10 @@ function AttendanceHistory() {
     const deleteAttendance = useCallback(async () => {
         try {
             if (state.selectedAttendance.length > 1) {
-                const res = await axios.delete(`/api/attendance/${state.selectedAttendance.map((el, i) => i === 0 ? `?id=${el}&` : `id=${el}&`).join("")}`)
+                const res = await axios.delete(`${process.env.REACT_APP_API}/api/attendance/${state.selectedAttendance.map((el, i) => i === 0 ? `?id=${el}&` : `id=${el}&`).join("")}`)
                 dispatch(popMessage(res.data.success), 'success')
             } else {
-                const res = await axios.delete(`/api/attendance/${[state.selectedAttendance]}`)
+                const res = await axios.delete(`${process.env.REACT_APP_API}/api/attendance/${[state.selectedAttendance]}`)
                 dispatch(popMessage(res.data.success), 'success')
             }
             return fetchAttendance(state.limit, state.offset, state.search, state.searchEmployeeId, state.searchStatus, state.searchTime)
@@ -152,7 +155,7 @@ function AttendanceHistory() {
                     check_in: state.updateCheckIn.format('HH:mm:ss'),
                     check_out: state.updateCheckOut.format('HH:mm:ss')
                 }
-                const res = await axios.put('/api/attendance', body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/attendance`, body)
                 dispatch(popMessage(res.data.success), 'success')
             } else {
                 const body = {
@@ -160,7 +163,7 @@ function AttendanceHistory() {
                     check_in: state.updateCheckIn.format('HH:mm:ss'),
                     check_out: state.updateCheckOut.format('HH:mm:ss')
                 }
-                const res = await axios.put(`/api/attendance/${[state.selectedAttendance]}`, body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/attendance/${[state.selectedAttendance]}`, body)
                 dispatch(popMessage(res.data.success), 'success')
             }
             return fetchAttendance(state.limit, state.offset, state.search, state.searchEmployeeId, state.searchStatus, state.searchTime)
@@ -169,8 +172,8 @@ function AttendanceHistory() {
         }
     }, [dispatch, fetchAttendance, state.limit, state.offset, state.search, state.searchEmployeeId, state.searchStatus, state.searchTime, state.selectedAttendance, state.updateCheckIn, state.updateCheckOut, state.updateStatus])
 
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
     const toggleUpdating = () => { setState(prevState => { return { ...prevState, isUpdating: !prevState.isUpdating } }) }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
@@ -192,80 +195,82 @@ function AttendanceHistory() {
     return (
         <Grid container spacing={1}>
             <Grid item xs={12}>
-                <DataGrid
-                    components={{ Toolbar: Toolbar }}
-                    componentsProps={{
-                        toolbar: {
-                            create: toggleCreating,
-                            update: toggleUpdating,
-                            destroy: toggleDeleting,
-                            isUpdateDisabled: state.selectedAttendance.length < 1,
-                            isDestroyDisabled: state.selectedAttendance.length < 1,
-                            filterOption: (
-                                <Grid container spacing={1}>
-                                    <Grid item xs={4}>
-                                        <TextField fullWidth variant="standard" size="small" margin="normal" label="Search" name="search" value={state.search} onChange={handleChange} />
-                                    </Grid>
-                                    <Grid item xs={2}>
-                                        <TextField fullWidth variant="standard" select size="small" margin="normal" label="Employee" name="searchEmployeeId" value={state.searchEmployeeId} onChange={handleChange}>
-                                            <MenuItem value="any">Any</MenuItem>
-                                            {state.employee.map((el, i) =>
-                                                <MenuItem key={i} value={el.id}>
-                                                    ID: {el.id} {el.firstname} {el.lastname}
-                                                </MenuItem>
-                                            )}
-                                        </TextField>
-                                    </Grid>
-                                    <Grid item xs={1}>
-                                        <TextField fullWidth variant="standard" select size="small" margin="normal" label="Status" name="searchStatus" value={state.searchStatus} onChange={handleChange}>
-                                            <MenuItem value="any">Any</MenuItem>
-                                            <MenuItem value="on_time">On Time</MenuItem>
-                                            <MenuItem value="late">Late</MenuItem>
-                                        </TextField>
-                                    </Grid>
-                                    <Grid item>
-                                        <LocalizationProvider dateAdapter={DateAdapter}>
-                                            <DesktopDateRangePicker
-                                                displayStaticWrapperAs="desktop"
-                                                startText="Date range from"
-                                                endText="Date range to"
-                                                value={state.searchTime}
-                                                name="searchTime"
-                                                onChange={(newValue) => {
-                                                    setState(prevState => {
-                                                        return {
-                                                            ...prevState,
-                                                            searchTime: newValue
-                                                        }
-                                                    })
-                                                }}
-                                                renderInput={(startProps, endProps) => (
-                                                    <React.Fragment>
-                                                        <TextField fullWidth variant="standard" margin="normal" size="small"{...startProps} />
-                                                        <Box sx={{ mx: 2 }}> - </Box>
-                                                        <TextField fullWidth variant="standard" margin="normal" size="small" {...endProps} />
-                                                    </React.Fragment>
+                <div style={{ width: "100%", height: '75vh' }}>
+                    <DataGrid
+                        loading={state.isLoading}
+                        components={{ Toolbar: Toolbar }}
+                        componentsProps={{
+                            toolbar: {
+                                create: toggleCreating,
+                                update: toggleUpdating,
+                                destroy: toggleDeleting,
+                                isUpdateDisabled: state.selectedAttendance.length < 1,
+                                isDestroyDisabled: state.selectedAttendance.length < 1,
+                                filterOption: (
+                                    <Grid container spacing={1}>
+                                        <Grid item xs={4}>
+                                            <TextField fullWidth variant="standard" size="small" margin="normal" label="Search" name="search" value={state.search} onChange={handleChange} />
+                                        </Grid>
+                                        <Grid item xs={2}>
+                                            <TextField fullWidth variant="standard" select size="small" margin="normal" label="Employee" name="searchEmployeeId" value={state.searchEmployeeId} onChange={handleChange}>
+                                                <MenuItem value="any">Any</MenuItem>
+                                                {state.employee.map((el, i) =>
+                                                    <MenuItem key={i} value={el.id}>
+                                                        ID: {el.id} {el.firstname} {el.lastname}
+                                                    </MenuItem>
                                                 )}
-                                            />
-                                        </LocalizationProvider>
+                                            </TextField>
+                                        </Grid>
+                                        <Grid item xs={2}>
+                                            <TextField fullWidth variant="standard" select size="small" margin="normal" label="Status" name="searchStatus" value={state.searchStatus} onChange={handleChange}>
+                                                <MenuItem value="any">Any</MenuItem>
+                                                <MenuItem value="on_time">On Time</MenuItem>
+                                                <MenuItem value="late">Late</MenuItem>
+                                            </TextField>
+                                        </Grid>
+                                        <Grid item xs={4}>
+                                            <LocalizationProvider dateAdapter={DateAdapter}>
+                                                <DesktopDateRangePicker
+                                                    displayStaticWrapperAs="desktop"
+                                                    startText="Date range from"
+                                                    endText="Date range to"
+                                                    value={state.searchTime}
+                                                    name="searchTime"
+                                                    onChange={(newValue) => {
+                                                        setState(prevState => {
+                                                            return {
+                                                                ...prevState,
+                                                                searchTime: newValue
+                                                            }
+                                                        })
+                                                    }}
+                                                    renderInput={(startProps, endProps) => (
+                                                        <React.Fragment>
+                                                            <TextField fullWidth variant="standard" margin="normal" size="small"{...startProps} />
+                                                            <Box sx={{ mx: 2 }}> - </Box>
+                                                            <TextField fullWidth variant="standard" margin="normal" size="small" {...endProps} />
+                                                        </React.Fragment>
+                                                    )}
+                                                />
+                                            </LocalizationProvider>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                            )
-                        }
-                    }}
-                    checkboxSelection
-                    paginationMode="server"
-                    disableColumnFilter
-                    style={{ width: "100%", height: '75vh' }}
-                    rows={state.attendance}
-                    columns={columns}
-                    pageSize={state.limit}
-                    rowCount={state.rowCount}
-                    rowsPerPageOptions={[25, 50, 100]}
-                    onSelectionModelChange={(row) => handleSelect(row)}
-                    onPageSizeChange={(size) => changePageSize(size)}
-                    onPageChange={(page) => changePage(page)}
-                />
+                                )
+                            }
+                        }}
+                        checkboxSelection
+                        paginationMode="server"
+                        disableColumnFilter
+                        rows={attendance}
+                        columns={columns}
+                        pageSize={state.limit}
+                        rowCount={state.rowCount}
+                        rowsPerPageOptions={[25, 50, 100]}
+                        onSelectionModelChange={(row) => handleSelect(row)}
+                        onPageSizeChange={(size) => changePageSize(size)}
+                        onPageChange={(page) => changePage(page)}
+                    />
+                </div>
             </Grid>
             <Modal open={state.isCreating} onClose={toggleCreating}>
                 <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>

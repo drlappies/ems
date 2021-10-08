@@ -25,7 +25,7 @@ function UserDeduction() {
 
     const fetchDeductionRecord = useCallback(async (offset, limit) => {
         try {
-            const res = await axios.get(`/api/deduction/user/${auth.id}`, {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/deduction/user/${auth.id}`, {
                 params: {
                     offset: offset,
                     limit: limit

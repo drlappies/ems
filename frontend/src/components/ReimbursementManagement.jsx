@@ -23,6 +23,7 @@ import axios from 'axios'
 
 function ReimbursementManagement() {
     const dispatch = useDispatch()
+    const [rows, setRows] = useState([])
     const [state, setState] = useState({
         reimbursement: [],
         selectedRow: [],
@@ -43,7 +44,8 @@ function ReimbursementManagement() {
         reason: "",
         applyDate: null,
         amount: null,
-        applyStatus: "pending"
+        applyStatus: "pending",
+        isLoading: true
     })
 
     const columns = [
@@ -59,7 +61,7 @@ function ReimbursementManagement() {
 
     const fetchReimbursement = useCallback(async (offset, limit, search, employee, status, date, amountFrom, amountTo) => {
         try {
-            const res = await axios.get('/api/reimbursement', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/reimbursement`, {
                 params: {
                     offset: offset,
                     limit: limit,
@@ -72,15 +74,15 @@ function ReimbursementManagement() {
                     amountTo: amountTo
                 }
             })
+            setRows(res.data.reimbursement.map((el) => {
+                return {
+                    ...el,
+                    date: `${new Date(el.date).getDate().toString().padStart(2, 0)}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear()}`
+                }
+            }))
             setState(prevState => {
                 return {
                     ...prevState,
-                    reimbursement: res.data.reimbursement.map((el) => {
-                        return {
-                            ...el,
-                            date: `${new Date(el.date).getDate().toString().padStart(2, 0)}/${(new Date(el.date).getMonth() + 1).toString().padStart(2, 0)}/${new Date(el.date).getFullYear()}`
-                        }
-                    }),
                     rowCount: res.data.rowCount.count,
                     employeeList: res.data.employee,
                     isUpdating: false,
@@ -89,7 +91,8 @@ function ReimbursementManagement() {
                     employeeId: "",
                     reason: "",
                     applyDate: null,
-                    amount: null
+                    amount: null,
+                    isLoading: false
                 }
             })
         } catch (err) {
@@ -99,7 +102,7 @@ function ReimbursementManagement() {
 
     const createReimbursement = useCallback(async () => {
         try {
-            const res = await axios.post('/api/reimbursement', {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/reimbursement`, {
                 employeeId: state.employeeId,
                 date: state.applyDate ? state.applyDate.format('YYYY-MM-DD') : null,
                 amount: state.amount,
@@ -114,7 +117,7 @@ function ReimbursementManagement() {
 
     const updateReimbursement = useCallback(async () => {
         try {
-            const res = await axios.put('/api/reimbursement', {
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/reimbursement`, {
                 id: state.selectedRow,
                 status: state.applyStatus,
                 reason: state.reason,
@@ -130,7 +133,7 @@ function ReimbursementManagement() {
 
     const deleteReimbursement = useCallback(async () => {
         try {
-            const res = await axios.delete(`/api/reimbursement/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/reimbursement/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchReimbursement(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -156,7 +159,7 @@ function ReimbursementManagement() {
                     }
                 })
             } else {
-                const res = await axios.get(`/api/reimbursement/${[state.selectedRow]}`)
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/reimbursement/${[state.selectedRow]}`)
                 setState(prevState => {
                     return {
                         ...prevState,
@@ -176,8 +179,8 @@ function ReimbursementManagement() {
 
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
     const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
     const handleChange = (e) => {
         let { name, value } = e.target;
@@ -199,10 +202,11 @@ function ReimbursementManagement() {
         <Grid container>
             <Grid item xs={12}>
                 <DataGrid
+                    loading={state.loading}
                     paginationMode="server"
                     checkboxSelection
                     disableColumnFilter
-                    rows={state.reimbursement}
+                    rows={rows}
                     columns={columns}
                     pageSize={state.limit}
                     rowCount={state.rowCount}

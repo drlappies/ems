@@ -15,6 +15,7 @@ import axios from 'axios'
 
 function Position() {
     const dispatch = useDispatch();
+    const [rows, setRows] = useState([])
     const [state, setState] = useState({
         isCreating: false,
         isUpdating: false,
@@ -26,6 +27,7 @@ function Position() {
         rowCount: 0,
         search: "",
         positionName: "",
+        isLoading: true
     })
 
     const columns = [
@@ -35,22 +37,23 @@ function Position() {
 
     const fetchPositions = useCallback(async (offset, limit, search) => {
         try {
-            const res = await axios.get('/api/position', {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/position`, {
                 params: {
                     offset: offset,
                     limit: limit,
                     search: search
                 }
             })
+            setRows(res.data.position)
             setState(prevState => {
                 return {
                     ...prevState,
-                    positions: res.data.position,
                     rowCount: parseInt(res.data.rowCount.count),
                     isCreating: false,
                     isUpdating: false,
                     isDeleting: false,
-                    positionName: ""
+                    positionName: "",
+                    isLoading: false
                 }
             })
         } catch (err) {
@@ -60,7 +63,7 @@ function Position() {
 
     const createPosition = useCallback(async () => {
         try {
-            const res = await axios.post('/api/position', {
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/position`, {
                 name: state.positionName
             })
             dispatch(popMessage(res.data.success, 'success'))
@@ -72,7 +75,7 @@ function Position() {
 
     const deletePosition = useCallback(async () => {
         try {
-            const res = await axios.delete(`/api/position/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/position/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPositions(state.offset, state.limit, state.search)
         } catch (err) {
@@ -88,7 +91,7 @@ function Position() {
             if (state.selectedRow.length > 1) {
                 setState(prevState => { return { ...prevState, isUpdating: true, positionName: "" } })
             } else {
-                const res = await axios.get(`/api/position/${[state.selectedRow]}`)
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/position/${[state.selectedRow]}`)
                 setState(prevState => {
                     return {
                         ...prevState,
@@ -104,7 +107,7 @@ function Position() {
 
     const updatePosition = useCallback(async () => {
         try {
-            const res = await axios.put('/api/position', {
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/position`, {
                 id: state.selectedRow,
                 name: state.positionName,
             })
@@ -115,8 +118,8 @@ function Position() {
         }
     }, [dispatch, fetchPositions, state.limit, state.offset, state.positionName, state.search, state.selectedRow])
 
-    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
-    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit, isLoading: true } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset, isLoading: true } }) }
     const handleSelect = (row) => { setState(prevState => { return { ...prevState, selectedRow: row, } }) }
     const toggleCreating = () => { setState(prevState => { return { ...prevState, isCreating: !prevState.isCreating } }) }
     const toggleDeleting = () => { setState(prevState => { return { ...prevState, isDeleting: !prevState.isDeleting } }) }
@@ -134,10 +137,11 @@ function Position() {
         <Grid container>
             <Grid item xs={12}>
                 <DataGrid
+                    loading={state.isLoading}
                     paginationMode="server"
                     checkboxSelection
                     disableColumnFilter
-                    rows={state.positions}
+                    rows={rows}
                     columns={columns}
                     pageSize={state.limit}
                     rowCount={state.rowCount}

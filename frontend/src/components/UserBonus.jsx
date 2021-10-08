@@ -26,7 +26,7 @@ function UserBonus() {
 
     const fetchBonusRecord = useCallback(async (offset, limit) => {
         try {
-            const res = await axios.get(`/api/bonus/user/${auth.id}`, {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/bonus/user/${auth.id}`, {
                 params: {
                     offset: offset,
                     limit: limit

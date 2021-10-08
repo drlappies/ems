@@ -68,7 +68,7 @@ function UserOvertime() {
 
     const fetchOvertimeRecord = useCallback(async (currentYear, currentMonth) => {
         try {
-            const res = await axios.get(`/api/overtime/user/${auth.id}/history`, {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/overtime/user/${auth.id}/history`, {
                 params: {
                     dateFrom: `${new Date(currentYear, currentMonth, 1).getFullYear()}-${new Date(currentYear, currentMonth, 1).getMonth() + 1}-${new Date(currentYear, currentMonth, 1).getDate()}`,
                     dateTo: `${new Date(currentYear, currentMonth + 1, 0).getFullYear()}-${new Date(currentYear, currentMonth + 1, 0).getMonth() + 1}-${new Date(currentYear, currentMonth + 1, 0).getDate()}`,

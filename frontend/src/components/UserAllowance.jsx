@@ -25,7 +25,7 @@ function UserAllowance() {
 
     const fetchAllowanceRecord = useCallback(async (offset, limit) => {
         try {
-            const res = await axios.get(`/api/allowance/entitlement/${auth.id}`, {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/allowance/entitlement/${auth.id}`, {
                 params: {
                     offset: offset,
                     limit: limit
