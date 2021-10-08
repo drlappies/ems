@@ -69,11 +69,16 @@ class BonusService {
         return bonus
     }
 
-    getBonusByEmployee = async (id) => {
+    getBonusByEmployee = async (id, offset, limit) => {
+        const [count] = await this.knex('bonus').where('employee_id', id).count()
+
         const bonus = await this.knex('bonus')
             .select(['bonus.id', 'bonus.reason', 'bonus.amount', 'bonus.date'])
+            .limit(parseInt(limit))
+            .offset(parseInt(offset) * parseInt(limit))
             .where('employee_id', id)
-        return bonus
+
+        return { bonus: bonus, count: count }
     }
 }
 

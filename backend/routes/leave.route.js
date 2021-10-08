@@ -7,5 +7,6 @@ module.exports.LeaveRoute = (LeaveController) => {
     router.post('/', LeaveController.createLeave)
     router.put('/', LeaveController.updateLeave)
     router.delete('/', LeaveController.deleteLeave)
+    router.get('/user/:employeeId/history', LeaveController.getAllLeaveByEmployee)
     return router
 }

@@ -72,9 +72,11 @@ class PayrollController {
     getPayrollByEmployee = async (req, res) => {
         try {
             const { id } = req.params;
-            const payroll = await this.PayrollService.getPayrollByEmployee(id);
+            const { offset, limit } = req.query
+            const query = await this.PayrollService.getPayrollByEmployee(id, offset, limit);
             return res.status(200).json({
-                payroll: payroll,
+                payroll: query.payroll,
+                rowCount: query.count
             })
         } catch (err) {
             return res.status(500).json({

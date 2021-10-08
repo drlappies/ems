@@ -140,11 +140,7 @@ class AllowanceController {
             const query = await this.AllowanceService.getAllAllowanceByEmployee(employee_id, offset, limit)
             return res.status(200).json({
                 allowance_employee: query.allowance_employee,
-                offset: query.offset,
-                limit: query.limit,
-                length: query.count,
-                start: query.pageStart,
-                end: query.pageEnd
+                rowCount: query.count
             })
         } catch (err) {
             console.log(err)

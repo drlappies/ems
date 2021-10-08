@@ -3,7 +3,8 @@ const express = require('express');
 module.exports.OvertimeRoute = (OvertimeController) => {
     const router = express.Router();
     router.get('/', OvertimeController.getAllOvertime);
-    router.get('/user/:employeeId', OvertimeController.getEmployeeOvertimeStatus);
+    router.get('/user/:employeeId/status', OvertimeController.getEmployeeOvertimeStatus);
+    router.get('/user/:employeeId/history', OvertimeController.getAllOvertimeByEmployee)
     router.get('/:id', OvertimeController.getOvertime)
     router.post('/', OvertimeController.createOvertime);
     router.post('/timein', OvertimeController.createOvertimeTimein);

@@ -30,7 +30,7 @@ function SnackbarProvider(props) {
             >
                 <Alert
                     onClose={() => dispatch(dismissMessage())}
-                    severity={ui.severity}
+                    severity={ui.severity ? ui.severity : 'success'}
                 >
                     {ui.message}
                 </Alert>

@@ -121,6 +121,14 @@ class AttendanceService extends EmployeeService {
         return { attendance: attendance, rowCount: rowCount, employee: employee }
     }
 
+    getAllAttendanceByEmployee = async (employeeId, dateFrom, dateTo) => {
+        const attendance = await this.knex('attendance')
+            .select(['date', 'check_in', 'check_out', 'status'])
+            .where('employee_id', '=', employeeId)
+            .whereBetween('date', [dateFrom, dateTo])
+        return attendance
+    }
+
     deleteAttendance = async (id) => {
         const [attendance] = await this.knex('attendance')
             .where('id', id)

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { popMessage } from '../actions/ui'
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -54,6 +55,7 @@ const yearSelect = (currentYear) => {
 }
 
 function UserOvertime() {
+    const dispatch = useDispatch();
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
         currentMonth: new Date().getMonth(),
@@ -64,27 +66,30 @@ function UserOvertime() {
     const calendar = useMemo(() => generateCalendar(state.currentMonth, state.currentYear, state.currentOvertimeRecord), [state.currentMonth, state.currentYear, state.currentOvertimeRecord])
     const years = yearSelect(new Date().getFullYear())
 
-    const fetchOvertimeRecord = useCallback(async () => {
-        const res = await axios.get('/api/overtime', {
-            params: {
-                employeeId: auth.id,
-                dateFrom: `${new Date(state.currentYear, state.currentMonth, 1).getFullYear()}-${new Date(state.currentYear, state.currentMonth, 1).getMonth() + 1}-${new Date(state.currentYear, state.currentMonth, 1).getDate()}`,
-                dateTo: `${new Date(state.currentYear, state.currentMonth + 1, 0).getFullYear()}-${new Date(state.currentYear, state.currentMonth + 1, 0).getMonth() + 1}-${new Date(state.currentYear, state.currentMonth + 1, 0).getDate()}`,
-                limit: 31
-            }
-        })
+    const fetchOvertimeRecord = useCallback(async (currentYear, currentMonth) => {
+        try {
+            const res = await axios.get(`/api/overtime/user/${auth.id}/history`, {
+                params: {
+                    dateFrom: `${new Date(currentYear, currentMonth, 1).getFullYear()}-${new Date(currentYear, currentMonth, 1).getMonth() + 1}-${new Date(currentYear, currentMonth, 1).getDate()}`,
+                    dateTo: `${new Date(currentYear, currentMonth + 1, 0).getFullYear()}-${new Date(currentYear, currentMonth + 1, 0).getMonth() + 1}-${new Date(currentYear, currentMonth + 1, 0).getDate()}`,
+                }
+            })
 
-        setState(prevState => {
-            return {
-                ...prevState,
-                currentOvertimeRecord: res.data.overtimeRecord
-            }
-        })
-    }, [auth.id, state.currentMonth, state.currentYear])
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    currentOvertimeRecord: res.data.overtime
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+
+    }, [auth.id, dispatch])
 
     useEffect(() => {
-        fetchOvertimeRecord()
-    }, [fetchOvertimeRecord])
+        fetchOvertimeRecord(state.currentYear, state.currentMonth)
+    }, [fetchOvertimeRecord, state.currentMonth, state.currentYear])
 
     const next = () => {
         setState(prevState => {

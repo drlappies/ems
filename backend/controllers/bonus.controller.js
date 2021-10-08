@@ -103,9 +103,11 @@ class BonusController {
     getBonusByEmployee = async (req, res) => {
         try {
             const { id } = req.params;
-            const bonus = await this.BonusService.getBonusByEmployee(id);
+            const { offset, limit } = req.query
+            const query = await this.BonusService.getBonusByEmployee(id, offset, limit);
             return res.status(200).json({
-                bonus: bonus
+                bonus: query.bonus,
+                rowCount: query.count
             })
         } catch (err) {
             console.log(err)

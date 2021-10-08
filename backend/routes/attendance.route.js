@@ -6,7 +6,8 @@ module.exports.AttendanceRoute = (AttendanceController) => {
     router.post('/checkin', AttendanceController.createTimeIn);
     router.post('/checkout', AttendanceController.createTimeOut);
     router.get('/', AttendanceController.getAllAttendance)
-    router.get('/status/:employeeId', AttendanceController.getTodayAttendanceByEmployee)
+    router.get('/user/:employeeId/status', AttendanceController.getTodayAttendanceByEmployee)
+    router.get('/user/:employeeId/history', AttendanceController.getAllAttendanceByEmployee)
     router.get('/:id', AttendanceController.getAttendance)
     router.delete('/', AttendanceController.batchDeleteAttendance)
     router.delete('/:id', AttendanceController.deleteAttendance)

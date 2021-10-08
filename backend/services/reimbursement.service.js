@@ -66,11 +66,15 @@ class ReimbursementService {
         return reimbursement
     }
 
-    getReimbursementByEmployee = async (id) => {
+    getReimbursementByEmployee = async (id, offset, limit) => {
+        const [count] = await this.knex('reimbursement').where('employee_id', id).count()
+
         const reimbursement = await this.knex('reimbursement')
             .select(['id', 'reason', 'status', 'amount', 'date'])
+            .limit(parseInt(limit))
+            .offset(parseInt(limit) * parseInt(offset))
             .where('employee_id', id)
-        return reimbursement
+        return { reimbursement: reimbursement, count: count }
     }
 
     getReimbursementCount = async () => {

@@ -263,9 +263,14 @@ class PayrollService {
         return { payroll: payroll, employee: employee, count: count }
     }
 
-    getPayrollByEmployee = async (id) => {
-        const payroll = await this.knex('payroll').where('employee_id', id)
-        return payroll
+    getPayrollByEmployee = async (id, offset, limit) => {
+        const [count] = await this.knex('payroll').count()
+
+        const payroll = await this.knex('payroll')
+            .limit(parseInt(limit))
+            .offset(parseInt(offset) * parseInt(limit))
+            .where('employee_id', id)
+        return { payroll: payroll, count: count }
     }
 
     updatePayroll = async (id, status) => {

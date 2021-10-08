@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { popMessage } from '../actions/ui'
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -53,36 +54,41 @@ const yearSelect = (currentYear) => {
 }
 
 function UserLeave() {
+    const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
         currentMonth: new Date().getMonth(),
         currentYear: new Date().getFullYear(),
-        currentMonthlyLeave: []
+        currentMonthlyLeave: [],
+        isFetching: false
     })
 
     const calendar = useMemo(() => generateCalendar(state.currentMonth, state.currentYear, state.currentMonthlyLeave), [state.currentMonth, state.currentYear, state.currentMonthlyLeave])
     const years = useMemo(() => yearSelect(new Date().getFullYear()), [])
 
-    const fetchMonthlyLeave = useCallback(async () => {
-        const res = await axios.get('/api/leave', {
-            params: {
-                employee_id: auth.id,
-                from: `${new Date(state.currentYear, state.currentMonth, 1).getFullYear()}-${new Date(state.currentYear, state.currentMonth, 1).getMonth() + 1}-${new Date(state.currentYear, state.currentMonth, 1).getDate()}`,
-                to: `${new Date(state.currentYear, state.currentMonth + 1, 0).getFullYear()}-${new Date(state.currentYear, state.currentMonth + 1, 0).getMonth() + 1}-${new Date(state.currentYear, state.currentMonth + 1, 0).getDate()}`,
-                limit: 31
-            }
-        })
+    const fetchMonthlyLeave = useCallback(async (currentYear, currentMonth) => {
+        try {
+            const res = await axios.get(`/api/leave/user/${auth.id}/history`, {
+                params: {
+                    dateFrom: `${new Date(currentYear, currentMonth, 1).getFullYear()}-${new Date(currentYear, currentMonth, 1).getMonth() + 1}-${new Date(currentYear, currentMonth, 1).getDate()}`,
+                    dateTo: `${new Date(currentYear, currentMonth + 1, 0).getFullYear()}-${new Date(currentYear, currentMonth + 1, 0).getMonth() + 1}-${new Date(currentYear, currentMonth + 1, 0).getDate()}`,
+                }
+            })
 
-        setState(prevState => {
-            return {
-                ...prevState,
-                currentMonthlyLeave: res.data.leave
-            }
-        })
-    }, [auth.id, state.currentMonth, state.currentYear])
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    currentMonthlyLeave: res.data.leave,
+                    isFetching: false
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
+    }, [auth.id, dispatch])
 
     useEffect(() => {
-        fetchMonthlyLeave()
+        fetchMonthlyLeave(state.currentYear, state.currentMonth)
     }, [fetchMonthlyLeave, state.currentMonth, state.currentYear])
 
     const next = () => {
@@ -90,7 +96,8 @@ function UserLeave() {
             return {
                 ...prevState,
                 currentMonth: prevState.currentMonth + 1 > 11 ? 0 : prevState.currentMonth + 1,
-                currentYear: prevState.currentMonth + 1 > 11 ? prevState.currentYear + 1 : prevState.currentYear
+                currentYear: prevState.currentMonth + 1 > 11 ? prevState.currentYear + 1 : prevState.currentYear,
+                isFetching: true
             }
         })
     }
@@ -100,19 +107,15 @@ function UserLeave() {
             return {
                 ...prevState,
                 currentMonth: prevState.currentMonth - 1 <= 0 ? 11 : prevState.currentMonth - 1,
-                currentYear: prevState.currentMonth - 1 <= 0 ? prevState.currentYear - 1 : prevState.currentYear
+                currentYear: prevState.currentMonth - 1 <= 0 ? prevState.currentYear - 1 : prevState.currentYear,
+                isFetching: true
             }
         })
     }
 
     const jump = (e) => {
         const { name, value } = e.target;
-        setState(prevState => {
-            return {
-                ...prevState,
-                [name]: parseInt(value)
-            }
-        })
+        setState(prevState => { return { ...prevState, [name]: parseInt(value), isFetching: true } })
     }
 
     return (
@@ -160,14 +163,17 @@ function UserLeave() {
                                     <td key={j} className="calendar-date">
                                         {date ?
                                             <div>
-                                                {date.duration && date.duration === 'full_day' ? <div>Full Day</div> : null}
-                                                {date.duration && date.duration === 'half_day' ? <div>Half Day</div> : null}
-                                                {date.type && date.type === 'sick_leave' ? <div style={{ backgroundColor: '#9acd32' }}>Sick Leave</div> : null}
-                                                {date.type && date.type === 'no_pay_leave' ? <div style={{ backgroundColor: '#B0E0E6' }}>No Pay Leave</div> : null}
-                                                {date.type && date.type === 'annual_leave' ? <div style={{ backgroundColor: '#89CFF0' }}>Annual Leave</div> : null}
-                                                {date.status && date.status === 'rejected' ? <div style={{ backgroundColor: 'red' }}>Rejected</div> : null}
-                                                {date.status && date.status === 'approved' ? <div style={{ backgroundColor: 'green' }}>Approved</div> : null}
-                                                {date.status && date.status === 'pending' ? <div style={{ backgroundColor: 'yellow' }}>Pending</div> : null}
+                                                {state.isFetching ? null :
+                                                    <div>
+                                                        {date.duration && date.duration === 'full_day' ? <div>Full Day</div> : null}
+                                                        {date.duration && date.duration === 'half_day' ? <div>Half Day</div> : null}
+                                                        {date.type && date.type === 'sick_leave' ? <div style={{ backgroundColor: '#9acd32' }}>Sick Leave</div> : null}
+                                                        {date.type && date.type === 'no_pay_leave' ? <div style={{ backgroundColor: '#B0E0E6' }}>No Pay Leave</div> : null}
+                                                        {date.type && date.type === 'annual_leave' ? <div style={{ backgroundColor: '#89CFF0' }}>Annual Leave</div> : null}
+                                                        {date.status && date.status === 'rejected' ? <div style={{ backgroundColor: 'red' }}>Rejected</div> : null}
+                                                        {date.status && date.status === 'approved' ? <div style={{ backgroundColor: 'green' }}>Approved</div> : null}
+                                                        {date.status && date.status === 'pending' ? <div style={{ backgroundColor: 'yellow' }}>Pending</div> : null}
+                                                    </div>}
                                                 <div>{date.date}</div>
                                             </div> : null}
                                     </td>

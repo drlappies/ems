@@ -125,12 +125,17 @@ class AllowanceService {
     }
 
     getAllAllowanceByEmployee = async (employee_id) => {
+        const [count] = await this.knex('allowance_employee')
+            .join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
+            .where('allowance_employee.employee_id', employee_id)
+            .count()
+
         const allowance_employee = await this.knex('allowance_employee')
             .join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
-            .select('allowance.name', 'allowance.description', 'allowance.amount', 'allowance.status', 'allowance.minimum_attendance_required', 'allowance.required_attendance_rate')
+            .select('allowance.id', 'allowance.name', 'allowance.description', 'allowance.amount', 'allowance.status')
             .where('allowance_employee.employee_id', employee_id)
 
-        return { allowance_employee: allowance_employee }
+        return { allowance_employee: allowance_employee, count: count }
     }
 }
 

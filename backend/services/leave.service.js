@@ -90,6 +90,15 @@ class LeaveService {
 
         return employeeAL
     }
+
+    getAllLeaveByEmployee = async (employeeId, dateFrom, dateTo) => {
+        const leave = await this.knex('leave')
+            .where('employee_id', '=', employeeId)
+            .whereBetween('from', [dateFrom, dateTo])
+            .whereBetween('to', [dateFrom, dateTo])
+
+        return leave
+    }
 }
 
 module.exports = LeaveService

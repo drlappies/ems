@@ -78,9 +78,11 @@ class ReimbursementController {
     getReimbursementByEmployee = async (req, res) => {
         try {
             const { id } = req.params;
-            const reimbursement = await this.ReimbursementService.getReimbursementByEmployee(id);
+            const { offset, limit } = req.query;
+            const query = await this.ReimbursementService.getReimbursementByEmployee(id, offset, limit);
             return res.status(200).json({
-                reimbursement: reimbursement
+                reimbursement: query.reimbursement,
+                rowCount: query.count
             })
         } catch (err) {
             return res.status(500).json({

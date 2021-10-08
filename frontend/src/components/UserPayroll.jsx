@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { popMessage } from '../actions/ui';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 function UserPayroll() {
+    const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
         currentPayrollRecord: [],
+        offset: 0,
+        limit: 25,
+        rowCount: 0,
         isFetching: true,
     })
 
@@ -21,9 +26,14 @@ function UserPayroll() {
         { field: 'status', headerName: 'Status', flex: 1 }
     ]
 
-    const fetchEmployeePayroll = useCallback(async () => {
+    const fetchEmployeePayroll = useCallback(async (offset, limit) => {
         try {
-            const res = await axios.get(`/api/payroll/user/${auth.id}`)
+            const res = await axios.get(`/api/payroll/user/${auth.id}`, {
+                params: {
+                    offset: offset,
+                    limit: limit
+                }
+            })
             setState(prevState => {
                 return {
                     ...prevState,
@@ -35,23 +45,35 @@ function UserPayroll() {
                             payday: `${new Date(el.payday).getDate()} ${months[new Date(el.payday).getMonth()]}  ${new Date(el.payday).getFullYear()}`
                         }
                     }),
+                    rowCount: parseInt(res.data.rowCount.count),
                     isFetching: false,
                 }
             })
-            console.log(res.data)
         } catch (err) {
-            console.log(err)
+            dispatch(popMessage(err.response.data.error, 'error'))
         }
-    }, [auth.id])
+    }, [auth.id, dispatch])
+
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
 
     useEffect(() => {
-        fetchEmployeePayroll()
-    }, [fetchEmployeePayroll])
+        fetchEmployeePayroll(state.offset, state.limit)
+    }, [fetchEmployeePayroll, state.limit, state.offset])
 
     return (
-        <div style={{ height: '60vh', width: '100%' }}>
-            {state.isFetching ? null : <DataGrid rows={state.currentPayrollRecord} columns={columns} />}
-        </div>
+        <DataGrid
+            paginationMode="server"
+            disableColumnFilter
+            style={{ height: "70vh", width: "100%" }}
+            rows={state.currentPayrollRecord}
+            columns={columns}
+            pageSize={state.limit}
+            rowCount={state.rowCount}
+            rowsPerPageOptions={[25, 50, 100]}
+            onPageSizeChange={(size) => changePageSize(size)}
+            onPageChange={(page) => changePage(page)}
+        />
     )
 }
 

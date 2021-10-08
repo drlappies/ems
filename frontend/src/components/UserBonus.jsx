@@ -1,24 +1,37 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { useSelector } from 'react-redux';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableRow from '@mui/material/TableRow';
-import TableHead from '@mui/material/TableHead';
+import { useSelector, useDispatch } from 'react-redux';
+import { popMessage } from '../actions/ui'
+import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios'
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 function UserBonus() {
+    const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
+        offset: 0,
+        limit: 25,
+        rowCount: 0,
         bonusRecord: [],
         isFetching: true,
     })
 
-    const fetchBonusRecord = useCallback(async () => {
+    const columns = [
+        { field: 'id', headerName: 'Bonus ID', flex: 1 },
+        { field: 'date', headerName: 'date', flex: 1 },
+        { field: 'reason', headerName: 'Reason', flex: 1 },
+        { field: 'amount', headerName: 'Amount', flex: 1 },
+    ]
+
+    const fetchBonusRecord = useCallback(async (offset, limit) => {
         try {
-            const res = await axios.get(`/api/bonus/user/${auth.id}`)
+            const res = await axios.get(`/api/bonus/user/${auth.id}`, {
+                params: {
+                    offset: offset,
+                    limit: limit
+                }
+            })
             setState(prevState => {
                 return {
                     ...prevState,
@@ -29,40 +42,34 @@ function UserBonus() {
                         }
                     }),
                     isFetching: false,
+                    rowCount: parseInt(res.data.rowCount.count)
                 }
             })
         } catch (err) {
-            console.log(err)
+            dispatch(popMessage(err.response.error.data, 'error'))
         }
-    }, [auth.id])
+    }, [auth.id, dispatch])
+
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
 
     useEffect(() => {
-        fetchBonusRecord()
-    }, [fetchBonusRecord])
+        fetchBonusRecord(state.offset, state.limit)
+    }, [fetchBonusRecord, state.limit, state.offset])
 
     return (
-        <div style={{ height: '90vh', width: '100%' }}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>ID</TableCell>
-                        <TableCell>Date</TableCell>
-                        <TableCell>Reason</TableCell>
-                        <TableCell>Amount</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {state.bonusRecord.map((el, i) =>
-                        <TableRow key={i}>
-                            <TableCell>{el.id}</TableCell>
-                            <TableCell>{el.date}</TableCell>
-                            <TableCell>{el.reason}</TableCell>
-                            <TableCell>{el.amount}</TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-        </div>
+        <DataGrid
+            paginationMode="server"
+            disableColumnFilter
+            style={{ height: '70vh', width: '100%' }}
+            rows={state.bonusRecord}
+            columns={columns}
+            pageSize={state.limit}
+            rowCount={state.rowCount}
+            rowsPerPageOptions={[25, 50, 100]}
+            onPageSizeChange={(size) => changePageSize(size)}
+            onPageChange={(page) => changePage(page)}
+        />
     )
 }
 

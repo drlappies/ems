@@ -104,6 +104,21 @@ class LeaveController {
             })
         }
     }
+
+    getAllLeaveByEmployee = async (req, res) => {
+        try {
+            const { employeeId } = req.params;
+            const { dateFrom, dateTo } = req.query;
+            const leave = await this.LeaveService.getAllLeaveByEmployee(employeeId, dateFrom, dateTo)
+            return res.status(200).json({
+                leave: leave
+            })
+        } catch (err) {
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
 }
 
 module.exports = LeaveController

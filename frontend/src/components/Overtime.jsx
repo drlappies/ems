@@ -27,10 +27,10 @@ function Overtime() {
 
     const fetchOvertimeStatus = useCallback(async () => {
         try {
-            const res = await axios.get(`/api/overtime/user/${auth.id}`)
+            const res = await axios.get(`/api/overtime/user/${auth.id}/status`)
             setState({
-                checkInTime: res.data.checkIn,
-                checkOutTime: res.data.checkOut
+                checkInTime: res.data.from,
+                checkOutTime: res.data.to
             })
         } catch (err) {
             dispatch(popMessage(err.response.data.error, 'error'))

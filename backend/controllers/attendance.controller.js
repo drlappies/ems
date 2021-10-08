@@ -56,6 +56,21 @@ class AttendanceController {
         }
     }
 
+    getAllAttendanceByEmployee = async (req, res) => {
+        try {
+            const { employeeId } = req.params;
+            const { dateFrom, dateTo } = req.query;
+            const attendance = await this.AttendanceService.getAllAttendanceByEmployee(employeeId, dateFrom, dateTo);
+            return res.status(200).json({
+                attendance: attendance
+            })
+        } catch (err) {
+            res.status(500).json({
+                error: err
+            })
+        }
+    }
+
     getTodayAttendanceByEmployee = async (req, res) => {
         try {
             const { employeeId } = req.params;

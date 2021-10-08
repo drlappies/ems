@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { popMessage } from '../actions/ui';
 import axios from 'axios'
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
@@ -52,37 +53,42 @@ const yearSelect = (currentYear) => {
     return years
 }
 
-function Calendar(props) {
+function Calendar() {
+    const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
         currentMonth: new Date().getMonth(),
         currentYear: new Date().getFullYear(),
         currentMonthlyAttendance: [],
+        isFetching: false,
     })
 
     const calendar = useMemo(() => generateCalendar(state.currentYear, state.currentMonth, state.currentMonthlyAttendance), [state.currentMonth, state.currentYear, state.currentMonthlyAttendance])
-    const years = yearSelect(new Date().getFullYear())
+    const years = yearSelect(new Date().getFullYear() + 999)
 
-    const fetchMonthlyAttendance = useCallback(async () => {
-        const res = await axios.get('/api/attendance', {
-            params: {
-                limit: 31,
-                employee_id: auth.id,
-                dateFrom: `${new Date(state.currentYear, state.currentMonth, 1).getFullYear()}-${new Date(state.currentYear, state.currentMonth, 1).getMonth() + 1}-${new Date(state.currentYear, state.currentMonth, 1).getDate()}`,
-                dateTo: `${new Date(state.currentYear, state.currentMonth + 1, 0).getFullYear()}-${new Date(state.currentYear, state.currentMonth + 1, 0).getMonth() + 1}-${new Date(state.currentYear, state.currentMonth + 1, 0).getDate()}`
-            }
-        })
-        setState(prevState => {
-            return {
-                ...prevState,
-                currentMonthlyAttendance: res.data.attendance,
-            }
-        })
+    const fetchMonthlyAttendance = useCallback(async (currentYear, currentMonth) => {
+        try {
+            const res = await axios.get(`/api/attendance/user/${auth.id}/history`, {
+                params: {
+                    dateFrom: `${new Date(currentYear, currentMonth, 1).getFullYear()}-${new Date(currentYear, currentMonth, 1).getMonth() + 1}-${new Date(currentYear, currentMonth, 1).getDate()}`,
+                    dateTo: `${new Date(currentYear, currentMonth + 1, 0).getFullYear()}-${new Date(currentYear, currentMonth + 1, 0).getMonth() + 1}-${new Date(currentYear, currentMonth + 1, 0).getDate()}`
+                }
+            })
+            setState(prevState => {
+                return {
+                    ...prevState,
+                    currentMonthlyAttendance: res.data.attendance,
+                    isFetching: false
+                }
+            })
+        } catch (err) {
+            dispatch(popMessage(err.response.data.error, 'error'))
+        }
 
-    }, [auth.id, state.currentMonth, state.currentYear])
+    }, [auth.id, dispatch])
 
     useEffect(() => {
-        fetchMonthlyAttendance()
+        fetchMonthlyAttendance(state.currentYear, state.currentMonth)
     }, [fetchMonthlyAttendance, state.currentMonth, state.currentYear])
 
     const next = () => {
@@ -90,7 +96,8 @@ function Calendar(props) {
             return {
                 ...prevState,
                 currentMonth: prevState.currentMonth + 1 > 11 ? 0 : prevState.currentMonth + 1,
-                currentYear: prevState.currentMonth + 1 > 11 ? prevState.currentYear + 1 : prevState.currentYear
+                currentYear: prevState.currentMonth + 1 > 11 ? prevState.currentYear + 1 : prevState.currentYear,
+                isFetching: true
             }
         })
     }
@@ -100,19 +107,15 @@ function Calendar(props) {
             return {
                 ...prevState,
                 currentMonth: prevState.currentMonth - 1 <= 0 ? 11 : prevState.currentMonth - 1,
-                currentYear: prevState.currentMonth - 1 <= 0 ? prevState.currentYear - 1 : prevState.currentYear
+                currentYear: prevState.currentMonth - 1 <= 0 ? prevState.currentYear - 1 : prevState.currentYear,
+                isFetching: true
             }
         })
     }
 
     const jump = (e) => {
         const { name, value } = e.target;
-        setState(prevState => {
-            return {
-                ...prevState,
-                [name]: parseInt(value)
-            }
-        })
+        setState(prevState => { return { ...prevState, [name]: parseInt(value), isFetching: true } })
     }
 
     return (
@@ -162,9 +165,12 @@ function Calendar(props) {
                                     <td className="calendar-date" key={j}>
                                         {date ?
                                             <div>
-                                                {date.checkIn ? <div>In: {date.checkIn}</div> : null}
-                                                {date.checkOut ? <div>Out: {date.checkOut}</div> : null}
-                                                {date.status ? <div style={{ backgroundColor: date.status === 'on_time' ? 'green' : 'red' }}>{date.status}</div> : null}
+                                                {state.isFetching ? null :
+                                                    <div>
+                                                        {date.checkIn ? <div>IN: {date.checkIn}</div> : null}
+                                                        {date.checkOut ? <div>OUT: {date.checkOut ? date.checkOut : "NO CHECKOUT"}</div> : null}
+                                                        {date.status ? <div style={{ backgroundColor: date.status === 'on_time' ? 'green' : 'red' }}>{date.status === 'on_time' ? 'On Time' : 'Late'}</div> : null}
+                                                    </div>}
                                                 <div>{date.date}</div>
                                             </div>
                                             : null}

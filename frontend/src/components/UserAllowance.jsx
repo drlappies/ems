@@ -1,66 +1,69 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { useSelector } from 'react-redux';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
+import { useSelector, useDispatch } from 'react-redux';
+import { popMessage } from '../actions/ui';
+import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios'
 
 function UserAllowance() {
+    const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
+        offset: 0,
+        limit: 25,
+        rowCount: 0,
         allowanceRecord: [],
         isFetching: true
     })
 
-    const fetchAllowanceRecord = useCallback(async () => {
+    const columns = [
+        { field: 'id', headerName: "Allowance ID", flex: 1 },
+        { field: 'name', headerName: 'Name', flex: 1 },
+        { field: 'description', headerName: 'Description', flex: 1 },
+        { field: 'amount', headerName: 'Amount', flex: 1 },
+        { field: 'status', headerName: 'Status', flex: 1 },
+    ]
+
+    const fetchAllowanceRecord = useCallback(async (offset, limit) => {
         try {
-            const res = await axios.get(`/api/allowance/entitlement/${auth.id}`)
-            console.log(res.data)
+            const res = await axios.get(`/api/allowance/entitlement/${auth.id}`, {
+                params: {
+                    offset: offset,
+                    limit: limit
+                }
+            })
             setState(prevState => {
                 return {
                     ...prevState,
                     allowanceRecord: res.data.allowance_employee,
+                    rowCount: parseInt(res.data.rowCount.count),
                     isFetching: false,
                 }
             })
         } catch (err) {
-            console.log(err)
+            dispatch(popMessage(err.response.data.error, 'error'))
         }
-    }, [auth.id])
+    }, [auth.id, dispatch])
+
+    const changePageSize = (limit) => { setState(prevState => { return { ...prevState, limit: limit } }) }
+    const changePage = (offset) => { setState(prevState => { return { ...prevState, offset: offset } }) }
 
     useEffect(() => {
-        fetchAllowanceRecord()
-    }, [fetchAllowanceRecord])
+        fetchAllowanceRecord(state.offset, state.limit)
+    }, [fetchAllowanceRecord, state.limit, state.offset])
 
     return (
-        <div style={{ height: '90vh', width: '100%' }}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Name</TableCell>
-                        <TableCell>Description</TableCell>
-                        <TableCell>Amount</TableCell>
-                        <TableCell>Is attendance required?</TableCell>
-                        <TableCell>Minimum attendance requirement</TableCell>
-                        <TableCell>Status</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {state.allowanceRecord.map((el, i) =>
-                        <TableRow key={i}>
-                            <TableCell>{el.name}</TableCell>
-                            <TableCell>{el.description}</TableCell>
-                            <TableCell>{el.amount}</TableCell>
-                            <TableCell>{el.minimum_attendance_required}</TableCell>
-                            <TableCell>{el.required_attendance_rate}%</TableCell>
-                            <TableCell>{el.status}</TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-        </div>
+        <DataGrid
+            paginationMode="server"
+            disableColumnFilter
+            style={{ height: "70vh", width: "100%" }}
+            rows={state.allowanceRecord}
+            columns={columns}
+            pageSize={state.limit}
+            rowCount={state.rowCount}
+            rowsPerPageOptions={[25, 50, 100]}
+            onPageSizeChange={(size) => changePageSize(size)}
+            onPageChange={(page) => changePage(page)}
+        />
     )
 }
 

@@ -9,6 +9,10 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
+import DateRangePicker from '@mui/lab/DateRangePicker';
+import DateAdapter from '@mui/lab/AdapterMoment';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import Box from '@mui/material/Box';
 import axios from 'axios';
 import '../css/main.css'
 
@@ -16,8 +20,7 @@ function Leave() {
     const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
-        from: "",
-        to: "",
+        date: [null, null],
         reason: "",
         type: "",
         span: ""
@@ -39,16 +42,15 @@ function Leave() {
             const body = {
                 employeeId: auth.id,
                 reason: state.reason,
-                from: state.from,
-                to: state.to,
+                from: state.date[0] ? state.date[0].format('YYYY-MM-DD') : null,
+                to: state.date[1] ? state.date[1].format('YYYY-MM-DD') : null,
                 duration: state.span,
                 type: state.type
             }
             const res = await axios.post('/api/leave', body);
             dispatch(popMessage(res.data.success, 'success'))
             setState({
-                from: "",
-                to: "",
+                date: [null, null],
                 reason: "",
                 type: "",
                 span: ""
@@ -63,10 +65,23 @@ function Leave() {
             <Grid item xs={6}>
                 <form onSubmit={(e) => handleSubmit(e)}>
                     <Card>
-                        <CardHeader title="Apply for leave" />
+                        <CardHeader title="Leave Application" />
                         <CardContent>
-                            <TextField fullWidth size="small" margin="normal" label="From" type="date" name="from" id="from" value={state.from} onChange={(e) => handleChange(e)} />
-                            <TextField fullWidth size="small" margin="normal" label="To" type="date" name="to" id="to" value={state.to} onChange={(e) => handleChange(e)} />
+                            <LocalizationProvider dateAdapter={DateAdapter}>
+                                <DateRangePicker
+                                    startText="Leave From"
+                                    endText="Leave To"
+                                    value={state.date}
+                                    onChange={(newValue) => setState(prevState => { return { ...prevState, date: newValue } })}
+                                    renderInput={(startProps, endProps) => (
+                                        <React.Fragment>
+                                            <TextField fullWidth size="small" margin="normal"{...startProps} />
+                                            <Box sx={{ mx: 2 }}> - </Box>
+                                            <TextField fullWidth size="small" margin="normal"{...endProps} />
+                                        </React.Fragment>
+                                    )}
+                                />
+                            </LocalizationProvider>
                             <TextField fullWidth multiline rows={5} size="small" margin="normal" label="Reason" type="text" name="reason" id="reason" value={state.reason} onChange={(e) => handleChange(e)} />
                             <TextField fullWidth size="small" margin="normal" select label="Type" name="type" id="type" value={state.type} onChange={(e) => handleChange(e)}>
                                 <MenuItem value={'sick_leave'}>Sick Leave</MenuItem>
@@ -78,7 +93,7 @@ function Leave() {
                             </TextField>
                         </CardContent>
                         <CardActions>
-                            <Button variant="contained" color="primary" type="submit">Apply</Button>
+                            <Button variant="contained" color="success" type="submit">Apply</Button>
                         </CardActions>
                     </Card>
                 </form>

@@ -160,6 +160,13 @@ class OvertimeService {
             .update(update)
         return overtime
     }
+
+    getAllOvertimeByEmployee = async (employeeId, dateFrom, dateTo) => {
+        const overtime = await this.knex('overtime')
+            .where('employee_id', '=', employeeId)
+            .whereBetween('date', [dateFrom, dateTo])
+        return overtime
+    }
 }
 
 module.exports = OvertimeService

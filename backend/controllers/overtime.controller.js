@@ -162,11 +162,8 @@ class OvertimeController {
     getEmployeeOvertimeStatus = async (req, res) => {
         try {
             const { employeeId } = req.params;
-            const overtimeStatus = await this.OvertimeService.getEmployeeOvertimeStatus(employeeId);
-            return res.status(200).json({
-                checkIn: overtimeStatus.from,
-                checkOut: overtimeStatus.to
-            })
+            const overtime = await this.OvertimeService.getEmployeeOvertimeStatus(employeeId);
+            return res.status(200).json(overtime)
         } catch (err) {
             console.log(err)
             return res.status(500).json({
@@ -196,6 +193,22 @@ class OvertimeController {
             const overtime = await this.OvertimeService.batchUpdateOvertime(id, from, to, status)
             return res.status(200).json({
                 success: 'Successfully batch updated overtime records.'
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(500).json({
+                error: err
+            })
+        }
+    }
+
+    getAllOvertimeByEmployee = async (req, res) => {
+        try {
+            const { employeeId } = req.params;
+            const { dateFrom, dateTo } = req.query;
+            const overtime = await this.OvertimeService.getAllOvertimeByEmployee(employeeId, dateFrom, dateTo)
+            return res.status(200).json({
+                overtime: overtime
             })
         } catch (err) {
             console.log(err)
