@@ -15,9 +15,10 @@ const config = {
   staging: {
     client: 'postgresql',
     connection: {
-      database: 'my_db',
-      user: 'username',
-      password: 'password'
+      host: process.env.DB_HOST,
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
     },
     pool: {
       min: 2,
@@ -31,9 +32,10 @@ const config = {
   production: {
     client: 'postgresql',
     connection: {
-      database: 'my_db',
-      user: 'username',
-      password: 'password'
+      host: process.env.POSTGRES_HOST,
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
     },
     pool: {
       min: 2,
@@ -41,7 +43,7 @@ const config = {
     },
     migrations: {
       tableName: 'knex_migrations'
-    }
+    },
   }
 
 };
