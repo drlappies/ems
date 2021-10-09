@@ -47,7 +47,11 @@ function Leave() {
                 duration: state.span,
                 type: state.type
             }
-            const res = await axios.post(`${process.env.REACT_APP_API}/api/leave`, body);
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/leave`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            });
             dispatch(popMessage(res.data.success, 'success'))
             setState({
                 date: [null, null],

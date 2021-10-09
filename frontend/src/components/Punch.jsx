@@ -27,7 +27,11 @@ function Punch() {
 
     const fetchStatus = useCallback(async (employeeId) => {
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API}/api/attendance/user/${employeeId}/status`)
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/attendance/user/${employeeId}/status`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             if (res.data.hasOwnProperty('id')) {
                 setState({
                     checkInTime: res.data.check_in,

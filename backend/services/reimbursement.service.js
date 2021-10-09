@@ -3,19 +3,20 @@ class ReimbursementService {
         this.knex = knex
     }
 
-    createReimbursement = async (employeeId, date, amount, reason) => {
+    createReimbursement = async (employeeId, date, amount, reason, status) => {
         const [reimbursement] = await this.knex('reimbursement').insert({
             employee_id: employeeId,
             date: date,
             amount: amount,
-            reason: reason
+            reason: reason,
+            status: status
         }).returning(['date', 'amount', 'reason'])
         return reimbursement
     }
 
     updateReimbursement = async (id, status, reason, date, amount) => {
         if (!Array.isArray(id)) id = [id]
-        let update = { id: id };
+        let update = {};
         if (status) update.status = status
         if (reason) update.reason = reason
         if (amount) update.amount = amount
@@ -87,6 +88,12 @@ class ReimbursementService {
     deleteReimbursement = async (id) => {
         if (!Array.isArray(id)) id = [id]
         const reimbursement = await this.knex('reimbursement').whereIn('id', id).del(['id'])
+        return reimbursement
+    }
+
+    checkIfStatusActive = async (id) => {
+        if (!Array.isArray(id)) id = [id]
+        const reimbursement = await this.knex('reimbursement').where('status', '=', 'approved').whereIn('id', id)
         return reimbursement
     }
 }

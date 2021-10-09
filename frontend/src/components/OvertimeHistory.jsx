@@ -73,6 +73,9 @@ function OvertimeHistory() {
                     dateTo: date[1] ? date[1].format('YYYY-MM-DD') : null,
                     status: status === "any" ? null : status,
                     employee: employee === "any" ? null : employee
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setOvertime(res.data.overtime.map(el => {
@@ -113,7 +116,11 @@ function OvertimeHistory() {
                 date: state.createDate.format('YYYY-MM-DD'),
                 status: state.createStatus
             }
-            const res = await axios.post(`${process.env.REACT_APP_API}/api/overtime`, body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/overtime`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchOvertime(state.offset, state.limit, state.search, state.date, state.employee, state.status)
         } catch (err) {
@@ -124,10 +131,18 @@ function OvertimeHistory() {
     const deleteOvertime = useCallback(async () => {
         try {
             if (state.selectedRow.length > 1) {
-                const res = await axios.delete(`${process.env.REACT_APP_API}/api/overtime/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+                const res = await axios.delete(`${process.env.REACT_APP_API}/api/overtime/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 dispatch(popMessage(res.data.success, 'success'))
             } else {
-                const res = await axios.delete(`${process.env.REACT_APP_API}/api/overtime/${[state.selectedRow]}`)
+                const res = await axios.delete(`${process.env.REACT_APP_API}/api/overtime/${[state.selectedRow]}`, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 dispatch(popMessage(res.data.success, 'success'))
             }
             return fetchOvertime(state.offset, state.limit, state.search, state.date, state.employee, state.status)
@@ -145,7 +160,11 @@ function OvertimeHistory() {
                     to: state.updateCheckOut ? state.updateCheckOut.format('HH:mm:ss') : null,
                     status: state.updateStatus
                 }
-                const res = await axios.put(`${process.env.REACT_APP_API}/api/overtime`, body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/overtime`, body, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 dispatch(popMessage(res.data.success, 'success'))
             } else {
                 const body = {
@@ -154,7 +173,11 @@ function OvertimeHistory() {
                     to: state.updateCheckOut ? state.updateCheckOut.format('HH:mm:ss') : null,
                     status: state.updateStatus
                 }
-                const res = await axios.put(`${process.env.REACT_APP_API}/api/overtime`, body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/overtime`, body, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 dispatch(popMessage(res.data.success, 'success'))
             }
             return fetchOvertime(state.offset, state.limit, state.search, state.date, state.employee, state.status)

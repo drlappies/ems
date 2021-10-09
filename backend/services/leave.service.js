@@ -99,6 +99,12 @@ class LeaveService {
 
         return leave
     }
+
+    checkIfApproved = async (id) => {
+        if (!Array.isArray(id)) id = [id];
+        const leave = await this.knex('leave').whereIn('id', id)
+        return leave
+    }
 }
 
 module.exports = LeaveService

@@ -5,13 +5,13 @@ class ReimbursementController {
 
     createReimbursement = async (req, res) => {
         try {
-            const { employeeId, date, amount, reason } = req.body;
+            const { employeeId, date, amount, reason, status } = req.body;
             if (!employeeId || !date || !amount || !reason) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
             }
-            const reimbursement = await this.ReimbursementService.createReimbursement(employeeId, date, amount, reason);
+            const reimbursement = await this.ReimbursementService.createReimbursement(employeeId, date, amount, reason, status);
             return res.status(200).json({
                 success: `Successfully created reimbursement. Date: ${new Date(reimbursement.date).getFullYear()} - ${new Date(reimbursement.date).getMonth() + 1} - ${new Date(reimbursement.date).getDate()} Reason: ${reimbursement.reason} Amount: ${reimbursement.amount} `
             })
@@ -26,7 +26,7 @@ class ReimbursementController {
     updateReimbursement = async (req, res) => {
         try {
             const { id, status, reason, date, amount } = req.body;
-            if (!id || !status || !reason || !date || !amount) {
+            if (!id) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
                 })
@@ -108,6 +108,13 @@ class ReimbursementController {
     deleteReimbursement = async (req, res) => {
         try {
             const { id } = req.query;
+            const activeReimbursement = await this.ReimbursementService.checkIfStatusActive(id)
+            if (activeReimbursement.length > 0) {
+                return res.status(400).json({
+                    error: 'Cannot delete approved reimbursement!'
+                })
+            }
+
             const reimbursement = await this.ReimbursementService.deleteReimbursement(id)
             return res.status(200).json({
                 success: reimbursement.length > 1 ? "Successfully batch deleted reimubursement" : `Successfully deleted reimbursement record ID: ${reimbursement[0].id}`

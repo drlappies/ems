@@ -93,6 +93,13 @@ class LeaveController {
         try {
             let { ids } = req.query;
             if (!Array.isArray(ids)) ids = [ids];
+            const approvedLeave = await this.LeaveService.checkIfApproved(ids)
+            if (approvedLeave.length > 0) {
+                return res.status(400).json({
+                    error: 'Cannot delete an approved leave!'
+                })
+            }
+
             const leave = await this.LeaveService.deleteLeave(ids)
             res.status(200).json({
                 success: `Successfully deleted leave record`

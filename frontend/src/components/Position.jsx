@@ -42,6 +42,9 @@ function Position() {
                     offset: offset,
                     limit: limit,
                     search: search
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setRows(res.data.position)
@@ -65,6 +68,10 @@ function Position() {
         try {
             const res = await axios.post(`${process.env.REACT_APP_API}/api/position`, {
                 name: state.positionName
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPositions(state.offset, state.limit, state.search)
@@ -75,7 +82,11 @@ function Position() {
 
     const deletePosition = useCallback(async () => {
         try {
-            const res = await axios.delete(`${process.env.REACT_APP_API}/api/position/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/position/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPositions(state.offset, state.limit, state.search)
         } catch (err) {
@@ -91,7 +102,11 @@ function Position() {
             if (state.selectedRow.length > 1) {
                 setState(prevState => { return { ...prevState, isUpdating: true, positionName: "" } })
             } else {
-                const res = await axios.get(`${process.env.REACT_APP_API}/api/position/${[state.selectedRow]}`)
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/position/${[state.selectedRow]}`, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 setState(prevState => {
                     return {
                         ...prevState,
@@ -110,6 +125,10 @@ function Position() {
             const res = await axios.put(`${process.env.REACT_APP_API}/api/position`, {
                 id: state.selectedRow,
                 name: state.positionName,
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPositions(state.offset, state.limit, state.search)

@@ -27,7 +27,11 @@ function Overtime() {
 
     const fetchOvertimeStatus = useCallback(async () => {
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API}/api/overtime/user/${auth.id}/status`)
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/overtime/user/${auth.id}/status`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             setState({
                 checkInTime: res.data.from,
                 checkOutTime: res.data.to
@@ -40,7 +44,11 @@ function Overtime() {
     const handleCheckIn = useCallback(async () => {
         try {
             const body = { employee_id: auth.id, }
-            const res = await axios.post(`${process.env.REACT_APP_API}/api/overtime/timein`, body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/overtime/timein`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             setState(prevState => { return { ...prevState, checkInTime: res.data.timein } })
         } catch (err) {
@@ -51,7 +59,11 @@ function Overtime() {
     const handleCheckOut = useCallback(async () => {
         try {
             const body = { employee_id: auth.id }
-            const res = await axios.post(`${process.env.REACT_APP_API}/api/overtime/timeout`, body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/overtime/timeout`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             setState(prevState => { return { ...prevState, checkOutTime: res.data.timeout } })
         } catch (err) {

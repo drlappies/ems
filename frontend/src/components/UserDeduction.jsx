@@ -29,6 +29,9 @@ function UserDeduction() {
                 params: {
                     offset: offset,
                     limit: limit
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setState(prevState => {

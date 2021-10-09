@@ -47,7 +47,11 @@ function Reimbursement() {
                 date: state.date.format('YYYY-MM-DD'),
                 employeeId: auth.id
             }
-            const res = await axios.post(`${process.env.REACT_APP_API}/api/reimbursement`, body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/reimbursement`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             setState({
                 amount: null,
@@ -62,7 +66,7 @@ function Reimbursement() {
 
     return (
         <Grid container justifyContent="center" alignItems="center">
-            <Grid item xs={5}>
+            <Grid item xs={6}>
                 <Card>
                     <CardHeader title="Reimbursement Application Form" />
                     <CardContent>

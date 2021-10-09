@@ -4,6 +4,8 @@ const app = express();
 const Knex = require('knex');
 const config = require('./knexfile');
 const knex = Knex(config.development);
+const { verify } = require('./utils/verification')
+
 
 app.use(cors({
     credentials: true,
@@ -11,6 +13,7 @@ app.use(cors({
 }))
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
+app.use(verify)
 
 const { EmployeeRoute } = require('./routes/employee.route');
 const EmployeeController = require('./controllers/employee.controller');
@@ -119,15 +122,6 @@ const positionService = new PositionService(knex);
 const positionController = new PositionController(positionService)
 const positionRoute = PositionRoute(positionController)
 app.use('/api/position', positionRoute)
-
-const { DashboardRoute } = require('./routes/dashboard.route');
-const DashboardController = require('./controllers/dashboard.controller');
-const DashboardService = require('./services/dashboard.service');
-
-const dashboardService = new DashboardService(knex);
-const dashboardController = new DashboardController(dashboardService);
-const dashboardRoute = DashboardRoute(dashboardController)
-app.use('/api/dashboard', dashboardRoute)
 
 app.listen(5000, () => console.log('localhost:5000'))
 

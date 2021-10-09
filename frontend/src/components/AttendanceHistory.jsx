@@ -19,7 +19,6 @@ import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import Box from '@mui/material/Box';
 import Toolbar from './Toolbar'
 import axios from 'axios'
-import moment from 'moment';
 import '../css/main.css'
 import { Typography } from '@mui/material';
 
@@ -38,8 +37,8 @@ function AttendanceHistory() {
         employeeId: "",
         firstname: "",
         lastname: "",
-        checkIn: moment(),
-        checkOut: moment(),
+        checkIn: null,
+        checkOut: null,
         status: "",
         date: "",
         isUpdating: false,
@@ -50,8 +49,8 @@ function AttendanceHistory() {
         searchStatus: "any",
         isDeleting: false,
         updateStatus: "",
-        updateCheckIn: moment(),
-        updateCheckOut: moment(),
+        updateCheckIn: null,
+        updateCheckOut: null,
         isLoading: true
     })
 
@@ -77,7 +76,10 @@ function AttendanceHistory() {
                     status: status === 'any' ? null : status,
                     dateFrom: time[0] ? time[0].format('YYYY-MM-DD') : null,
                     dateTo: time[1] ? time[1].format('YYYY-MM-DD') : null
-                }
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                },
             });
             setAttendance(res.data.attendance.map(el => {
                 return {
@@ -90,8 +92,8 @@ function AttendanceHistory() {
                 return {
                     ...prevState,
                     updateStatus: "",
-                    updateCheckIn: moment(),
-                    updateCheckOut: moment(),
+                    updateCheckIn: null,
+                    updateCheckOut: null,
                     employee: res.data.employee,
                     rowCount: parseInt(res.data.rowCount.count),
                     isUpdating: false,
@@ -102,10 +104,10 @@ function AttendanceHistory() {
                     employeeId: "",
                     firstname: "",
                     lastname: "",
-                    checkIn: moment(),
-                    checkOut: moment(),
+                    checkIn: null,
+                    checkOut: null,
                     status: "",
-                    date: moment(),
+                    date: null,
                     isLoading: false
                 }
             })
@@ -118,12 +120,16 @@ function AttendanceHistory() {
         try {
             const body = {
                 employee_id: state.employeeId,
-                date: state.date.format('YYYY-MM-DD'),
-                check_in: state.checkIn.format('HH:mm:ss'),
-                check_out: state.checkOut.format('HH:mm:ss'),
+                date: state.date ? state.date.format('YYYY-MM-DD') : null,
+                check_in: state.date ? state.checkIn.format('HH:mm:ss') : null,
+                check_out: state.date ? state.checkOut.format('HH:mm:ss') : null,
                 status: state.status
             }
-            const res = await axios.post(`${process.env.REACT_APP_API}/api/attendance`, body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/attendance`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchAttendance(state.limit, state.offset, state.search, state.searchEmployeeId, state.searchStatus, state.searchTime)
         } catch (err) {
@@ -134,10 +140,18 @@ function AttendanceHistory() {
     const deleteAttendance = useCallback(async () => {
         try {
             if (state.selectedAttendance.length > 1) {
-                const res = await axios.delete(`${process.env.REACT_APP_API}/api/attendance/${state.selectedAttendance.map((el, i) => i === 0 ? `?id=${el}&` : `id=${el}&`).join("")}`)
+                const res = await axios.delete(`${process.env.REACT_APP_API}/api/attendance/${state.selectedAttendance.map((el, i) => i === 0 ? `?id=${el}&` : `id=${el}&`).join("")}`, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 dispatch(popMessage(res.data.success), 'success')
             } else {
-                const res = await axios.delete(`${process.env.REACT_APP_API}/api/attendance/${[state.selectedAttendance]}`)
+                const res = await axios.delete(`${process.env.REACT_APP_API}/api/attendance/${[state.selectedAttendance]}`, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 dispatch(popMessage(res.data.success), 'success')
             }
             return fetchAttendance(state.limit, state.offset, state.search, state.searchEmployeeId, state.searchStatus, state.searchTime)
@@ -152,16 +166,20 @@ function AttendanceHistory() {
                 const body = {
                     id: state.selectedAttendance,
                     status: state.updateStatus,
-                    check_in: state.updateCheckIn.format('HH:mm:ss'),
-                    check_out: state.updateCheckOut.format('HH:mm:ss')
+                    check_in: state.updateCheckIn ? state.updateCheckIn.format('HH:mm:ss') : null,
+                    check_out: state.updateCheckOut ? state.updateCheckOut.format('HH:mm:ss') : null
                 }
-                const res = await axios.put(`${process.env.REACT_APP_API}/api/attendance`, body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/attendance`, body, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 dispatch(popMessage(res.data.success), 'success')
             } else {
                 const body = {
                     status: state.updateStatus,
-                    check_in: state.updateCheckIn.format('HH:mm:ss'),
-                    check_out: state.updateCheckOut.format('HH:mm:ss')
+                    check_in: state.updateCheckIn ? state.updateCheckIn.format('HH:mm:ss') : null,
+                    check_out: state.updateCheckOut ? state.updateCheckOut.format('HH:mm:ss') : null
                 }
                 const res = await axios.put(`${process.env.REACT_APP_API}/api/attendance/${[state.selectedAttendance]}`, body)
                 dispatch(popMessage(res.data.success), 'success')

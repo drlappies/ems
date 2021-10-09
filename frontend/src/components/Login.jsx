@@ -36,11 +36,11 @@ function Login() {
     }
 
     return (
-        <Grid container justifyContent="center" alignItems="center" direction="column" style={{ minHeight: '90vh' }}>
+        <Grid container justifyContent="center" alignItems="center" style={{ minHeight: "90vh" }}>
             <Grid item>
-                <Card>
+                <Card elevation={3}>
                     <form onSubmit={handleSubmit}>
-                        <CardHeader title="Employee Management System" subheader="demo" />
+                        <CardHeader title="Employee Management System" subheader="Demo" />
                         <CardContent>
                             <TextField margin="normal" fullWidth variant="standard" label="Username" type="text" name="username" onChange={(e) => handleChange(e)} />
                             <TextField margin="normal" fullWidth variant="standard" label="Password" type="password" name="password" onChange={(e) => handleChange(e)} />

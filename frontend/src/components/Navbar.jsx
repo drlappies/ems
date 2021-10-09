@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link, useHistory } from 'react-router-dom';
+import { NavLink, useHistory } from 'react-router-dom';
 import { logoutThunk } from '../actions/auth';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
@@ -8,7 +8,6 @@ import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import Box from '@mui/material/Box';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
@@ -28,7 +27,7 @@ import IconButton from '@mui/material/IconButton';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Tooltip from '@mui/material/Tooltip';
 
-function Navbar(props) {
+function Navbar() {
     const dispatch = useDispatch()
     const auth = useSelector(state => state.auth)
     const history = useHistory();
@@ -36,142 +35,136 @@ function Navbar(props) {
 
     if (!auth.isAuthenticated) return null
     return (
-        <Box sx={{ display: 'flex' }}>
-            <Drawer
-                sx={{
+        <Drawer
+            sx={{
+                width: drawerWidth,
+                flexShrink: 0,
+                '& .MuiDrawer-paper': {
                     width: drawerWidth,
-                    flexShrink: 0,
-                    '& .MuiDrawer-paper': {
-                        width: drawerWidth,
-                        boxSizing: 'border-box',
-                    },
-                }}
-                variant={auth.isAuthenticated ? "permanent" : "persistent"}
-                anchor="left"
-                open={auth.isAuthenticated}
-            >
+                    boxSizing: 'border-box',
+                },
+            }}
+            variant="permanent"
+            anchor="left"
+        >
+            <List dense>
+                <ListItem secondaryAction={
+                    <Tooltip title="Logout">
+                        <IconButton onClick={() => dispatch(logoutThunk(history))}>
+                            <LogoutIcon />
+                        </IconButton>
+                    </Tooltip>
+                }>
+                    <ListItemText
+                        primary="Current user"
+                        secondary={`ID: ${auth.id} ${auth.firstname} ${auth.lastname}`}
+                    />
+                </ListItem>
+            </List>
+            <Divider />
+            <List dense>
+                <ListItem button component={NavLink} to="/user">
+                    <ListItemIcon>
+                        <PersonOutlineIcon />
+                    </ListItemIcon>
+                    <ListItemText>My Record</ListItemText>
+                </ListItem>
+                <ListItem button component={NavLink} to="/attendance/punch">
+                    <ListItemIcon>
+                        <AccessTimeIcon />
+                    </ListItemIcon>
+                    <ListItemText>Check In</ListItemText>
+                </ListItem>
+                <ListItem button component={NavLink} to="/attendance/overtime/check_in">
+                    <ListItemIcon>
+                        <MoreTimeIcon />
+                    </ListItemIcon>
+                    <ListItemText>Overtime Check In</ListItemText>
+                </ListItem>
+                <ListItem button component={NavLink} to="/leave/application">
+                    <ListItemIcon>
+                        <SickOutlinedIcon />
+                    </ListItemIcon>
+                    <ListItemText>Leave Application</ListItemText>
+                </ListItem>
+                <ListItem button component={NavLink} to="/reimbursement/application">
+                    <ListItemIcon>
+                        <LocalAtmOutlinedIcon />
+                    </ListItemIcon>
+                    <ListItemText>Reimbursement Application</ListItemText>
+                </ListItem>
+            </List>
+            <Divider />
+            {auth.role === 'admin' ?
                 <List dense>
-                    <ListItem secondaryAction={
-                        <Tooltip title="Logout">
-                            <IconButton onClick={() => dispatch(logoutThunk(history))}>
-                                <LogoutIcon />
-                            </IconButton>
-                        </Tooltip>
-                    }>
-                        <ListItemText
-                            primary="Current user"
-                            secondary={`ID: ${auth.id} ${auth.firstname} ${auth.lastname}`}
-                        />
-                    </ListItem>
-                </List>
-                <Divider />
-                <List dense>
-                    <ListItem button component={Link} to="/user">
+                    <ListItem button component={NavLink} to="/attendance">
                         <ListItemIcon>
-                            <PersonOutlineIcon />
+                            <TimerOutlinedIcon />
                         </ListItemIcon>
-                        <ListItemText>My Record</ListItemText>
+                        <ListItemText>Attendance</ListItemText>
                     </ListItem>
-                    <ListItem button component={Link} to="/attendance/punch">
+                    <ListItem button component={NavLink} to="/overtime">
                         <ListItemIcon>
-                            <AccessTimeIcon />
+                            <AvTimerOutlinedIcon />
                         </ListItemIcon>
-                        <ListItemText>Check In</ListItemText>
+                        <ListItemText>Overtime</ListItemText>
                     </ListItem>
-                    <ListItem button component={Link} to="/attendance/overtime/check_in">
+                    <ListItem button component={NavLink} to="/leave/management">
                         <ListItemIcon>
-                            <MoreTimeIcon />
+                            <TimeToLeaveOutlinedIcon />
                         </ListItemIcon>
-                        <ListItemText>Overtime Check In</ListItemText>
+                        <ListItemText>Leave</ListItemText>
                     </ListItem>
-                    <ListItem button component={Link} to="/leave/application">
+                    <ListItem button component={NavLink} to="/payroll">
                         <ListItemIcon>
-                            <SickOutlinedIcon />
+                            <PaymentsOutlinedIcon />
                         </ListItemIcon>
-                        <ListItemText>Leave Application</ListItemText>
+                        <ListItemText>Payroll</ListItemText>
                     </ListItem>
-                    <ListItem button component={Link} to="/reimbursement/application">
+                    <ListItem button component={NavLink} to="/employee/record">
+                        <ListItemIcon>
+                            <PeopleOutlineOutlinedIcon />
+                        </ListItemIcon>
+                        <ListItemText>HR</ListItemText>
+                    </ListItem>
+                    <ListItem button component={NavLink} to="/employee/position">
+                        <ListItemIcon>
+                            <WorkOutlineOutlinedIcon />
+                        </ListItemIcon>
+                        <ListItemText>Positions</ListItemText>
+                    </ListItem>
+                    <ListItem button component={NavLink} to="/employee/department">
+                        <ListItemIcon>
+                            <SafetyDividerOutlinedIcon />
+                        </ListItemIcon>
+                        <ListItemText>Departments</ListItemText>
+                    </ListItem>
+                    <ListItem button component={NavLink} to="/reimbursement/management">
                         <ListItemIcon>
                             <LocalAtmOutlinedIcon />
                         </ListItemIcon>
-                        <ListItemText>Reimbursement Application</ListItemText>
+                        <ListItemText>Reimbursement</ListItemText>
                     </ListItem>
-                </List>
-                <Divider />
-                {auth.role === 'admin' ?
-                    <List dense>
-                        <ListItem button component={Link} to="/attendance">
-                            <ListItemIcon>
-                                <TimerOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Attendance</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/overtime">
-                            <ListItemIcon>
-                                <AvTimerOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Overtime</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/leave/management">
-                            <ListItemIcon>
-                                <TimeToLeaveOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Leave</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/payroll">
-                            <ListItemIcon>
-                                <PaymentsOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Payroll</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/employee/record">
-                            <ListItemIcon>
-                                <PeopleOutlineOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>HR</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/employee/position">
-                            <ListItemIcon>
-                                <WorkOutlineOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Positions</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/employee/department">
-                            <ListItemIcon>
-                                <SafetyDividerOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Departments</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/reimbursement/management">
-                            <ListItemIcon>
-                                <LocalAtmOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Reimbursement</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/allowance">
-                            <ListItemIcon>
-                                <FoodBankOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Allowance</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/bonus/management">
-                            <ListItemIcon>
-                                <AttachMoneyOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Bonus</ListItemText>
-                        </ListItem>
-                        <ListItem button component={Link} to="/deduction/management">
-                            <ListItemIcon>
-                                <MoneyOffCsredOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText>Deduction</ListItemText>
-                        </ListItem>
-                    </List> : null}
-            </Drawer>
-            <Box style={{ width: "100vw", height: "100vh" }}>
-                {props.children}
-            </Box>
-        </Box>
+                    <ListItem button component={NavLink} to="/allowance">
+                        <ListItemIcon>
+                            <FoodBankOutlinedIcon />
+                        </ListItemIcon>
+                        <ListItemText>Allowance</ListItemText>
+                    </ListItem>
+                    <ListItem button component={NavLink} to="/bonus/management">
+                        <ListItemIcon>
+                            <AttachMoneyOutlinedIcon />
+                        </ListItemIcon>
+                        <ListItemText>Bonus</ListItemText>
+                    </ListItem>
+                    <ListItem button component={NavLink} to="/deduction/management">
+                        <ListItemIcon>
+                            <MoneyOffCsredOutlinedIcon />
+                        </ListItemIcon>
+                        <ListItemText>Deduction</ListItemText>
+                    </ListItem>
+                </List> : null}
+        </Drawer>
     )
 }
 

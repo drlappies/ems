@@ -23,36 +23,38 @@ import Leave from './components/Leave';
 import LeaveManagement from './components/LeaveManagement';
 import SnackbarProvider from './components/SnackbarProvider';
 import User from './components/User'
+import Notfound from './components/Notfound';
 
 function App() {
+
   return (
     <Router>
       <Head />
       <SnackbarProvider>
         <Route exact path="/" component={Login} />
-        <Navbar>
-          <div style={{ marginTop: 100, marginLeft: 25, marginRight: 25 }}>
-            <Switch>
-              <AdminRoute exact path="/dashboard" component={Dashboard} />
-              <PrivateRoute exact path="/user" component={User} />
-              <PrivateRoute exact path="/attendance/punch" component={Attendance} />
-              <AdminRoute exact path="/attendance" component={AttendanceHistory} />
-              <PrivateRoute exact path="/attendance/overtime/check_in" component={AttendanceOvertime} />
-              <AdminRoute exact path="/overtime" component={OvertimeHistory} />
-              <PrivateRoute exact path="/leave/application" component={Leave} />
-              <AdminRoute exact path="/leave/management" component={LeaveManagement} />
-              <AdminRoute exact path="/employee/record" component={Employee} />
-              <AdminRoute exact path="/employee/department" component={Department} />
-              <AdminRoute exact path="/employee/position" component={Position} />
-              <AdminRoute exact path="/allowance" component={Allowance} />
-              <AdminRoute exact path="/reimbursement/application" component={Reimbursement} />
-              <AdminRoute exact path="/reimbursement/management" component={ReimbursementManagement} />
-              <AdminRoute exact path="/bonus/management" component={Bonus} />
-              <AdminRoute exact path="/payroll" component={Payroll} />
-              <AdminRoute exact path="/deduction/management" component={Deduction} />
-            </Switch>
-          </div>
-        </Navbar>
+        <Navbar />
+        <div style={{ marginTop: 100, marginLeft: 265, marginRight: 25 }}>
+          <Switch>
+            <AdminRoute exact path="/dashboard" component={Dashboard} />
+            <PrivateRoute exact path="/user" component={User} />
+            <PrivateRoute exact path="/attendance/punch" component={Attendance} />
+            <AdminRoute exact path="/attendance" component={AttendanceHistory} />
+            <PrivateRoute exact path="/attendance/overtime/check_in" component={AttendanceOvertime} />
+            <AdminRoute exact path="/overtime" component={OvertimeHistory} />
+            <PrivateRoute exact path="/leave/application" component={Leave} />
+            <AdminRoute exact path="/leave/management" component={LeaveManagement} />
+            <AdminRoute exact path="/employee/record" component={Employee} />
+            <AdminRoute exact path="/employee/department" component={Department} />
+            <AdminRoute exact path="/employee/position" component={Position} />
+            <AdminRoute exact path="/allowance" component={Allowance} />
+            <AdminRoute exact path="/reimbursement/application" component={Reimbursement} />
+            <AdminRoute exact path="/reimbursement/management" component={ReimbursementManagement} />
+            <AdminRoute exact path="/bonus/management" component={Bonus} />
+            <AdminRoute exact path="/payroll" component={Payroll} />
+            <AdminRoute exact path="/deduction/management" component={Deduction} />
+            <Route component={Notfound} />
+          </Switch>
+        </div>
       </SnackbarProvider>
     </Router>
   );

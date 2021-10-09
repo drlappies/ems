@@ -54,31 +54,31 @@ class PayrollService {
             const monthsDiff = ((endingDate.getFullYear() - startingDate.getFullYear()) * 12) - startingDate.getMonth() + endingDate.getMonth() + 1;
 
             for (let i = 0; i < allowance.length; i++) {
-                if (allowance[i].minimum_attendance_required) {
-                    while (startingDate <= endingDate) {
-                        const currentMonth = startingDate.getMonth()
-                        for (let j = 0; j < attendance.length; j++) {
-                            if (attendance[j].date.getMonth() < currentMonth) {
-                                continue;
-                            } else if (attendance[j].date.getMonth() > currentMonth) {
-                                break;
-                            } else {
-                                const workingDays = workingDaysCounter(attendance[j].date.getFullYear(), attendance[j].date.getMonth());
-                                const monthlyAttendance = attendance.filter(el => !el.date.getMonth() > currentMonth || !el.date.getMonth() < currentMonth)
-                                const attendanceRate = Math.round((monthlyAttendance.length / workingDays) * 100)
-                                if (attendanceRate < allowance[i].required_attendance_rate) {
-                                    continue;
-                                } else {
-                                    totalAllowance = parseInt(totalAllowance) + parseInt(allowance[i].amount)
-                                    break;
-                                }
-                            }
-                        }
-                        startingDate.setMonth(startingDate.getMonth() + 1)
-                    }
-                } else {
-                    totalAllowance = totalAllowance + parseInt(allowance[i].amount) * monthsDiff;
-                }
+                // if (allowance[i].minimum_attendance_required) {
+                //     while (startingDate <= endingDate) {
+                //         const currentMonth = startingDate.getMonth()
+                //         for (let j = 0; j < attendance.length; j++) {
+                //             if (attendance[j].date.getMonth() < currentMonth) {
+                //                 continue;
+                //             } else if (attendance[j].date.getMonth() > currentMonth) {
+                //                 break;
+                //             } else {
+                //                 const workingDays = workingDaysCounter(attendance[j].date.getFullYear(), attendance[j].date.getMonth());
+                //                 const monthlyAttendance = attendance.filter(el => !el.date.getMonth() > currentMonth || !el.date.getMonth() < currentMonth)
+                //                 const attendanceRate = Math.round((monthlyAttendance.length / workingDays) * 100)
+                //                 if (attendanceRate < allowance[i].required_attendance_rate) {
+                //                     continue;
+                //                 } else {
+                //                     totalAllowance = parseInt(totalAllowance) + parseInt(allowance[i].amount)
+                //                     break;
+                //                 }
+                //             }
+                //         }
+                //         startingDate.setMonth(startingDate.getMonth() + 1)
+                //     }
+                // } else {
+                totalAllowance = totalAllowance + parseFloat(allowance[i].amount) * monthsDiff;
+                // }
             }
         }
 
@@ -89,7 +89,7 @@ class PayrollService {
                 .andWhere('status', 'approved')
                 .andWhere('employee_id', employee_id)
 
-            const { amount: amount } = reimbursement.length >= 1 ? reimbursement.reduce((a, b) => { return { amount: parseInt(a.amount) + parseInt(b.amount) } }) : { amount: 0 }
+            const { amount: amount } = reimbursement.length >= 1 ? reimbursement.reduce((a, b) => { return { amount: parseFloat(a.amount) + parseFloat(b.amount) } }) : { amount: 0 }
             totalReimbursement = totalReimbursement + amount
         }
 
@@ -121,7 +121,7 @@ class PayrollService {
                 .andWhere('employee_id', employee_id)
 
             for (let i = 0; i < leave.length; i++) {
-                if (leave[i].type === 'sick_leave' || leave[i].type === 'annual_leave') {
+                if (leave[i].type === 'sick_leave') {
                     continue
                 } else {
                     if (leave[i].from === leave[i].to) {
@@ -156,7 +156,7 @@ class PayrollService {
                 .whereBetween('date', [starting_date, ending_date])
                 .andWhere('employee_id', employee_id)
 
-            const { amount: amount } = bonus.length >= 1 ? bonus.reduce((a, b) => { return { amount: parseInt(a.amount) + parseInt(b.amount) } }) : { amount: 0 }
+            const { amount: amount } = bonus.length >= 1 ? bonus.reduce((a, b) => { return { amount: parseFloat(a.amount) + parseFloat(b.amount) } }) : { amount: 0 }
             totalBonus = totalBonus + amount
         }
 
@@ -166,13 +166,13 @@ class PayrollService {
                 .whereBetween('date', [starting_date, ending_date])
                 .andWhere('employee_id', employee_id)
 
-            const { amount: amount } = deduction.length >= 1 ? deduction.reduce((a, b) => { return { amount: parseInt(a.amount) + parseInt(b.amount) } }) : { amount: 0 }
+            const { amount: amount } = deduction.length >= 1 ? deduction.reduce((a, b) => { return { amount: parseFloat(a.amount) + parseFloat(b.amount) } }) : { amount: 0 }
             totalDeduction = totalDeduction + amount
         }
 
         const basicSalary = amount
         const mpf = amount * 0.05
-        const total = amount - parseInt(mpf) + parseInt(totalBonus) + parseInt(totalReimbursement) - parseInt(totalDeduction)
+        const total = amount - parseFloat(mpf) + parseFloat(totalBonus) + parseFloat(totalReimbursement) + parseFloat(totalAllowance) - parseFloat(totalDeduction)
 
         const [payroll] = await this.knex('payroll').insert({
             employee_id: employee_id,
@@ -211,7 +211,7 @@ class PayrollService {
 
     deletePayroll = async (id) => {
         if (!Array.isArray(id)) id = [id];
-        const [payroll] = await this.knex('payroll')
+        const payroll = await this.knex('payroll')
             .whereIn('id', id)
             .del('id')
         return payroll
@@ -279,7 +279,15 @@ class PayrollService {
         if (status) update.status = status
         const [payroll] = await this.knex('payroll')
             .whereIn('id', id)
-            .update(update, ['id'])
+            .update(update, 'id')
+        return payroll
+    }
+
+    checkIfPayrollConfirmed = async (id) => {
+        if (!Array.isArray(id)) id = [id];
+        const payroll = await this.knex('payroll')
+            .where('status', '=', 'confirmed')
+            .whereIn('id', id)
         return payroll
     }
 }

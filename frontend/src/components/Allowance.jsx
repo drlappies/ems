@@ -65,6 +65,9 @@ function Allowance() {
                     amountFrom: amountFrom,
                     amountTo: amountTo,
                     status: status === 'any' ? null : status
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setRows(res.data.allowance)
@@ -94,6 +97,10 @@ function Allowance() {
                 description: state.desc,
                 amount: state.amount,
                 status: state.status
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             fetchAllowance(state.offset, state.limit, state.search, state.amountFrom, state.amountTo, state.queryStatus)
@@ -110,6 +117,10 @@ function Allowance() {
                 description: state.desc,
                 amount: state.amount,
                 status: state.status,
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             fetchAllowance(state.offset, state.limit, state.search, state.amountFrom, state.amountTo, state.queryStatus)
@@ -132,9 +143,17 @@ function Allowance() {
         try {
             const res = await axios.post(`${process.env.REACT_APP_API}/api/allowance/entitlement/${[state.selectedRow]}`, {
                 employeeId: state.addEmployee
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
-            const res2 = await axios.get(`${process.env.REACT_APP_API}/api/allowance/${[state.selectedRow]}`)
+            const res2 = await axios.get(`${process.env.REACT_APP_API}/api/allowance/${[state.selectedRow]}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             setState(prevState => {
                 return {
                     ...prevState,
@@ -155,9 +174,17 @@ function Allowance() {
 
     const disentitleEmployee = useCallback(async (id) => {
         try {
-            const res = await axios.delete(`${process.env.REACT_APP_API}/api/allowance/entitlement/${[state.selectedRow]}/employee/${id}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/allowance/entitlement/${[state.selectedRow]}/employee/${id}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
-            const res2 = await axios.get(`${process.env.REACT_APP_API}/api/allowance/${[state.selectedRow]}`)
+            const res2 = await axios.get(`${process.env.REACT_APP_API}/api/allowance/${[state.selectedRow]}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             setState(prevState => {
                 return {
                     ...prevState,
@@ -193,7 +220,11 @@ function Allowance() {
                     }
                 })
             } else {
-                const res = await axios.get(`${process.env.REACT_APP_API}/api/allowance/${[state.selectedRow]}`)
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/allowance/${[state.selectedRow]}`, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 setState(prevState => {
                     return {
                         ...prevState,

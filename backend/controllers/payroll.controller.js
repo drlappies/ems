@@ -39,9 +39,16 @@ class PayrollController {
     deletePayroll = async (req, res) => {
         try {
             const { id } = req.query;
+            const confirmedPayrolls = await this.PayrollService.checkIfPayrollConfirmed(id);
+            if (confirmedPayrolls.length > 0) {
+                return res.status(400).json({
+                    error: "Cannot delete a confirmed payroll!"
+                })
+            }
+
             const payroll = await this.PayrollService.deletePayroll(id);
             return res.status(200).json({
-                success: `Successfully deleted payroll record ID: ${payroll.id}`
+                success: payroll.length > 1 ? "Successfully batch deleted payroll records" : `Successfully deleted payroll record ID: ${payroll[0].id}`
             })
         } catch (err) {
             console.log(err)
@@ -111,8 +118,9 @@ class PayrollController {
                 })
             }
             const payroll = await this.PayrollService.updatePayroll(id, status);
+            console.log(payroll)
             return res.status(200).json({
-                success: `Successfully updated payroll record!`
+                success: "Successfully updated payroll"
             })
         } catch (err) {
             console.log(err)

@@ -1,5 +1,4 @@
 const { hashPassword } = require('../utils/hashPassword');
-const { generateAttendance, generateOvertime, generateAttendanceWithLeave, generateLeave } = require('../seed/helper')
 
 exports.seed = async function (knex) {
   await knex('reimbursement').del();
@@ -15,51 +14,68 @@ exports.seed = async function (knex) {
   await knex('overtime').del();
   await knex('employee').del();
 
-  const employeeSeed = await knex.insert([{
-    firstname: 'Tai Man',
-    lastname: 'Chan',
-    address: '47 Yung Shue Wan Main St Lamma Island',
-    phone_number: '98244323',
-    emergency_contact_person: 'Lili Lai',
-    emergency_contact_number: '53423433',
-    onboard_date: new Date().toISOString(),
-    username: 'admin',
-    password: await hashPassword('admin'),
-    role: 'admin',
-    start_hour: '09:00 AM',
-    end_hour: '06:00 PM',
-    salary_monthly: 22000.00,
-    ot_pay_entitled: true,
-    ot_hourly_salary: 80
-  }, {
-    firstname: 'Keung',
-    lastname: 'Chan',
-    address: 'Waldorf Gdn Coml Complex Tuen Mun',
-    phone_number: '54394333',
-    emergency_contact_person: 'Sam Chan',
-    emergency_contact_number: '89134131',
-    onboard_date: new Date().toISOString(),
-    username: 'kc123',
-    password: await hashPassword('kc123'),
-    role: 'employee',
-    start_hour: '09:00 AM',
-    end_hour: '06:00 PM',
-    salary_monthly: 18000.00
-  }, {
-    firstname: 'Lisa',
-    lastname: 'Chan',
-    address: 'Hung Hom',
-    phone_number: '54134133',
-    emergency_contact_person: 'Samuel Yau',
-    emergency_contact_number: '8321221',
-    onboard_date: new Date().toISOString(),
-    username: 'lc123',
-    password: await hashPassword('lc123'),
-    role: 'employee',
-    start_hour: '10:00 AM',
-    end_hour: '09:00 PM',
-    salary_monthly: 13000.00
-  }]).into('employee').returning(['id']);
+  const generateAttendance = (timespan, employee_id) => {
+    const time = new Date();
+    time.setMonth(0)
+    time.setDate(1);
+    time.setFullYear(2021);
+
+    const attendance = [];
+    for (let i = 0; i < timespan; i++) {
+      if (time.getDay() === 6 || time.getDay() === 0) {
+        time.setDate(time.getDate() + 1)
+        continue;
+      }
+
+      let obj = {
+        employee_id: employee_id,
+        status: "on_time",
+        check_in: "09:00 AM",
+        check_out: "6:00 PM",
+        date: new Date(time)
+      }
+
+      time.setDate(time.getDate() + 1)
+      attendance.push(obj)
+    }
+
+    return attendance;
+  }
+
+  const employeeSeed = await knex.insert([
+    {
+      firstname: 'root',
+      lastname: 'root',
+      address: "address",
+      phone_number: '12345678',
+      emergency_contact_person: 'Person',
+      emergency_contact_number: '87654321',
+      onboard_date: new Date().toISOString(),
+      username: 'root',
+      password: await hashPassword('root'),
+      role: 'admin',
+      start_hour: '09:00 AM',
+      end_hour: '06:00 PM',
+      salary_monthly: 22000.00,
+      ot_pay_entitled: true,
+      ot_hourly_salary: 80
+    }, {
+      firstname: 'Tai Man',
+      lastname: 'Chan',
+      address: '47 Yung Shue Wan Main St Lamma Island',
+      phone_number: '98244323',
+      emergency_contact_person: 'Lili Lai',
+      emergency_contact_number: '53423433',
+      onboard_date: new Date().toISOString(),
+      username: 'user1',
+      password: await hashPassword('user1'),
+      role: 'employee',
+      start_hour: '09:00 AM',
+      end_hour: '06:00 PM',
+      salary_monthly: 22000.00,
+      ot_pay_entitled: true,
+      ot_hourly_salary: 80
+    }]).into('employee').returning(['id']);
 
   const departmentSeed = await knex('departments').insert([
     { name: "Human Resources", description: "Plan, coordinate, and direct the administrative functions of an organization." },
@@ -99,6 +115,6 @@ exports.seed = async function (knex) {
     { post: "UX researcher" }
   ])
 
-  const attendance = generateAttendance(365, employeeSeed[0].id)
+  const attendance = generateAttendance(365, employeeSeed[1].id)
   const attendanceseed = await knex.insert(attendance).into('attendance')
 };

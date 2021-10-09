@@ -23,14 +23,14 @@ function SnackbarProvider(props) {
             <Snackbar
                 open={ui.snackbar}
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                autoHideDuration={3000}
-                onClose={() => dispatch(dismissMessage())}
+                autoHideDuration={1500}
+                onClose={() => dispatch(dismissMessage(ui.message, ui.severity))}
                 TransitionComponent={TransitionLeft}
                 message="test"
             >
                 <Alert
-                    onClose={() => dispatch(dismissMessage())}
-                    severity={ui.severity ? ui.severity : 'success'}
+                    onClose={() => dispatch(dismissMessage(ui.message, ui.severity))}
+                    severity={ui.severity}
                 >
                     {ui.message}
                 </Alert>

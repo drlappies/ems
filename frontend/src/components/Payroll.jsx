@@ -91,6 +91,9 @@ function Payroll() {
                     dateTo: date[1] ? date[1].format('YYYY-MM-DD') : null,
                     amountFrom: amountFrom,
                     amountTo: amountTo,
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setRows(res.data.payroll.map(el => {
@@ -142,7 +145,11 @@ function Payroll() {
                 isReimbursementCaled: state.createIsReimbursementCaled,
                 isLeaveCaled: state.createIsLeaveCaled
             }
-            const res = await axios.post(`${process.env.REACT_APP_API}/api/payroll`, body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/payroll`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -156,7 +163,11 @@ function Payroll() {
                 id: state.selectedRow,
                 status: state.updateStatus
             }
-            const res = await axios.put(`${process.env.REACT_APP_API}/api/payroll`, body)
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/payroll`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -166,7 +177,11 @@ function Payroll() {
 
     const deletePayroll = useCallback(async () => {
         try {
-            const res = await axios.delete(`${process.env.REACT_APP_API}/api/payroll/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/payroll/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchPayroll(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -180,7 +195,11 @@ function Payroll() {
                 return setState(prevState => { return { ...prevState, toBePrinted: [], isPrinting: false } })
             } else {
                 state.selectedRow.forEach(async (el) => {
-                    const res = await axios.get(`${process.env.REACT_APP_API}/api/payroll/${el}`)
+                    const res = await axios.get(`${process.env.REACT_APP_API}/api/payroll/${el}`, {
+                        headers: {
+                            'token': window.localStorage.getItem('jwt')
+                        }
+                    })
                     setState(prevState => { return { ...prevState, toBePrinted: prevState.toBePrinted.concat(res.data), isPrinting: true } })
                 })
             }
@@ -383,7 +402,7 @@ function Payroll() {
                 <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
                     <Grid item xs={5}>
                         <Card>
-                            <CardHeader title="Delete Leave Record" />
+                            <CardHeader title="Delete Payroll" />
                             <CardContent>
                                 Are you sure?
                             </CardContent>

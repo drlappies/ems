@@ -62,6 +62,9 @@ function Deduction() {
                     employee: employee === 'any' ? null : employee,
                     amountFrom: amountFrom,
                     amountTo: amountTo
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setRows(res.data.deduction.map(el => {
@@ -97,6 +100,10 @@ function Deduction() {
                 reason: state.createReason,
                 amount: state.createAmount,
                 date: state.createDate ? state.createDate.format('YYYY-MM-DD') : null
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             fetchDeduction(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
@@ -113,6 +120,10 @@ function Deduction() {
                 reason: state.createReason,
                 amount: state.createAmount,
                 date: state.createDate ? state.createDate.format('YYYY-MM-DD') : null
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             fetchDeduction(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
@@ -123,7 +134,11 @@ function Deduction() {
 
     const deleteDeduction = useCallback(async () => {
         try {
-            const res = await axios.delete(`${process.env.REACT_APP_API}/api/deduction/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/deduction/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             fetchDeduction(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -149,7 +164,11 @@ function Deduction() {
                     }
                 })
             } else {
-                const res = await axios.get(`${process.env.REACT_APP_API}/api/deduction/${[state.selectedRow]}`);
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/deduction/${[state.selectedRow]}`, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                });
                 setState(prevState => {
                     return {
                         ...prevState,

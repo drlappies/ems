@@ -12,13 +12,13 @@ export const popMessage = (message, severity) => {
     }
 }
 
-export const dismissMessage = () => {
+export const dismissMessage = (message, severity) => {
     return (dispatch) => {
         dispatch({
             type: DISMISS,
             payload: {
-                message: '',
-                severity: ''
+                message: message,
+                severity: severity,
             }
         })
     }

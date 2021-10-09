@@ -73,6 +73,9 @@ function LeaveManagement() {
                     status: status === 'any' ? null : status,
                     dateFrom: date[0] ? date[0].format('YYYY-MM-DD') : null,
                     dateTo: date[1] ? date[1].format('YYYY-MM-DD') : null
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setRows(res.data.leave.map(el => {
@@ -120,7 +123,11 @@ function LeaveManagement() {
                 duration: state.createSpan,
                 reason: state.createReason
             }
-            const res = await axios.post(`${process.env.REACT_APP_API}/api/leave`, body)
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/leave`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
         } catch (err) {
@@ -136,7 +143,11 @@ function LeaveManagement() {
                 type: state.updateType,
                 status: state.updateStatus
             }
-            const res = await axios.put(`${process.env.REACT_APP_API}/api/leave`, body)
+            const res = await axios.put(`${process.env.REACT_APP_API}/api/leave`, body, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
         } catch (err) {
@@ -146,7 +157,11 @@ function LeaveManagement() {
 
     const deleteLeave = useCallback(async () => {
         try {
-            const res = await axios.delete(`${process.env.REACT_APP_API}/api/leave/${state.selectedRow.map((el, i) => i === 0 ? `?ids=${el}` : `&ids=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/leave/${state.selectedRow.map((el, i) => i === 0 ? `?ids=${el}` : `&ids=${el}`).join("")}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchLeave(state.offset, state.limit, state.search, state.employee, state.status, state.date)
         } catch (err) {

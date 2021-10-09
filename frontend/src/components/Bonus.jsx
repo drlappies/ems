@@ -62,6 +62,9 @@ function Bonus() {
                     employee: employee === 'any' ? null : employee,
                     amountFrom: amountFrom,
                     amountTo: amountTo
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setRows(res.data.bonus.map(el => {
@@ -97,6 +100,10 @@ function Bonus() {
                 reason: state.createReason,
                 amount: state.createAmount,
                 date: state.createDate ? state.createDate.format('YYYY-MM-DD') : null
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             fetchBonus(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
@@ -113,6 +120,10 @@ function Bonus() {
                 reason: state.createReason,
                 amount: state.createAmount,
                 date: state.createDate ? state.createDate.format('YYYY-MM-DD') : null
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             fetchBonus(state.offset, state.limit, state.search, state.employee, state.amountFrom, state.amountTo)
@@ -149,7 +160,11 @@ function Bonus() {
                     }
                 })
             } else {
-                const res = await axios.get(`${process.env.REACT_APP_API}/api/bonus/${[state.selectedRow]}`);
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/bonus/${[state.selectedRow]}`, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                });
                 setState(prevState => {
                     return {
                         ...prevState,

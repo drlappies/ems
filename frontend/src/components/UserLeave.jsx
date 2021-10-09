@@ -72,6 +72,9 @@ function UserLeave() {
                 params: {
                     dateFrom: `${new Date(currentYear, currentMonth, 1).getFullYear()}-${new Date(currentYear, currentMonth, 1).getMonth() + 1}-${new Date(currentYear, currentMonth, 1).getDate()}`,
                     dateTo: `${new Date(currentYear, currentMonth + 1, 0).getFullYear()}-${new Date(currentYear, currentMonth + 1, 0).getMonth() + 1}-${new Date(currentYear, currentMonth + 1, 0).getDate()}`,
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
 

@@ -92,6 +92,9 @@ function Employee() {
                     salaryFrom: salaryFrom,
                     salaryTo: salaryTo,
                     hasOTpay: hasOTpay === 'any' ? null : hasOTpay === 'entitled' ? true : false
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setRows(res.data.employee.map(el => {
@@ -187,7 +190,11 @@ function Employee() {
                     ot_hourly_salary: state.createOTpay,
                     role: state.createRole
                 }
-                const res = await axios.put(`${process.env.REACT_APP_API}/api/employee`, body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/employee`, body, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 dispatch(popMessage(res.data.success, 'success'))
             } else {
                 const body = {
@@ -200,7 +207,11 @@ function Employee() {
                     ot_pay_entitled: state.createHasOTpay === 'entitled' ? true : false,
                     ot_hourly_salary: state.createOTpay,
                 }
-                const res = await axios.put(`${process.env.REACT_APP_API}/api/employee`, body)
+                const res = await axios.put(`${process.env.REACT_APP_API}/api/employee`, body, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 dispatch(popMessage(res.data.success, 'success'))
             }
 
@@ -212,7 +223,11 @@ function Employee() {
 
     const deleteEmployee = useCallback(async () => {
         try {
-            const res = await axios.delete(`${process.env.REACT_APP_API}/api/employee/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/employee/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchEmployee(state.offset, state.limit, state.search, state.position, state.department, state.role, state.status, state.salaryFrom, state.salaryTo, state.hasOTpay)
         } catch (err) {
@@ -229,7 +244,11 @@ function Employee() {
             return setState(prevState => { return { ...prevState, isUpdating: false } })
         }
         if (state.selectedRow.length < 2) {
-            const res = await axios.get(`${process.env.REACT_APP_API}/api/employee/${[state.selectedRow]}`)
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/employee/${[state.selectedRow]}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             setState(prevState => {
                 return {
                     ...prevState,

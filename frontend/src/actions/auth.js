@@ -2,13 +2,11 @@ import axios from 'axios'
 import { popMessage } from './ui'
 import { LOGIN, LOGOUT } from '../types/auth'
 
-export const verifyThunk = (token, history) => {
+export const verifyThunk = (history) => {
     return async (dispatch) => {
         try {
             const res = await axios.get(`${process.env.REACT_APP_API}/api/auth/verify`, {
-                headers: {
-                    'token': token
-                }
+                headers: { 'token': window.localStorage.getItem('jwt') }
             })
             dispatch({
                 type: LOGIN,
@@ -51,9 +49,7 @@ export const loginThunk = (username, password, history) => {
                 username: username,
                 password: password
             }
-            const res = await axios.post(`${process.env.REACT_APP_API}/api/auth/login`, body, {
-                withCredentials: true
-            })
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/auth/login`, body)
             dispatch({
                 type: LOGIN,
                 payload: {
@@ -82,7 +78,7 @@ export const loginThunk = (username, password, history) => {
             history.push('/user')
         } catch (err) {
             console.log(err)
-            // dispatch(popMessage(err.response.data.error, "error"))
+            dispatch(popMessage(err.response.data.error, "error"))
         }
     }
 }

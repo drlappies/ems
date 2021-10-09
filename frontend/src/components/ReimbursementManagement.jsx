@@ -72,6 +72,9 @@ function ReimbursementManagement() {
                     dateTo: date[1] ? date[1].format('YYYY-MM-DD') : null,
                     amountFrom: amountFrom,
                     amountTo: amountTo
+                },
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
                 }
             })
             setRows(res.data.reimbursement.map((el) => {
@@ -92,7 +95,8 @@ function ReimbursementManagement() {
                     reason: "",
                     applyDate: null,
                     amount: null,
-                    isLoading: false
+                    isLoading: false,
+                    applyStatus: "pending",
                 }
             })
         } catch (err) {
@@ -106,14 +110,19 @@ function ReimbursementManagement() {
                 employeeId: state.employeeId,
                 date: state.applyDate ? state.applyDate.format('YYYY-MM-DD') : null,
                 amount: state.amount,
-                reason: state.reason
+                reason: state.reason,
+                status: state.applyStatus
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchReimbursement(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
             dispatch(popMessage(err.response.data.error, 'error'))
         }
-    }, [dispatch, fetchReimbursement, state.amount, state.amountFrom, state.amountTo, state.applyDate, state.date, state.employee, state.employeeId, state.limit, state.offset, state.reason, state.search, state.status])
+    }, [dispatch, fetchReimbursement, state.amount, state.amountFrom, state.amountTo, state.applyDate, state.applyStatus, state.date, state.employee, state.employeeId, state.limit, state.offset, state.reason, state.search, state.status])
 
     const updateReimbursement = useCallback(async () => {
         try {
@@ -121,19 +130,28 @@ function ReimbursementManagement() {
                 id: state.selectedRow,
                 status: state.applyStatus,
                 reason: state.reason,
-                date: state.applyDate,
+                date: state.applyDate ? state.applyDate.format('YYYY-MM-DD') : null,
                 amount: state.amount
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchReimbursement(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
-            dispatch(popMessage(err.response.data.error, 'error'))
+            console.log(err)
+            // dispatch(popMessage(err.response.data.error, 'error'))
         }
     }, [dispatch, fetchReimbursement, state.amount, state.amountFrom, state.amountTo, state.applyDate, state.applyStatus, state.date, state.employee, state.limit, state.offset, state.reason, state.search, state.selectedRow, state.status])
 
     const deleteReimbursement = useCallback(async () => {
         try {
-            const res = await axios.delete(`${process.env.REACT_APP_API}/api/reimbursement/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`)
+            const res = await axios.delete(`${process.env.REACT_APP_API}/api/reimbursement/${state.selectedRow.map((el, i) => i === 0 ? `?id=${el}` : `&id=${el}`).join("")}`, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
+            })
             dispatch(popMessage(res.data.success, 'success'))
             return fetchReimbursement(state.offset, state.limit, state.search, state.employee, state.status, state.date, state.amountFrom, state.amountTo)
         } catch (err) {
@@ -144,7 +162,16 @@ function ReimbursementManagement() {
     const toggleUpdating = useCallback(async () => {
         try {
             if (state.isUpdating) {
-                return setState(prevState => { return { ...prevState, isUpdating: false } })
+                return setState(prevState => {
+                    return {
+                        ...prevState,
+                        isUpdating: false,
+                        employeeId: "",
+                        reason: "",
+                        applyDate: null,
+                        amount: null
+                    }
+                })
             }
 
             if (state.selectedRow.length > 1) {
@@ -159,7 +186,11 @@ function ReimbursementManagement() {
                     }
                 })
             } else {
-                const res = await axios.get(`${process.env.REACT_APP_API}/api/reimbursement/${[state.selectedRow]}`)
+                const res = await axios.get(`${process.env.REACT_APP_API}/api/reimbursement/${[state.selectedRow]}`, {
+                    headers: {
+                        'token': window.localStorage.getItem('jwt')
+                    }
+                })
                 setState(prevState => {
                     return {
                         ...prevState,
@@ -202,7 +233,7 @@ function ReimbursementManagement() {
         <Grid container>
             <Grid item xs={12}>
                 <DataGrid
-                    loading={state.loading}
+                    loading={state.isLoading}
                     paginationMode="server"
                     checkboxSelection
                     disableColumnFilter

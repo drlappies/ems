@@ -9,17 +9,18 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
     const auth = useSelector(state => state.auth)
 
     useEffect(() => {
-        dispatch(verifyThunk(window.localStorage.getItem('jwt'), history))
+        dispatch(verifyThunk(history))
         if (!auth.isAuthenticated) {
             return <Redirect to="/" />
         }
-
-    }, [auth.isAuthenticated, dispatch, history])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return (
         <Route {...rest} render={props => {
             return <Component {...props} />
-        }} />
+        }}
+        />
     )
 }
 
