@@ -48,6 +48,10 @@ function Punch() {
         try {
             const res = await axios.post(`${process.env.REACT_APP_API}/api/attendance/checkin`, {
                 employeeId: auth.id
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
         } catch (err) {
@@ -59,6 +63,10 @@ function Punch() {
         try {
             const res = await axios.post(`${process.env.REACT_APP_API}/api/attendance/checkout`, {
                 employeeId: auth.id
+            }, {
+                headers: {
+                    'token': window.localStorage.getItem('jwt')
+                }
             })
             dispatch(popMessage(res.data.success, 'success'))
         } catch (err) {
@@ -83,7 +91,7 @@ function Punch() {
                         </ListItemAvatar>
                         <ListItemText
                             primary={<Typography variant="body1">Check In Time</Typography>}
-                            secondary={<Typography variant="body1">{state.checkInTime}</Typography>}
+                            secondary={<Typography variant="body1">{state.checkInTime ? state.checkInTime : "You have not checked in yet!"}</Typography>}
                         />
                     </ListItem>
                     <ListItem>
@@ -92,7 +100,7 @@ function Punch() {
                         </ListItemAvatar>
                         <ListItemText
                             primary={<Typography variant="body1">Check Out Time</Typography>}
-                            secondary={<Typography variant="body1">{state.checkOutTime}</Typography>}
+                            secondary={<Typography variant="body1">{state.checkOutTime ? state.checkOutTime : "You have not checked out yet!"}</Typography>}
                         />
                     </ListItem>
                 </List>
