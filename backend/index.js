@@ -9,10 +9,7 @@ const knex = Knex(process.env.NODE_ENV === 'development' ? config.development : 
 const { verify } = require('./utils/verification')
 
 
-app.use(cors({
-    credentials: true,
-    origin: true
-}))
+app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 app.use(verify)
