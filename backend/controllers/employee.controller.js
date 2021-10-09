@@ -79,7 +79,13 @@ class EmployeeController {
 
     deleteEmployee = async (req, res) => {
         try {
-            const { id } = req.query;
+            let { id } = req.query;
+            if (!Array.isArray(id)) id = [id];
+            if (id.includes('1') || id.includes(1)) {
+                return res.status(400).json({
+                    error: "Cannot remove root user from the system!"
+                })
+            }
             const employee = await this.employeeService.deleteEmployee(id);
             return res.status(200).json({
                 success: `Successfully deleted employee record ID: ${employee.id}`,

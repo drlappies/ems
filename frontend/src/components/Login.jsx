@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useHistory } from 'react-router';
-import { useDispatch } from 'react-redux'
+import React, { useState, useEffect } from 'react';
+import { Redirect, useHistory } from 'react-router';
+import { useDispatch, useSelector } from 'react-redux'
+import { verifyThunk } from "../../actions/auth";
 import { loginThunk } from '../actions/auth'
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
@@ -14,10 +15,19 @@ import '../css/main.css'
 function Login() {
     const history = useHistory();
     const dispatch = useDispatch();
+    const auth = useSelector(state => state.auth)
     const [state, setState] = useState({
         username: '',
         password: '',
     })
+
+    useEffect(() => {
+        dispatch(verifyThunk(history))
+        if (auth.isAuthenticated) {
+            return <Redirect to="/user" />
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const handleChange = (e) => {
         const name = e.target.name
