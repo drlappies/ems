@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon -r esm index.js",
+    "start:local": "make start-db && ./env.sh",
     "seed": "node ./seeds/init.js"
   },
   "keywords": [],
