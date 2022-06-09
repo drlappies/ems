@@ -1,13 +1,11 @@
-require('dotenv').config()
+import express from 'express';
+import cors from 'cors'
+import Knex from 'knex';
+import knexConfig from './knexfile';
+import { verify } from './utils/verification'
 
-const express = require('express');
-const cors = require('cors')
 const app = express();
-const Knex = require('knex');
-const config = require('./knexfile');
-const knex = Knex(process.env.NODE_ENV === 'development' ? config.development : config.production);
-const { verify } = require('./utils/verification')
-
+const knex = Knex(knexConfig.development);
 
 app.use(cors())
 app.use(express.json());
