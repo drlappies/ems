@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors'
+import logger from './logger/logger'
 import routeCont from './routes/index.route';
+
+logger.info(`Current env: ${process.env.ENV}`)
 
 const app = express();
 
