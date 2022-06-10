@@ -1,12 +1,20 @@
-const express = require('express');
+class DepartmentRoute {
+    constructor(router, path, controller) {
+        this.path = path
+        this.router = router()
+        this.controller = controller
+    }
 
-module.exports.DepartmentRoute = (departmentController) => {
-    const router = express.Router();
-    router.get('/', departmentController.getAllDepartment);
-    router.get('/metric', departmentController.getDepartmentCount);
-    router.get('/:id', departmentController.getDepartment);
-    router.post('/', departmentController.createDepartment);
-    router.put('/', departmentController.updateDepartment);
-    router.delete('/', departmentController.deleteDepartment);
-    return router
+    get route() {
+        this.router.get('/', this.controller.getAllDepartment);
+        this.router.get('/metric', this.controller.getDepartmentCount);
+        this.router.get('/:id', this.controller.getDepartment);
+        this.router.post('/', this.controller.createDepartment);
+        this.router.put('/', this.controller.updateDepartment);
+        this.router.delete('/', this.controller.deleteDepartment);
+
+        return this.router
+    }
 }
+
+export default DepartmentRoute

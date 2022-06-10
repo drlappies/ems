@@ -131,4 +131,4 @@ class PayrollController {
     }
 }
 
-module.exports = PayrollController
+export default PayrollController

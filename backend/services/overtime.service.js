@@ -169,4 +169,4 @@ class OvertimeService {
     }
 }
 
-module.exports = OvertimeService
+export default OvertimeService

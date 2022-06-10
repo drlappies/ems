@@ -60,4 +60,4 @@ class DepartmentService {
     }
 }
 
-module.exports = DepartmentService
+export default DepartmentService

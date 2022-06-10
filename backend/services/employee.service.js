@@ -125,4 +125,4 @@ class EmployeeService {
     }
 }
 
-module.exports = EmployeeService
+export default EmployeeService

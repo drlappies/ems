@@ -1,17 +1,25 @@
-const express = require('express');
+class OvertimeRoute {
+    constructor(router, path, controller) {
+        this.path = path
+        this.router = router()
+        this.controller = controller
+    }
 
-module.exports.OvertimeRoute = (OvertimeController) => {
-    const router = express.Router();
-    router.get('/', OvertimeController.getAllOvertime);
-    router.get('/user/:employeeId/status', OvertimeController.getEmployeeOvertimeStatus);
-    router.get('/user/:employeeId/history', OvertimeController.getAllOvertimeByEmployee)
-    router.get('/:id', OvertimeController.getOvertime)
-    router.post('/', OvertimeController.createOvertime);
-    router.post('/timein', OvertimeController.createOvertimeTimein);
-    router.post('/timeout', OvertimeController.createOvertimeTimeout);
-    router.put('/', OvertimeController.batchUpdateOvertime)
-    router.put('/:id', OvertimeController.updateOvertime);
-    router.delete('/', OvertimeController.batchDeleteOvertime);
-    router.delete('/:id', OvertimeController.deleteOvertime);
-    return router
+    get route() {
+        this.router.get('/', this.controller.getAllOvertime);
+        this.router.get('/user/:employeeId/status', this.controller.getEmployeeOvertimeStatus);
+        this.router.get('/user/:employeeId/history', this.controller.getAllOvertimeByEmployee)
+        this.router.get('/:id', this.controller.getOvertime)
+        this.router.post('/', this.controller.createOvertime);
+        this.router.post('/timein', this.controller.createOvertimeTimein);
+        this.router.post('/timeout', this.controller.createOvertimeTimeout);
+        this.router.put('/', this.controller.batchUpdateOvertime)
+        this.router.put('/:id', this.controller.updateOvertime);
+        this.router.delete('/', this.controller.batchDeleteOvertime);
+        this.router.delete('/:id', this.controller.deleteOvertime);
+
+        return this.router
+    }
 }
+
+export default OvertimeRoute

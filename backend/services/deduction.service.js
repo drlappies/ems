@@ -89,4 +89,4 @@ class DeductionService {
     }
 }
 
-module.exports = DeductionService
+export default DeductionService

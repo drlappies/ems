@@ -110,4 +110,4 @@ class EmployeeController {
 
 }
 
-module.exports = EmployeeController
+export default EmployeeController

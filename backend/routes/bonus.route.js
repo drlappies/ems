@@ -1,12 +1,20 @@
-const express = require('express');
+class BonusRoute {
+    constructor(router, path, controller) {
+        this.path = path
+        this.router = router()
+        this.controller = controller
+    }
 
-module.exports.BonusRoute = (BonusController) => {
-    const router = express.Router();
-    router.post('/', BonusController.createBonus);
-    router.put('/', BonusController.editBonus);
-    router.delete('/', BonusController.deleteBonus)
-    router.get('/', BonusController.getAllBonus);
-    router.get('/:id', BonusController.getBonus)
-    router.get('/user/:id', BonusController.getBonusByEmployee)
-    return router
+    get route() {
+        this.router.post('/', this.controller.createBonus);
+        this.router.put('/', this.controller.editBonus);
+        this.router.delete('/', this.controller.deleteBonus)
+        this.router.get('/', this.controller.getAllBonus);
+        this.router.get('/:id', this.controller.getBonus)
+        this.router.get('/user/:id', this.controller.getBonusByEmployee)
+
+        return this.router
+    }
 }
+
+export default BonusRoute

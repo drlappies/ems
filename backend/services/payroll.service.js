@@ -292,4 +292,4 @@ class PayrollService {
     }
 }
 
-module.exports = PayrollService
+export default PayrollService

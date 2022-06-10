@@ -128,4 +128,4 @@ class ReimbursementController {
     }
 }
 
-module.exports = ReimbursementController
+export default ReimbursementController

@@ -1,12 +1,20 @@
-const express = require('express');
+class DeductionRoute {
+    constructor(router, path, controller) {
+        this.path = path
+        this.router = router()
+        this.controller = controller
+    }
 
-module.exports.DeductionRoute = (DeductionController) => {
-    const router = express.Router();
-    router.post('/', DeductionController.createDeduction)
-    router.delete('/', DeductionController.deleteDeduction)
-    router.put('/', DeductionController.updateDeduction)
-    router.get('/', DeductionController.getAllDeduction)
-    router.get('/:id', DeductionController.getDeduction)
-    router.get('/user/:id', DeductionController.getDeductionByEmployee)
-    return router
+    get route() {
+        this.router.post('/', this.controller.createDeduction)
+        this.router.delete('/', this.controller.deleteDeduction)
+        this.router.put('/', this.controller.updateDeduction)
+        this.router.get('/', this.controller.getAllDeduction)
+        this.router.get('/:id', this.controller.getDeduction)
+        this.router.get('/user/:id', this.controller.getDeductionByEmployee)
+
+        return this.router
+    }
 }
+
+export default DeductionRoute

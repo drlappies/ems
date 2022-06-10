@@ -107,4 +107,4 @@ class LeaveService {
     }
 }
 
-module.exports = LeaveService
+export default LeaveService

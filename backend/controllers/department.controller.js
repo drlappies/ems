@@ -93,4 +93,4 @@ class DepartmentController {
     }
 }
 
-module.exports = DepartmentController
+export default DepartmentController

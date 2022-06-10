@@ -219,4 +219,4 @@ class OvertimeController {
     }
 }
 
-module.exports = OvertimeController
+export default OvertimeController

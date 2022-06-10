@@ -98,4 +98,4 @@ class ReimbursementService {
     }
 }
 
-module.exports = ReimbursementService
+export default ReimbursementService

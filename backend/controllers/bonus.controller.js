@@ -118,4 +118,4 @@ class BonusController {
     }
 }
 
-module.exports = BonusController
+export default BonusController

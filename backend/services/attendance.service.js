@@ -1,8 +1,5 @@
-const EmployeeService = require("./employee.service");
-
-class AttendanceService extends EmployeeService {
+class AttendanceService {
     constructor(knex) {
-        super()
         this.knex = knex
     }
 
@@ -10,7 +7,7 @@ class AttendanceService extends EmployeeService {
         const currentTime = new Date()
         const check_in = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
         const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
-        const employee = await this.getEmployee(employeeId)
+        // const employee = await this.getEmployee(employeeId) TODO: Decouple
         let status;
         if (check_in > employee.start_hour) {
             status = 'late'
@@ -203,4 +200,4 @@ class AttendanceService extends EmployeeService {
     }
 }
 
-module.exports = AttendanceService
+export default AttendanceService

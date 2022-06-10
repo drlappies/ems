@@ -59,4 +59,4 @@ class PositionService {
     }
 }
 
-module.exports = PositionService
+export default PositionService

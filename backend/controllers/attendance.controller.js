@@ -193,6 +193,8 @@ class AttendanceController {
 
     getAttendance = async (req, res) => {
         try {
+
+            console.log("getting attendnace")
             const { id } = req.params;
             const attendance = await this.AttendanceService.getAttendance(id);
             return res.status(200).json({
@@ -238,4 +240,4 @@ class AttendanceController {
     }
 }
 
-module.exports = AttendanceController
+export default AttendanceController

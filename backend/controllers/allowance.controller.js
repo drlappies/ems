@@ -151,4 +151,4 @@ class AllowanceController {
     }
 }
 
-module.exports = AllowanceController
+export default AllowanceController

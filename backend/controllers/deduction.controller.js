@@ -110,4 +110,4 @@ class DeductionController {
     }
 }
 
-module.exports = DeductionController
+export default DeductionController

@@ -1,12 +1,20 @@
-const express = require('express')
+class PositionRoute {
+    constructor(router, path, controller) {
+        this.path = path
+        this.router = router()
+        this.controller = controller
+    }
 
-module.exports.PositionRoute = (positionController) => {
-    const router = express.Router()
-    router.get('/', positionController.getAllPosition)
-    router.get('/metric', positionController.getPositionCount)
-    router.get('/:id', positionController.getPosition)
-    router.post('/', positionController.createPosition)
-    router.put('/', positionController.updatePosition)
-    router.delete('/', positionController.deletePosition)
-    return router
+    get route() {
+        this.router.get('/', this.controller.getAllPosition)
+        this.router.get('/metric', this.controller.getPositionCount)
+        this.router.get('/:id', this.controller.getPosition)
+        this.router.post('/', this.controller.createPosition)
+        this.router.put('/', this.controller.updatePosition)
+        this.router.delete('/', this.controller.deletePosition)
+
+        return this.router
+    }
 }
+
+export default PositionRoute

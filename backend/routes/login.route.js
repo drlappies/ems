@@ -1,9 +1,16 @@
-const express = require('express');
-const { verify } = require('../utils/verification')
+class LoginRoute {
+    constructor(router, path, controller) {
+        this.path = path
+        this.router = router()
+        this.controller = controller
+    }
 
-module.exports.LoginRoute = (LoginController) => {
-    const router = express.Router();
-    router.post('/login', verify, LoginController.login)
-    router.get('/verify', LoginController.verify)
-    return router
+    get route() {
+        this.router.post('/login', this.controller.login)
+        this.router.get('/verify', this.controller.verify)
+
+        return this.router
+    }
 }
+
+export default LoginRoute

@@ -128,4 +128,4 @@ class LeaveController {
     }
 }
 
-module.exports = LeaveController
+export default LeaveController

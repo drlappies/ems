@@ -13,4 +13,4 @@ class LoginService {
     }
 }
 
-module.exports = LoginService
+export default LoginService

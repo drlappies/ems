@@ -1,14 +1,22 @@
-const express = require('express');
+class AllowanceRoute {
+    constructor(router, path, controller) {
+        this.path = path
+        this.router = router()
+        this.controller = controller
+    }
 
-module.exports.AllowanceRoute = (AllowanceController) => {
-    const router = express.Router();
-    router.post('/', AllowanceController.createAllowance);
-    router.delete('/entitlement/:allowanceId/employee/:employeeId', AllowanceController.removeEmployeeFromAllowance);
-    router.delete('/', AllowanceController.deleteAllowance);
-    router.put('/', AllowanceController.editAllowance);
-    router.get('/', AllowanceController.getAllAllowance);
-    router.get('/entitlement/:employee_id', AllowanceController.getAllAllowanceByEmployee)
-    router.get('/:id', AllowanceController.getAllowance);
-    router.post('/entitlement/:id', AllowanceController.addEmployeeToAllowance);
-    return router
+    get route() {
+        this.router.post('/', this.controller.createAllowance);
+        this.router.delete('/entitlement/:allowanceId/employee/:employeeId', this.controller.removeEmployeeFromAllowance);
+        this.router.delete('/', this.controller.deleteAllowance);
+        this.router.put('/', this.controller.editAllowance);
+        this.router.get('/', this.controller.getAllAllowance);
+        this.router.get('/entitlement/:employee_id', this.controller.getAllAllowanceByEmployee)
+        this.router.get('/:id', this.controller.getAllowance);
+        this.router.post('/entitlement/:id', this.controller.addEmployeeToAllowance);
+
+        return this.router
+    }
 }
+
+export default AllowanceRoute

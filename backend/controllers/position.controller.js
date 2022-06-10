@@ -99,4 +99,4 @@ class PositionController {
     }
 }
 
-module.exports = PositionController
+export default PositionController

@@ -82,4 +82,4 @@ class BonusService {
     }
 }
 
-module.exports = BonusService
+export default BonusService

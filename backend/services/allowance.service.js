@@ -139,4 +139,4 @@ class AllowanceService {
     }
 }
 
-module.exports = AllowanceService
+export default AllowanceService 
