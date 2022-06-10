@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon -r esm index.js",
-    "start:local": "make start-db && ./env.sh",
-    "seed": "node ./seeds/init.js"
+    "start:local": "make start-db && env-cmd -f .env.local nodemon -r esm index.js",
+    "migrate:latest": "make start-db && env-cmd -f .env.local npx knex migrate:latest",
+    "migrate:up": "make start-db && env-cmd -f .env.local npx knex migrate:up",
+    "migrate:down": "make start-db && env-cmd -f .env.local npx knex migrate:down",
+    "seed": "make start-db && env-cmd -f .env.local npx knex seed:run"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +18,7 @@
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
+    "env-cmd": "^10.1.0",
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",

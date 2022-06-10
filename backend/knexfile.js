@@ -7,8 +7,8 @@ const knexConfig = {
       database: process.env.PG_NAME,
       user: process.env.PG_USER,
       password: process.env.PG_PASS,
-    }
+    },
   }
 };
 
-export default knexConfig
+module.exports = knexConfig
