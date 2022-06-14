@@ -1,9 +1,11 @@
-import knex from '../database/database';
-import AllowanceService from "../services/allowance.service";
-import AttendanceService from '../services/attendance.service';
-import BonusService from '../services/bonus.service';
-import DeductionService from '../services/deduction.service';
-import DepartmentService from '../services/department.service';
+import modelCont from '../models/index.model'
+import repositoryCont from '../repositories/index.repository'
+import AllowanceService from "./allowance.service";
+import AllowanceEmployeeService from './allowance_employee.service';
+import AttendanceService from './attendance.service';
+import BonusService from './bonus.service';
+import DeductionService from './deduction.service';
+import DepartmentService from './department.service';
 import LeaveService from './leave.service';
 import LoginService from './login.service';
 import OvertimeService from './overtime.service';
@@ -13,18 +15,19 @@ import ReimbursementService from './reimbursement.service';
 import EmployeeService from './employee.service';
 
 const container = {
-    allowanceService: new AllowanceService(knex),
-    attendanceService: new AttendanceService(knex),
-    bonusService: new BonusService(knex),
-    deductionService: new DeductionService(knex),
-    departmentService: new DepartmentService(knex),
-    leaveService: new LeaveService(knex),
-    loginService: new LoginService(knex),
-    overtimeService: new OvertimeService(knex),
-    payrollService: new PayrollService(knex),
-    positionService: new PositionService(knex),
-    reimbursementService: new ReimbursementService(knex),
-    employeeService: new EmployeeService(knex),
+    allowanceEmployee: new AllowanceEmployeeService(modelCont, repositoryCont),
+    allowance: new AllowanceService(modelCont, repositoryCont),
+    attendance: new AttendanceService(modelCont, repositoryCont),
+    bonus: new BonusService(modelCont, repositoryCont),
+    deduction: new DeductionService(modelCont, repositoryCont),
+    department: new DepartmentService(modelCont, repositoryCont),
+    leave: new LeaveService(modelCont, repositoryCont),
+    login: new LoginService(modelCont, repositoryCont),
+    overtime: new OvertimeService(modelCont, repositoryCont),
+    payroll: new PayrollService(modelCont, repositoryCont),
+    position: new PositionService(modelCont, repositoryCont),
+    reimbursement: new ReimbursementService(modelCont, repositoryCont),
+    employee: new EmployeeService(modelCont, repositoryCont),
 }
 
 export default container

@@ -35,7 +35,7 @@ class Repository {
 
     deleteOneById = async (id) => {
         try {
-            await this.db.where('id', id).del()
+            await this.knex(this.tableName).where('id', id).del()
         } catch (error) {
             throw error
         }
