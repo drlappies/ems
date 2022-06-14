@@ -1,22 +1,21 @@
 class OvertimeRoute {
-    constructor(router, path, controller) {
-        this.path = path
+    constructor(router, controller) {
         this.router = router()
         this.controller = controller
     }
 
     get route() {
-        this.router.get('/', this.controller.getAllOvertime);
-        this.router.get('/user/:employeeId/status', this.controller.getEmployeeOvertimeStatus);
-        this.router.get('/user/:employeeId/history', this.controller.getAllOvertimeByEmployee)
-        this.router.get('/:id', this.controller.getOvertime)
-        this.router.post('/', this.controller.createOvertime);
-        this.router.post('/timein', this.controller.createOvertimeTimein);
-        this.router.post('/timeout', this.controller.createOvertimeTimeout);
-        this.router.put('/', this.controller.batchUpdateOvertime)
-        this.router.put('/:id', this.controller.updateOvertime);
-        this.router.delete('/', this.controller.batchDeleteOvertime);
-        this.router.delete('/:id', this.controller.deleteOvertime);
+        this.router.get('/overtime', this.controller.getAllOvertime);
+        this.router.get('/overtime/user/:employeeId/status', this.controller.getEmployeeOvertimeStatus);
+        this.router.get('/overtime/user/:employeeId/history', this.controller.getAllOvertimeByEmployee)
+        this.router.get('/overtime/:id', this.controller.getOvertime)
+        this.router.post('/overtime', this.controller.createOvertime);
+        this.router.post('/overtime/timein', this.controller.createOvertimeTimein);
+        this.router.post('/overtime/timeout', this.controller.createOvertimeTimeout);
+        this.router.put('/overtime', this.controller.batchUpdateOvertime)
+        this.router.put('/overtime/:id', this.controller.updateOvertime);
+        this.router.delete('/overtime', this.controller.batchDeleteOvertime);
+        this.router.delete('/overtime/:id', this.controller.deleteOvertime);
 
         return this.router
     }

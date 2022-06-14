@@ -1,17 +1,16 @@
 class PayrollRoute {
-    constructor(router, path, controller) {
-        this.path = path
+    constructor(router, controller) {
         this.router = router()
         this.controller = controller
     }
 
     get route() {
-        this.router.post('/', this.controller.createPayroll);
-        this.router.put('/', this.controller.updatePayroll);
-        this.router.delete('/', this.controller.deletePayroll);
-        this.router.get('/', this.controller.getAllPayroll);
-        this.router.get('/:id', this.controller.getPayroll);
-        this.router.get('/user/:id', this.controller.getPayrollByEmployee);
+        this.router.post('/payroll', this.controller.createPayroll);
+        this.router.put('/payroll', this.controller.updatePayroll);
+        this.router.delete('/payroll', this.controller.deletePayroll);
+        this.router.get('/payroll', this.controller.getAllPayroll);
+        this.router.get('/payroll/:id', this.controller.getPayroll);
+        this.router.get('/payroll/user/:id', this.controller.getPayrollByEmployee);
 
         return this.router
     }

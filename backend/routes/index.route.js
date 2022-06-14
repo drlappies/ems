@@ -12,20 +12,22 @@ import OvertimeRoute from './overtime.route';
 import PayrollRoute from './payroll.route';
 import PositionRoute from './position.route';
 import ReimbursementRoute from './reimbursement.route';
+import AllowanceEmployeeRoute from './allowance_employee.route';
 
 const container = {
-    allowanceRoute: new AllowanceRoute(Router, "/api/allowance", controllerCont.allowanceController),
-    attendanceRoute: new AttendanceRoute(Router, "/api/attendance", controllerCont.attenddenceController),
-    bonusRoute: new BonusRoute(Router, "/api/bonus", controllerCont.bonusController),
-    deductionRoute: new DeductionRoute(Router, "/api/deduction", controllerCont.deductionController),
-    departmentRoute: new DepartmentRoute(Router, "/api/department", controllerCont.departmentController),
-    employeeRoute: new EmployeeRoute(Router, "/api/employee", controllerCont.employeeController),
-    leaveRoute: new LeaveRoute(Router, "/api/leave", controllerCont.leaveController),
-    loginRoute: new LoginRoute(Router, "/api/login", controllerCont.loginController),
-    overtimeRoute: new OvertimeRoute(Router, "/api/overtime", controllerCont.overtimeController),
-    payrollRoute: new PayrollRoute(Router, "/api/payroll", controllerCont.payrollController),
-    positionRoute: new PositionRoute(Router, "/api/position", controllerCont.positionController),
-    reimbursementRoute: new ReimbursementRoute(Router, "/api/reimbursement", controllerCont.reimbursementController)
+    allowanceEmployee: new AllowanceEmployeeRoute(Router, controllerCont.allowanceEmployee),
+    allowance: new AllowanceRoute(Router, controllerCont.allowance),
+    attendance: new AttendanceRoute(Router, controllerCont.attenddence),
+    bonus: new BonusRoute(Router, controllerCont.bonus),
+    deduction: new DeductionRoute(Router, controllerCont.deduction),
+    department: new DepartmentRoute(Router, controllerCont.department),
+    employee: new EmployeeRoute(Router, controllerCont.employee),
+    leave: new LeaveRoute(Router, controllerCont.leave),
+    login: new LoginRoute(Router, controllerCont.login),
+    overtime: new OvertimeRoute(Router, controllerCont.overtime),
+    payroll: new PayrollRoute(Router, controllerCont.payroll),
+    position: new PositionRoute(Router, controllerCont.position),
+    reimbursement: new ReimbursementRoute(Router, controllerCont.reimbursement)
 }
 
 export default container

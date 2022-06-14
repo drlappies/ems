@@ -1,17 +1,16 @@
 class EmployeeRoute {
-    constructor(router, path, controller) {
-        this.path = path
-        this.router = router();
+    constructor(router, controller) {
+        this.router = router()
         this.controller = controller;
     }
 
     get route() {
-        this.router.get('/', this.controller.getAllEmployee)
-        this.router.get('/metric', this.controller.getEmployeeCount)
-        this.router.get('/:id', this.controller.getEmployee);
-        this.router.post('/', this.controller.createEmployee);
-        this.router.put('/', this.controller.updateEmployee);
-        this.router.delete('/', this.controller.deleteEmployee);
+        this.router.get('/employee', this.controller.getAllEmployee)
+        this.router.get('/employee/metric', this.controller.getEmployeeCount)
+        this.router.get('/employee/:id', this.controller.getEmployee);
+        this.router.post('/employee', this.controller.createEmployee);
+        this.router.put('/employee', this.controller.updateEmployee);
+        this.router.delete('/employee', this.controller.deleteEmployee);
 
         return this.router
     }

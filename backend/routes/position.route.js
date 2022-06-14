@@ -1,17 +1,16 @@
 class PositionRoute {
-    constructor(router, path, controller) {
-        this.path = path
+    constructor(router, controller) {
         this.router = router()
         this.controller = controller
     }
 
     get route() {
-        this.router.get('/', this.controller.getAllPosition)
-        this.router.get('/metric', this.controller.getPositionCount)
-        this.router.get('/:id', this.controller.getPosition)
-        this.router.post('/', this.controller.createPosition)
-        this.router.put('/', this.controller.updatePosition)
-        this.router.delete('/', this.controller.deletePosition)
+        this.router.get('/position/', this.controller.getAllPosition)
+        this.router.get('/position/metric', this.controller.getPositionCount)
+        this.router.get('/position/:id', this.controller.getPosition)
+        this.router.post('/position', this.controller.createPosition)
+        this.router.put('/position', this.controller.updatePosition)
+        this.router.delete('/position', this.controller.deletePosition)
 
         return this.router
     }

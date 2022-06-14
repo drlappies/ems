@@ -1,6 +1,5 @@
 class LoginRoute {
-    constructor(router, path, controller) {
-        this.path = path
+    constructor(router, controller) {
         this.router = router()
         this.controller = controller
     }

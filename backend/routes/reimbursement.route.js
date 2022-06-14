@@ -1,18 +1,17 @@
 class ReimbursementRoute {
-    constructor(router, path, controller) {
-        this.path = path
+    constructor(router, controller) {
         this.router = router()
         this.controller = controller
     }
 
     get route() {
-        this.router.post('/', this.controller.createReimbursement);
-        this.router.get('/metric', this.controller.getReimbursementCount);
-        this.router.put('/', this.controller.updateReimbursement)
-        this.router.get('/', this.controller.getAllReimbursement);
-        this.router.get('/:id', this.controller.getReimbursement);
-        this.router.get('/user/:id', this.controller.getReimbursementByEmployee);
-        this.router.delete('/', this.controller.deleteReimbursement);
+        this.router.post('/position', this.controller.createReimbursement);
+        this.router.get('/position/metric', this.controller.getReimbursementCount);
+        this.router.put('/position', this.controller.updateReimbursement)
+        this.router.get('/position', this.controller.getAllReimbursement);
+        this.router.get('/position/:id', this.controller.getReimbursement);
+        this.router.get('/position/user/:id', this.controller.getReimbursementByEmployee);
+        this.router.delete('/position', this.controller.deleteReimbursement);
 
         return this.router
     }

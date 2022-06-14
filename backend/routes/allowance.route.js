@@ -1,19 +1,23 @@
 class AllowanceRoute {
-    constructor(router, path, controller) {
-        this.path = path
+    constructor(router, controller) {
         this.router = router()
         this.controller = controller
     }
 
     get route() {
-        this.router.post('/', this.controller.createAllowance);
-        this.router.delete('/entitlement/:allowanceId/employee/:employeeId', this.controller.removeEmployeeFromAllowance);
-        this.router.delete('/', this.controller.deleteAllowance);
-        this.router.put('/', this.controller.editAllowance);
-        this.router.get('/', this.controller.getAllAllowance);
-        this.router.get('/entitlement/:employee_id', this.controller.getAllAllowanceByEmployee)
-        this.router.get('/:id', this.controller.getAllowance);
-        this.router.post('/entitlement/:id', this.controller.addEmployeeToAllowance);
+        this.router.get('/api/allowance', this.controller.getMany);
+        this.router.get('/api/allowance/:id', this.controller.getOneById);
+        this.router.delete('/api/allowance/:id', this.controller.deleteOneById);
+        this.router.put('/api/allowance/:id', this.controller.updateOneById);
+        this.router.post('/api/allowance', this.controller.createOne);
+        this.router.post('/api/allowance/batch_update', this.controller.updateManyByIds)
+        this.router.post('/api/allowance/batch_delete', this.controller.deleteManyByIds)
+
+
+
+        // router.delete('/entitlement/:allowanceId/employee/:employeeId', controller.allowance.removeEmployeeFromAllowance);
+        // router.get('/entitlement/:employee_id', controller.allowance.getAllAllowanceByEmployee)
+        // router.post('/entitlement/:id', controller.allowance.addEmployeeToAllowance);
 
         return this.router
     }
