@@ -1,8 +1,9 @@
 const { hashPassword, checkPassword } = require('../utils/hashPassword');
 
 class EmployeeController {
-    constructor(employeeService) {
-        this.employeeService = employeeService
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
     }
 
     getEmployee = async (req, res) => {

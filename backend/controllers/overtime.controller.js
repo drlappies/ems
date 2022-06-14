@@ -1,8 +1,8 @@
 class OvertimeController {
-    constructor(OvertimeService) {
-        this.OvertimeService = OvertimeService
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
     }
-
     createOvertimeTimein = async (req, res) => {
         try {
             const { employee_id } = req.body;

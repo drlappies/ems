@@ -1,6 +1,7 @@
 class PayrollController {
-    constructor(PayrollService) {
-        this.PayrollService = PayrollService;
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
     }
 
     createPayroll = async (req, res) => {

@@ -1,6 +1,7 @@
 class LeaveController {
-    constructor(LeaveService) {
-        this.LeaveService = LeaveService
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
     }
 
     getLeave = async (req, res) => {

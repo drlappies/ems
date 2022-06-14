@@ -1,6 +1,7 @@
 class ReimbursementController {
-    constructor(ReimbursementService) {
-        this.ReimbursementService = ReimbursementService
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
     }
 
     createReimbursement = async (req, res) => {

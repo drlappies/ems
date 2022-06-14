@@ -1,6 +1,7 @@
 class DeductionController {
-    constructor(DeductionService) {
-        this.DeductionService = DeductionService
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
     }
 
     createDeduction = async (req, res) => {

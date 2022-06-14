@@ -1,8 +1,8 @@
 class BonusController {
-    constructor(BonusService) {
-        this.BonusService = BonusService
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
     }
-
     createBonus = async (req, res) => {
         try {
             const { employeeId, reason, amount, date } = req.body;

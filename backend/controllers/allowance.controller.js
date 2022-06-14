@@ -1,5 +1,5 @@
 class AllowanceController {
-    constructor(logger, services) {
+    constructor({ logger, services }) {
         this.logger = logger
         this.services = services
     }

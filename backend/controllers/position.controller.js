@@ -1,6 +1,7 @@
 class PositionController {
-    constructor(PositionService) {
-        this.PositionService = PositionService
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
     }
 
     createPosition = async (req, res) => {

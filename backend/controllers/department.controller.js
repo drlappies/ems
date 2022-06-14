@@ -1,6 +1,7 @@
 class DepartmentController {
-    constructor(departmentService) {
-        this.departmentService = departmentService
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
     }
 
     getDepartment = async (req, res) => {

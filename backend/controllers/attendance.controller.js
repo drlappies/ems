@@ -1,6 +1,30 @@
 class AttendanceController {
-    constructor(AttendanceService) {
-        this.AttendanceService = AttendanceService
+    constructor({ logger, services }) {
+        this.logger = logger
+        this.services = services
+    }
+    checkIn = async (req, res) => {
+        try {
+            //TODO get employeeId from user middleware
+            const employeeId = req.body.employee_id
+
+            //TODO check if employee exists
+            const currentTime = new Date()
+            const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
+
+            const todayAttendance = await this.services.attendance.getOneByEmployeeIdAndDate(employeeId, date)
+
+            if (todayAttendance.length > 0) {
+                res.status(400).json({ error: "already checked in" })
+                return
+            }
+
+            const result = await this.services.attendance.checkIn(employeeId)
+
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
     }
 
     createTimeIn = async (req, res) => {
