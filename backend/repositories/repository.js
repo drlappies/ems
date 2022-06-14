@@ -1,0 +1,71 @@
+class Repository {
+    constructor(knex, tableName) {
+        this.knex = knex
+        this.tableName = tableName
+    }
+
+    createOne = async (data, returnFields) => {
+        try {
+            const result = await this.knex(this.tableName).insert(data, returnFields)
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
+
+    updateOneById = async (id, data, returnFields) => {
+        try {
+            const [result] = await this.knex(this.tableName).where('id', id).update(data, returnFields)
+            return result
+        } catch (error) {
+            console.log(error)
+            throw error
+        }
+    }
+
+    updateManyByIds = async (ids, data, returnFields) => {
+        try {
+            const result = await this.knex(this.tableName).whereIn('id', ids).update(data, returnFields)
+            return result
+        } catch (error) {
+            console.log(error)
+            throw error
+        }
+    }
+
+    deleteOneById = async (id) => {
+        try {
+            await this.db.where('id', id).del()
+        } catch (error) {
+            throw error
+        }
+    }
+
+    deleteManyByIds = async (ids) => {
+        try {
+            await this.knex(this.tableName).whereIn('id', ids).del()
+        } catch (error) {
+            throw error
+        }
+    }
+
+    getOneById = async (id) => {
+        try {
+            const [result] = await this.knex(this.tableName).where('id', id)
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
+
+    getMany = async (query) => {
+        try {
+            const result = await this.knex(this.tableName).modify(query)
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
+}
+
+export default Repository
