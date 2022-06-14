@@ -5,11 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:local": "make start-db && env-cmd -f .env.local nodemon -r esm index.js",
-    "migrate:latest": "make start-db && env-cmd -f .env.local npx knex migrate:latest",
-    "migrate:up": "make start-db && env-cmd -f .env.local npx knex migrate:up",
-    "migrate:down": "make start-db && env-cmd -f .env.local npx knex migrate:down",
-    "seed": "make start-db && env-cmd -f .env.local npx knex seed:run"
+    "start:local": "env-cmd -f .env.local nodemon -r esm index.js",
+    "migrate:latest": "env-cmd -f .env.local npx knex migrate:latest",
+    "migrate:up": "env-cmd -f .env.local npx knex migrate:up",
+    "migrate:down": "env-cmd -f .env.local npx knex migrate:down",
+    "migrate:reset": "env-cmd -f .env.local npx knex migrate:rollback --all",
+    "seed": "env-cmd -f .env.local npx knex seed:run"
   },
   "keywords": [],
   "author": "",

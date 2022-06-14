@@ -77,7 +77,7 @@ exports.seed = async function (knex) {
       ot_hourly_salary: 80
     }]).into('employee').returning(['id']);
 
-  const departmentSeed = await knex('departments').insert([
+  await knex('departments').insert([
     { name: "Human Resources", description: "Plan, coordinate, and direct the administrative functions of an organization." },
     { name: "Marketing Promotion", description: "Market research, analysis, and understanding your ideal customer's interests." },
     { name: "Customer Service Support", description: "Providing support to both prospective and existing customers." },
@@ -96,7 +96,7 @@ exports.seed = async function (knex) {
     { name: "Security", description: "Guards patrol and monitor activity at a location or property." }
   ])
 
-  const positionSeed = await knex('positions').insert([
+  await knex('positions').insert([
     { post: "Web Developer" },
     { post: "Full Stack Web Developer" },
     { post: "Software Engineer" },
@@ -116,5 +116,5 @@ exports.seed = async function (knex) {
   ])
 
   const attendance = generateAttendance(365, employeeSeed[1].id)
-  const attendanceseed = await knex.insert(attendance).into('attendance')
+  await knex.insert(attendance).into('attendance')
 };
