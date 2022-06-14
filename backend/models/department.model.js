@@ -1,8 +1,8 @@
 class Department {
-    create = () => {
+    create = (name, desc) => {
         return {
-            name: '',
-            description: ''
+            name: name,
+            description: desc
         }
     }
 }

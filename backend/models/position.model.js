@@ -1,7 +1,7 @@
 class Position {
-    create = () => {
+    create = (pos) => {
         return {
-            post: ""
+            post: pos
         }
     }
 }

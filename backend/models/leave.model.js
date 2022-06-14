@@ -1,12 +1,12 @@
 class Leave {
-    create = () => {
+    create = (employeeId, reason, from, to, duration, type) => {
         return {
-            employee_id: '',
-            reason: '',
-            from: '',
-            to: '',
-            duration: '',
-            type: ''
+            employee_id: employeeId,
+            reason: reason,
+            from: from,
+            to: to,
+            duration: duration,
+            type: type
         }
     }
 }

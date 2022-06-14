@@ -1,10 +1,10 @@
 class Bonus {
-    create = () => {
+    create = (employeeId, reason, amount, date) => {
         return {
-            employee_id: '',
-            reason: '',
-            amount: '',
-            date: ''
+            employee_id: employeeId,
+            reason: reason,
+            amount: amount,
+            date: date
         }
     }
 }

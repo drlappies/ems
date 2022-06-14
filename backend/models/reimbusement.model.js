@@ -1,11 +1,11 @@
 class Reimbursement {
-    create = () => {
+    create = (employeeId, date, amount, reason, status) => {
         return {
-            employee_id: '',
-            date: '',
-            amount: '',
-            reason: '',
-            status: ''
+            employee_id: employeeId,
+            date: date,
+            amount: amount,
+            reason: reason,
+            status: status
         }
     }
 }

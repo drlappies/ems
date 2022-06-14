@@ -1,10 +1,10 @@
 class Allowance {
-    create = () => {
+    create = (name, desc, amount, status) => {
         return {
-            name: '',
-            description: '',
-            amount: '',
-            status: ''
+            name: name,
+            description: desc,
+            amount: amount,
+            status: status
         }
     }
 }

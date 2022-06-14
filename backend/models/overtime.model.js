@@ -1,9 +1,9 @@
 class Overtime {
-    create = () => {
+    create = (employeeId, date, from) => {
         return {
-            employee_id: '',
-            date: '',
-            from: '',
+            employee_id: employeeId,
+            date: date,
+            from: from,
         }
     }
 }
