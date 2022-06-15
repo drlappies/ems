@@ -6,7 +6,16 @@ class Repository {
 
     createOne = async (data, returnFields) => {
         try {
-            const result = await this.knex(this.tableName).insert(data, returnFields)
+            const [result] = await this.knex(this.tableName).insert(data, returnFields)
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
+
+    updateOne = async (query, data, returnFields) => {
+        try {
+            const [result] = await this.knex(this.tableName).modify(query).update(data, returnFields)
             return result
         } catch (error) {
             throw error
@@ -18,7 +27,6 @@ class Repository {
             const [result] = await this.knex(this.tableName).where('id', id).update(data, returnFields)
             return result
         } catch (error) {
-            console.log(error)
             throw error
         }
     }
@@ -52,6 +60,15 @@ class Repository {
     getOneById = async (id) => {
         try {
             const [result] = await this.knex(this.tableName).where('id', id)
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
+
+    getOne = async (query) => {
+        try {
+            const [result] = await this.knex(this.tableName).modify(query)
             return result
         } catch (error) {
             throw error

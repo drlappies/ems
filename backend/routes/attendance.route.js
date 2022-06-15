@@ -5,17 +5,15 @@ class AttendanceRoute {
     }
 
     get route() {
-        this.router.post('/api/attendance/', this.controller.createAttendance)
-        this.router.post('/api/attendance/checkin', this.controller.createTimeIn);
-        this.router.post('/api/attendance/checkout', this.controller.createTimeOut);
-        this.router.get('/api/attendance', this.controller.getAllAttendance)
-        this.router.get('/api/attendance/user/:employeeId/status', this.controller.getTodayAttendanceByEmployee)
-        this.router.get('/api/attendance/user/:employeeId/history', this.controller.getAllAttendanceByEmployee)
-        this.router.get('/api/attendance/:id', this.controller.getAttendance)
-        this.router.delete('/api/attendance/', this.controller.batchDeleteAttendance)
-        this.router.delete('/api/attendance/:id', this.controller.deleteAttendance)
-        this.router.put('/api/attendance', this.controller.batchUpdateAttendance)
-        this.router.put('/api/attendance/:id', this.controller.updateAttendance)
+        this.router.get('/api/attendance/:id', this.controller.getOneById)
+        this.router.get('/api/attendance', this.controller.getMany)
+        this.router.delete('/api/attendance/:id', this.controller.deleteOneById)
+        this.router.put('/api/attendance/:id', this.controller.updateOneById)
+        this.router.post('/api/attendance', this.controller.createOne)
+        this.router.post('/api/attendance/check_in', this.controller.checkIn)
+        this.router.post('/api/attendance/check_out', this.controller.checkOut)
+        this.router.post('/api/attendance/batch_delete', this.controller.deleteManyByIds)
+        this.router.post('/api/attendance/batch_update', this.controller.updateManyByIds)
 
         return this.router
     }

@@ -3,6 +3,7 @@ class AttendanceController {
         this.logger = logger
         this.services = services
     }
+
     checkIn = async (req, res) => {
         try {
             //TODO get employeeId from user middleware
@@ -14,252 +15,218 @@ class AttendanceController {
 
             const todayAttendance = await this.services.attendance.getOneByEmployeeIdAndDate(employeeId, date)
 
-            if (todayAttendance.length > 0) {
+            if (todayAttendance) {
                 res.status(400).json({ error: "already checked in" })
                 return
             }
 
             const result = await this.services.attendance.checkIn(employeeId)
 
+            res.status(200).json(result)
+        } catch (error) {
+            console.log(error)
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    checkOut = async (req, res) => {
+        try {
+            const employeeId = req.body.employee_id
+            //TODO get employeeId from user middleware
+            //TODO check if employee exists
+            const currentTime = new Date()
+            const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
+
+            const todayAttendance = await this.services.attendance.getOneByEmployeeIdAndDate(employeeId, date)
+
+            if (!todayAttendance) {
+                res.status(400).json({ error: "Haven't checked in today!" })
+                return;
+            } else if (todayAttendance.check_out) {
+                res.status(400).json({ error: "Already checked out today!" })
+                return
+            }
+
+            const result = await this.services.attendance.checkOut(employeeId)
+
+            res.status(200).json(result)
         } catch (error) {
             this.logger.error(error)
             res.status(500).json(error)
         }
     }
 
-    createTimeIn = async (req, res) => {
+    getOneById = async (req, res) => {
         try {
-            const { employeeId } = req.body;
-            if (!employeeId) {
-                return res.status(400).json({ error: 'Missing required Employee id' })
+            const id = req.params.id
+
+            const result = await this.services.attendance.getOneById(id)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    getMany = async (req, res) => {
+        try {
+            const offset = req.query.offset ? parseInt(req.query.offset) : undefined
+            const limit = req.query.limit ? parseInt(req.query.limit) : undefined
+            const search = req.query.search
+            const status = req.query.status
+            const mindate = req.query.mindate
+            const maxdate = req.query.maxdate
+            const employeeId = req.query.employee_id
+            const orderBy = req.query.sort
+
+            const params = {
+                offset: offset,
+                limit: limit,
+                search: search,
+                status: status,
+                mindate: mindate,
+                maxdate: maxdate,
+                employeeId: employeeId,
+                orderBy: orderBy
             }
 
-            const attendance = await this.AttendanceService.checkIfAlreadyTimedIn(employeeId);
-            if (attendance.length > 0) {
-                return res.status(400).json({ error: 'Already timed in today!' })
+            const result = await this.services.attendance.getMany(params)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    deleteOneById = async (req, res) => {
+        try {
+            const id = req.params.id
+
+            await this.services.attendance.deleteOneById(id)
+
+            res.status(204).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    updateOneById = async (req, res) => {
+        try {
+            const id = req.params.id
+
+            const checkIn = req.body.check_in
+            const checkOut = req.body.check_out
+
+            if (checkIn || checkOut) {
+                const result = await this.services.attendance.getOneById(id)
+
+                if (!result) {
+                    res.status(400).json({ error: "attendance not found" })
+                    return
+                }
+
+                if (checkIn > result.check_out && result.check_out) {
+                    res.status(400).json({ error: "Check in cannot be later than check out time!" })
+                    return
+                }
+
+                if (checkOut < result.check_in && result.check_in) {
+                    res.status(400).json({ error: "Check out cannot be earlier than check in time!" })
+                    return
+                }
             }
 
-            const timeIn = await this.AttendanceService.createTimeIn(employeeId);
-            return res.status(200).json({
-                success: `Successfully checked in at ${timeIn.check_in} on ${new Date(timeIn.date).getFullYear()}-${new Date(timeIn.date).getMonth()}-${new Date(timeIn.date).getDate()}`,
-                timeIn: timeIn
-            })
+            const result = await this.services.attendance.updateOneById(id, req.body)
 
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    createTimeOut = async (req, res) => {
+    deleteManyByIds = async (req, res) => {
         try {
-            const { employeeId } = req.body;
-            if (!employeeId) {
-                return res.status(400).json({ error: 'Missing required Employee id' })
-            }
-            const isTimedIn = await this.AttendanceService.checkIfAlreadyTimedIn(employeeId)
-            if (isTimedIn.length <= 0) {
-                return res.status(400).json({ error: `Haven't timed in yet!` })
-            }
-            const isTimedOut = await this.AttendanceService.checkIfAlreadyTimedOut(employeeId);
-            if (isTimedOut.length > 0) {
-                return res.status(400).json({ error: 'Already timed out today!' });
-            }
-            const timeOut = await this.AttendanceService.createTimeOut(employeeId);
-            return res.status(200).json({
-                success: `Successfully checked out at ${timeOut.check_out} on ${new Date(timeOut.date).getFullYear()}-${new Date(timeOut.date).getMonth() + 1}-${new Date(timeOut.date).getDate()}`,
-                timeout: timeOut.check_out
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const ids = req.body.ids
+
+            await this.services.attendance.deleteManyByIds(ids)
+
+            res.status(204).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    getAllAttendanceByEmployee = async (req, res) => {
+    updateManyByIds = async (req, res) => {
         try {
-            const { employeeId } = req.params;
-            const { dateFrom, dateTo } = req.query;
-            const attendance = await this.AttendanceService.getAllAttendanceByEmployee(employeeId, dateFrom, dateTo);
-            return res.status(200).json({
-                attendance: attendance
-            })
-        } catch (err) {
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const ids = req.body.ids
+            const checkIn = req.body.check_in
+            const checkOut = req.body.check_out
+            delete req.body.ids
 
-    getTodayAttendanceByEmployee = async (req, res) => {
-        try {
-            const { employeeId } = req.params;
-            const attendance = await this.AttendanceService.getTodayAttendanceByEmployee(employeeId)
-            return res.status(200).json(attendance)
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const attendances = await this.services.attendance.getManyByIds(ids)
 
-    getAllAttendance = async (req, res) => {
-        try {
-            const { offset, limit, search, employeeId, status, dateFrom, dateTo } = req.query;
-            const query = await this.AttendanceService.getAllAttendance(offset, limit, search, employeeId, status, dateFrom, dateTo);
-            return res.status(200).json({
-                attendance: query.attendance,
-                employee: query.employee,
-                rowCount: query.rowCount
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
+            if (attendances.length > 0) {
+                for (let i = 0; i < attendances.length; i++) {
+                    if (checkOut < attendances[i].check_in) {
+                        res.status(400).json({ error: "Check out cannot be earlier than check in time!" })
+                        return
+                    }
 
-    getOnTimeRate = async (req, res) => {
-        try {
-            const { startingDate, endingDate } = req.query
-            const metric = await this.AttendanceService.getOnTimeRate(startingDate, endingDate);
-            return res.status(200).json({
-                rate: metric.rate,
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    deleteAttendance = async (req, res) => {
-        try {
-            const { id } = req.params
-            const attendance = await this.AttendanceService.deleteAttendance(id)
-            return res.status(200).json({
-                success: `Successfully deleted attendance record ID ${attendance.id}`
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    updateAttendance = async (req, res) => {
-        try {
-            const { id } = req.params
-            const { check_in, check_out, status } = req.body
-            const attendance = await this.AttendanceService.updateAttendance(id, check_in, check_out, status)
-            return res.status(200).json({
-                success: 'Successfully updated attendance record'
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    createAttendance = async (req, res) => {
-        try {
-            const { employee_id, date, check_in, check_out, status } = req.body
-
-            if (!employee_id || !date || !check_in || !check_out || !status) {
-                return res.status(400).json({
-                    error: 'Missing required fields!'
-                })
+                    if (checkIn > attendances[i].check_out) {
+                        res.status(400).json({ error: "Check in cannot be later than check out time!" })
+                        return
+                    }
+                }
             }
 
-            if (check_in >= check_out) {
-                return res.status(400).json({
+            const result = await this.services.attendance.updateManyByIds(ids, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    createOne = async (req, res) => {
+        try {
+            //TODO retrieve employee from middleware
+            const employeeId = req.body.employee_id
+            const date = req.body.date
+            const checkIn = req.body.check_in
+            const checkOut = req.body.check_out
+            const status = req.body.status
+
+            if (checkIn >= checkOut) {
+                res.status(400).json({
                     error: 'Check in time cannot be greater than or equal to the check out time!'
                 })
+
+                return
             }
 
-            const overlaps = await this.AttendanceService.checkForConflicts(employee_id, date)
-            if (overlaps.length > 0) {
-                const overlappedRecords = overlaps.map(el => {
-                    return {
-                        id: el.id,
-                        check_in: el.check_in,
-                        check_out: el.check_out,
-                        date: `${new Date(el.date).getFullYear()}-${new Date(el.date).getMonth() + 1}-${new Date(el.date).getDate()}`,
-                        employee_id: el.employee_id
-                    }
+            const attendance = await this.services.attendance.getOneByEmployeeIdAndDate(employeeId, date)
+
+            if (attendance) {
+                res.status(400).json({
+                    error: "Overlapped"
                 })
-                return res.status(400).json({
-                    error: `Overlapped Attendance: ${overlappedRecords.map(el => `ID: ${el.id} Date: ${el.date} Employee ID: ${el.employee_id}`)}`
-                })
+                return
             }
 
-            const attendance = await this.AttendanceService.createAttendance(employee_id, date, check_in, check_out, status)
-            return res.status(200).json({
-                success: `Successfully created attendance record ${attendance.id} for Employee ${attendance.employee_id}`,
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const result = await this.services.attendance.createOne(employeeId, date, checkIn, checkOut, status)
 
-    getAttendance = async (req, res) => {
-        try {
-
-            console.log("getting attendnace")
-            const { id } = req.params;
-            const attendance = await this.AttendanceService.getAttendance(id);
-            return res.status(200).json({
-                attendance: attendance
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchDeleteAttendance = async (req, res) => {
-        try {
-            const { id } = req.query;
-            console.log(id)
-            const attendance = await this.AttendanceService.batchDeleteAttendance(id)
-            return res.status(200).json({
-                success: 'Successfully batch deleted attendance record.'
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    batchUpdateAttendance = async (req, res) => {
-        try {
-            const { id, check_in, check_out, status } = req.body
-            const attendance = await this.AttendanceService.batchUpdateAttendance(id, check_in, check_out, status)
-            return res.status(200).json({
-                success: 'Successfully batch updated attendance record.'
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            res.status(200).json(result)
+        } catch (error) {
+            console.log(error)
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 }

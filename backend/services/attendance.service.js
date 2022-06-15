@@ -1,202 +1,165 @@
 class AttendanceService {
-    constructor(knex) {
-        this.knex = knex
+    constructor(models, repositories) {
+        this.models = models
+        this.repositories = repositories
     }
 
-    createTimeIn = async (employeeId) => {
-        const currentTime = new Date()
-        const check_in = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
-        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
-        // const employee = await this.getEmployee(employeeId) TODO: Decouple
-        let status;
-        if (check_in > employee.start_hour) {
-            status = 'late'
-        } else {
-            status = 'on_time'
+    checkIn = async (employeeId) => {
+        try {
+            const currentTime = new Date()
+            const checkInTime = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
+            const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
+
+            const model = this.models.attendance.create(employeeId, date, checkInTime, null, null)
+
+            if (false) {  //TODO check employee/user start hour to determine whether hes late or not
+                model.status = "late"
+            } else {
+                model.status = "on_time"
+            }
+
+            const result = await this.repositories.attendance.createOne(model)
+
+            return result
+        } catch (error) {
+            throw error
         }
-
-        const [attendance] = await this.knex('attendance').insert({
-            employee_id: employeeId,
-            check_in: check_in,
-            date: date,
-            status: status,
-        }).returning(['check_in', 'date', 'status'])
-
-        return attendance
     }
 
-    createTimeOut = async (employeeId) => {
-        const currentTime = new Date()
-        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
-        const check_out = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
-        const [attendance] = await this.knex('attendance')
-            .where('date', date)
-            .andWhere('employee_id', employeeId)
-            .update({
-                check_out: check_out
-            }, ['check_out', 'date'])
-        return attendance
+    checkOut = async (employeeId) => {
+        try {
+            const currentTime = new Date()
+            const checkOutTime = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
+            const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
+
+            const query = (qb) => {
+                qb.where('employee_id', employeeId)
+                qb.andWhere('date', date)
+            }
+
+            const result = await this.repositories.attendance.updateOne(query, { check_out: checkOutTime }, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    checkIfSpecificAlreadyTimedIn = async (employeeId, checkInDate) => {
-        const attendance = await this.knex.select()
-            .from('attendance')
-            .where('employee_id', employeeId)
-            .andWhere('date', checkInDate)
-        return attendance;
+    getOneById = async (id) => {
+        try {
+            const result = await this.repositories.attendance.getOneById(id)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    checkIfSpecificAlreadyTimedOut = async (employeeId, checkInDate) => {
-        const attendance = await this.knex.select()
-            .from('attendance')
-            .where('employee_id', employeeId)
-            .andWhere('date', checkInDate)
-            .whereNull('check_out')
-        return attendance
-    }
+    getMany = async (params) => {
+        try {
+            const offset = params.offset
+            const limit = params.limit
+            const search = params.search
+            const status = params.status
+            const mindate = params.mindate
+            const maxdate = params.maxdate
+            const employeeId = params.employeeId
+            const orderBy = params.orderBy
 
-    checkIfAlreadyTimedIn = async (employeeId) => {
-        const currentTime = new Date()
-        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
-        const attendance = await this.knex.select()
-            .from('attendance')
-            .where('employee_id', employeeId)
-            .andWhere('date', date);
-        return attendance
-    }
+            const query = (qb) => {
+                qb.select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
+                qb.join('employee', 'attendance.employee_id', 'employee.id')
 
-    checkIfAlreadyTimedOut = async (employeeId) => {
-        const currentTime = new Date()
-        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
-        const attendance = await this.knex.select()
-            .from('attendance')
-            .where('employee_id', employeeId)
-            .andWhere('date', date)
-            .whereNotNull('check_out')
-        return attendance;
-    }
-
-    getTodayAttendanceByEmployee = async (employeeId) => {
-        const currentTime = new Date()
-        const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
-        const [attendance] = await this.knex('attendance')
-            .where('date', date)
-            .andWhere('employee_id', employeeId)
-        return attendance
-    }
-
-    getAllAttendance = async (offset, limit, search, employeeId, status, dateFrom, dateTo) => {
-        offset = parseInt(offset) * parseInt(limit)
-        limit = parseInt(limit)
-
-        const employee = await this.knex('employee')
-            .select(['id', 'firstname', 'lastname'])
-            .orderBy('id')
-
-        const attendance = await this.knex('attendance')
-            .select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
-            .join('employee', 'attendance.employee_id', 'employee.id')
-            .modify(qb => {
                 if (search) qb.whereRaw(`to_tsvector(attendance.id || ' ' || attendance.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || attendance.date || ' ' || attendance.check_in || ' ' || attendance.check_out || ' ' || attendance.status) @@ plainto_tsquery('${search}')`)
                 if (employeeId) qb.where('attendance.employee_id', '=', employeeId);
                 if (status) qb.where('attendance.status', '=', status);
-                if (dateFrom && dateTo) qb.whereBetween('attendance.date', [dateFrom, dateTo])
-            })
-            .offset(offset)
-            .limit(limit)
-            .orderBy('id')
+                if (mindate && maxdate) qb.whereBetween('attendance.date', [mindate, maxdate])
 
-        const [rowCount] = await this.knex('attendance')
-            .join('employee', 'attendance.employee_id', 'employee.id')
-            .modify(qb => {
-                if (search) qb.whereRaw(`to_tsvector(attendance.id || ' ' || attendance.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || attendance.date || ' ' || attendance.check_in || ' ' || attendance.check_out || ' ' || attendance.status) @@ plainto_tsquery('${search}')`)
-                if (employeeId) qb.where('attendance.employee_id', '=', employeeId);
-                if (status) qb.where('attendance.status', '=', status);
-                if (dateFrom && dateTo) qb.whereBetween('attendance.date', [dateFrom, dateTo])
-            }).count()
+                if (offset) qb.offset(offset)
+                if (limit) qb.limit(limit)
+                if (orderBy) qb.orderBy(orderBy)
+            }
 
-        return { attendance: attendance, rowCount: rowCount, employee: employee }
+            const result = await this.repositories.attendance.getMany(query)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getAllAttendanceByEmployee = async (employeeId, dateFrom, dateTo) => {
-        const attendance = await this.knex('attendance')
-            .select(['date', 'check_in', 'check_out', 'status'])
-            .where('employee_id', '=', employeeId)
-            .whereBetween('date', [dateFrom, dateTo])
-        return attendance
+    getManyByIds = async (ids) => {
+        try {
+            const query = (qb) => {
+                qb.whereIn('id', ids)
+            }
+
+            const result = await this.repositories.attendance.getMany(query)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    deleteAttendance = async (id) => {
-        const [attendance] = await this.knex('attendance')
-            .where('id', id)
-            .del(['id'])
-        return attendance
+    getOneByEmployeeIdAndDate = async (employeeId, date) => {
+        try {
+            const query = (qb) => {
+                qb.where('employee_id', employeeId)
+                qb.andWhere('date', date)
+            }
+
+            const result = await this.repositories.attendance.getOne(query)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    updateAttendance = async (id, check_in, check_out, status) => {
-        let update = {};
-        if (check_in) update.check_in = check_in;
-        if (check_out) update.check_out = check_out;
-        if (status) update.status = status;
-        const attendance = await this.knex('attendance')
-            .where('id', id)
-            .update(update, ['id'])
-        return attendance
+    deleteOneById = async (id) => {
+        try {
+            await this.repositories.attendance.deleteOneById(id)
+        } catch (error) {
+            throw error
+        }
     }
 
-    createAttendance = async (employee_id, date, check_in, check_out, status) => {
-        const [attendance] = await this.knex('attendance').insert({
-            employee_id: employee_id,
-            check_in: check_in,
-            check_out: check_out,
-            date: date,
-            status: status
-        }, ['id', 'employee_id', 'date'])
-
-        return attendance
+    updateOneById = async (id, data) => {
+        try {
+            const result = await this.repositories.attendance.updateOneById(id, data, ['*'])
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    checkForConflicts = async (employeeId, date) => {
-        const attendance = await this.knex('attendance')
-            .where('date', date)
-            .andWhere('employee_id', employeeId)
-        return attendance
+    deleteManyByIds = async (ids) => {
+        try {
+            await this.repositories.attendance.deleteManyByIds(ids)
+        } catch (error) {
+            throw error
+        }
     }
 
-    getAttendance = async (id) => {
-        const [attendance] = await this.knex('attendance')
-            .select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.check_in', 'attendance.check_out', 'attendance.status', 'attendance.date'])
-            .join('employee', 'attendance.employee_id', 'employee.id')
-            .where('attendance.id', id)
-
-        return attendance
+    updateManyByIds = async (ids, data) => {
+        try {
+            const result = await this.repositories.attendance.updateManyByIds(ids, data, ['*'])
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    batchDeleteAttendance = async (id) => {
-        const attendance = await this.knex('attendance')
-            .whereIn('id', id)
-            .del(['id'])
-        return attendance
-    }
+    createOne = async (employeeId, date, checkInTime, checkOutTime, status) => {
+        try {
+            const model = this.models.attendance.create(employeeId, date, checkInTime, checkOutTime, status)
+            const result = await this.repositories.attendance.createOne(model, ['*'])
 
-    batchUpdateAttendance = async (id, check_in, check_out, status) => {
-        let update = {};
-        if (check_in) update.check_in = check_in;
-        if (check_out) update.check_out = check_out;
-        if (status) update.status = status;
-        const attendance = await this.knex('attendance')
-            .whereIn('id', id)
-            .update(update)
-        return attendance
-    }
-
-    getMonthlyAttendanceByEmployee = async (employeeId, month, year) => {
-        const attendance = await this.knex('attendance')
-            .where('employee_id', employeeId)
-            .andWhereRaw(`EXTRACT(MONTH FROM date) = ${month}`)
-            .andWhereRaw(`EXTRACT(YEAR FROM date) = ${year}`)
-
-        return attendance
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 }
 
