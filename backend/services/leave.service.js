@@ -1,109 +1,137 @@
 class LeaveService {
-    constructor(knex) {
-        this.knex = knex
+    constructor(models, repositories) {
+        this.models = models
+        this.repositories = repositories
     }
 
-    getLeave = async (id) => {
-        const [leave] = await this.knex('leave')
-            .join('employee', 'leave.employee_id', 'employee.id')
-            .select(['leave.id', 'leave.employee_id', 'leave.reason', 'leave.status', 'leave.duration', 'leave.from', 'leave.to', 'employee.firstname', 'employee.lastname', 'leave.type'])
-            .where('leave.id', id)
-        return leave
+    getOneById = async (id) => {
+        try {
+            const query = (qb) => {
+                qb.join('employee', 'leave.employee_id', 'employee.id')
+                qb.select(['leave.id', 'leave.employee_id', 'leave.reason', 'leave.status', 'leave.duration', 'leave.from', 'leave.to', 'employee.firstname', 'employee.lastname', 'leave.type'])
+                qb.where('leave.id', id)
+            }
+
+            const result = await this.repositories.leave.getOne(query)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getAllLeave = async (offset, limit, search, employeeId, dateFrom, dateTo, status) => {
-        const employee = await this.knex('employee')
-            .select(['id', 'firstname', 'lastname'])
+    getMany = async (params) => {
+        try {
+            const offset = params.offset
+            const limit = params.limit
+            const search = params.search
+            const employee_id = params.employee_id
+            const mindate = params.mindate
+            const maxdate = params.maxdate
+            const status = params.status
 
-        const [count] = await this.knex('leave')
-            .join('employee', 'leave.employee_id', 'employee.id')
-            .modify(qb => {
+            const query = (qb) => {
                 if (search) qb.whereRaw(`to_tsvector(leave.id || ' ' || leave.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || leave.from || ' ' || leave.to || ' ' || leave.type || ' ' || leave.duration || ' ' || leave.status) @@ plainto_tsquery('${search}')`)
-                if (employeeId) qb.where('leave.employee_id', '=', employeeId);
-                if (dateFrom && dateTo) qb.whereBetween('leave.from', [dateFrom, dateTo])
-                if (dateFrom && dateTo) qb.whereBetween('leave.to', [dateFrom, dateTo])
+                if (employee_id) qb.where('leave.employee_id', '=', employee_id);
+                if (mindate && maxdate) qb.whereBetween('leave.from', [mindate, maxdate])
+                if (mindate && maxdate) qb.whereBetween('leave.to', [mindate, maxdate])
                 if (status) qb.where('leave.status', '=', status)
-            })
-            .count()
+                if (offset) qb.offset(offset)
+                if (limit) qb.limit(limit)
+            }
 
-        const leave = await this.knex('leave')
-            .join('employee', 'leave.employee_id', 'employee.id')
-            .select(['leave.id', 'leave.employee_id', 'employee.firstname', 'employee.lastname', 'leave.from', 'leave.to', 'leave.type', 'leave.duration', 'leave.status'])
-            .limit(parseInt(limit))
-            .offset(parseInt(offset) * parseInt(limit))
-            .modify(qb => {
-                if (search) qb.whereRaw(`to_tsvector(leave.id || ' ' || leave.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || leave.from || ' ' || leave.to || ' ' || leave.type || ' ' || leave.duration || ' ' || leave.status) @@ plainto_tsquery('${search}')`)
-                if (employeeId) qb.where('leave.employee_id', '=', employeeId);
-                if (dateFrom && dateTo) qb.whereBetween('leave.from', [dateFrom, dateTo])
-                if (dateFrom && dateTo) qb.whereBetween('leave.to', [dateFrom, dateTo])
-                if (status) qb.where('leave.status', '=', status)
-            })
-            .orderBy('id')
+            const result = await this.repositories.leave.getMany(query)
 
-        return { leave: leave, count: count, employee: employee }
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    createLeave = async (employeeId, reason, from, to, duration, type) => {
-        const [leave] = await this.knex.insert({
-            employee_id: employeeId,
-            reason: reason,
-            from: from,
-            to: to,
-            duration: duration,
-            type: type
-        })
-            .into('leave')
-            .returning(['reason', 'from', 'to', 'duration', 'type'])
-        return leave
+    createOne = async (employeeId, reason, from, to, duration, type) => {
+        try {
+            const model = this.models.leave.create(employeeId, reason, from, to, duration, type)
+            const result = await this.repositories.leave.createOne(model, ['*'])
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    updateLeave = async (id, duration, type, status) => {
-        if (!Array.isArray(id)) id = [id];
-        let update = {}
-        if (duration) update.duration = duration;
-        if (type) update.type = type;
-        if (status) update.status = status;
-        const [leave] = await this.knex('leave')
-            .whereIn('id', id)
-            .update(update, ['id'])
-        return leave
+    updateOneById = async (id, params) => {
+        try {
+            console.log(params)
+
+            const duration = params.duration
+            const type = params.type
+            const status = params.status
+            const reason = params.reason
+
+            const data = {}
+            console.log(reason)
+
+            if (duration) data.duration = duration
+            if (type) data.type = type
+            if (status) data.status = status
+            if (reason) data.reason = reason
+
+            const result = await this.repositories.leave.updateOneById(id, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    deleteLeave = async (ids) => {
-        const [leave] = await this.knex('leave')
-            .whereIn('id', ids)
-            .del(['id'])
-        return leave
+    updateManyByIds = async (ids, params) => {
+        try {
+            const duration = params.duration
+            const type = params.type
+            const status = params.status
+            const reason = params.reason
+
+            const data = {}
+            if (duration) data.duration = duration
+            if (type) data.type = type
+            if (status) data.status = status
+            if (reason) data.reason = reason
+
+            const result = await this.repositories.leave.updateManyByIds(ids, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    checkLeaveConflict = async (employeeId, from, to) => {
-        const leave = await this.knex('leave')
-            .where(queryBuilder => queryBuilder.where('from', '<=', to).andWhere('to', '>=', from))
-            .andWhere('employee_id', employeeId)
-        return leave
+    deleteOneById = async (id) => {
+        try {
+            await this.repositories.leave.deleteOneById(id)
+        } catch (error) {
+            throw error
+        }
     }
 
-    checkAnnualLeave = async (employeeId) => {
-        const [employeeAL] = await this.knex('employee')
-            .select('annual_leave_count')
-            .where('id', employeeId)
-
-        return employeeAL
+    deleteManyByIds = async (ids) => {
+        try {
+            await this.repositories.leave.deleteManyByIds(ids)
+        } catch (error) {
+            throw error
+        }
     }
 
-    getAllLeaveByEmployee = async (employeeId, dateFrom, dateTo) => {
-        const leave = await this.knex('leave')
-            .where('employee_id', '=', employeeId)
-            .whereBetween('from', [dateFrom, dateTo])
-            .whereBetween('to', [dateFrom, dateTo])
+    getManyByIds = async (ids) => {
+        try {
+            const query = (qb) => {
+                qb.whereIn('id', ids)
+            }
 
-        return leave
-    }
+            const result = await this.repositories.leave.getMany(query)
 
-    checkIfApproved = async (id) => {
-        if (!Array.isArray(id)) id = [id];
-        const leave = await this.knex('leave').whereIn('id', id)
-        return leave
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 }
 

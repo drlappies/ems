@@ -5,12 +5,13 @@ class LeaveRoute {
     }
 
     get route() {
-        this.router.get('/leave', this.controller.getAllLeave)
-        this.router.get('/leave/:id', this.controller.getLeave)
-        this.router.post('/leave', this.controller.createLeave)
-        this.router.put('/leave', this.controller.updateLeave)
-        this.router.delete('/leave', this.controller.deleteLeave)
-        this.router.get('/leave/user/:employeeId/history', this.controller.getAllLeaveByEmployee)
+        this.router.get('/api/leave', this.controller.getMany)
+        this.router.get('/api/leave/:id', this.controller.getOneById)
+        this.router.post('/api/leave', this.controller.createOne)
+        this.router.put('/api/leave/:id', this.controller.updateOneById)
+        this.router.delete('/api/leave/:id', this.controller.deleteOneById)
+        this.router.post('/api/leave/batch_update', this.controller.updateManyByIds)
+        this.router.post('/api/leave/batch_delete', this.controller.deleteManyByIds)
 
         return this.router
     }

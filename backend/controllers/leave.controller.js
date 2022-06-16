@@ -4,46 +4,52 @@ class LeaveController {
         this.services = services
     }
 
-    getLeave = async (req, res) => {
+    getOneById = async (req, res) => {
         try {
-            const { id } = req.params;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields'
-                })
+            const id = req.params.id
+
+            const result = await this.services.leave.getOneById(id)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    getMany = async (req, res) => {
+        try {
+            const offset = req.query.offset ? parseInt(req.query.offset) : undefined
+            const limit = req.query.limit ? parseInt(req.query.limit) : undefined
+
+            const params = {
+                offset: offset,
+                limit: limit,
+                search: req.query.search,
+                employee_id: req.query.employee_id,
+                mindate: req.query.mindate,
+                maxdate: req.query.maxdate,
+                status: req.query.status
             }
-            const leave = await this.LeaveService.getLeave(id);
-            return res.status(200).json({
-                leave: leave
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
+
+            const result = await this.services.leave.getMany(params)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    getAllLeave = async (req, res) => {
+    createOne = async (req, res) => {
         try {
-            const { offset, limit, search, employee, dateFrom, dateTo, status } = req.query
-            const query = await this.LeaveService.getAllLeave(offset, limit, search, employee, dateFrom, dateTo, status);
-            return res.status(200).json({
-                leave: query.leave,
-                employee: query.employee,
-                rowCount: query.count
-            });
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const employeeId = req.body.employee_id
+            const reason = req.body.reason
+            const from = req.body.from
+            const to = req.body.to
+            const duration = req.body.duration
+            const type = req.body.type
 
-    createLeave = async (req, res) => {
-        try {
-            const { employeeId, reason, from, to, duration, type } = req.body;
             if (!employeeId || !reason || !from || !to || !duration || !type) {
                 return res.status(400).json({
                     error: 'Missing required fields.'
@@ -56,75 +62,101 @@ class LeaveController {
                 })
             }
 
-            const leaveConflict = await this.LeaveService.checkLeaveConflict(employeeId, from, to)
-            if (leaveConflict.length >= 1) {
-                return res.status(400).json({
+            const params = {
+                mindate: from,
+                maxdate: to,
+                employee_id: employeeId
+            }
+
+            const leaves = await this.services.leave.getMany(params)
+
+            if (leaves.length >= 1) {
+                res.status(400).json({
                     error: 'Found conflicting leave record.'
                 })
+                return
             }
 
-            const leave = await this.LeaveService.createLeave(employeeId, reason, from, to, duration, type);
-            res.status(200).json({
-                success: `Successfully applied for leave from ${new Date(leave.from).getFullYear()} - ${new Date(leave.from).getMonth() + 1} - ${new Date(leave.from).getDate()} to ${new Date(leave.to).getFullYear()} - ${new Date(leave.to).getMonth() + 1} - ${new Date(leave.to).getDate()} Reason: ${leave.reason}`
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
+            const result = await this.services.leave.createOne(employeeId, reason, from, to, duration, type)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    updateLeave = async (req, res) => {
+    updateOneById = async (req, res) => {
         try {
-            let { status, duration, type, id } = req.body
-            const leave = await this.LeaveService.updateLeave(id, duration, type, status);
-            res.status(200).json({
-                success: `Successfully updated leave record!`
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
+            const id = req.params.id
+
+            const result = await this.services.leave.updateOneById(id, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            console.log(error)
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    deleteLeave = async (req, res) => {
+    updateManyByIds = async (req, res) => {
         try {
-            let { ids } = req.query;
-            if (!Array.isArray(ids)) ids = [ids];
-            const approvedLeave = await this.LeaveService.checkIfApproved(ids)
-            if (approvedLeave.length > 0) {
-                return res.status(400).json({
+            const ids = req.body.ids
+            delete req.body.ids
+
+            const result = await this.services.leave.updateManyByIds(ids, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    deleteOneById = async (req, res) => {
+        try {
+            const id = req.params.id
+
+            const leave = await this.services.leave.getOneById(id)
+
+            if (leave.status === "approved") {
+                res.status(400).json({
                     error: 'Cannot delete an approved leave!'
                 })
+                return;
             }
 
-            const leave = await this.LeaveService.deleteLeave(ids)
-            res.status(200).json({
-                success: `Successfully deleted leave record`
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
+            await this.services.leave.deleteOneById(id)
+
+            res.status(204).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    getAllLeaveByEmployee = async (req, res) => {
+    deleteManyByIds = async (req, res) => {
         try {
-            const { employeeId } = req.params;
-            const { dateFrom, dateTo } = req.query;
-            const leave = await this.LeaveService.getAllLeaveByEmployee(employeeId, dateFrom, dateTo)
-            return res.status(200).json({
-                leave: leave
-            })
-        } catch (err) {
-            return res.status(500).json({
-                error: err
-            })
+            const ids = req.body.ids
+
+            const leaves = await this.services.leave.getManyByIds(ids)
+
+            if (leaves.length > 0) {
+                for (let i = 0; i < leaves.length; i++) {
+                    if (leaves[i].status === "approved") {
+                        res.status(400).json({ error: "Cannot delete an approved leave" })
+                        return
+                    }
+                }
+            }
+
+            await this.services.leave.deleteManyByIds(ids)
+
+            res.status(204).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 }
