@@ -4,92 +4,98 @@ class DepartmentController {
         this.services = services
     }
 
-    getDepartment = async (req, res) => {
+    createOne = async (req, res) => {
         try {
-            const { id } = req.params;
-            const dept = await this.departmentService.getDepartment(id);
-            return res.status(200).json({
-                id: dept.id,
-                name: dept.name,
-                desc: dept.description
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({ error: err })
+            const name = req.body.name
+            const description = req.body.description
+
+            const result = await this.services.department.createOne(name, description)
+
+            res.status(200).json(result)
+        } catch (error) {
+            console.log(error)
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    getAllDepartment = async (req, res) => {
+    getOneById = async (req, res) => {
         try {
-            const { offset, limit, search } = req.query
-            const query = await this.departmentService.getAllDepartment(offset, limit, search);
-            return res.status(200).json({
-                dept: query.dept,
-                rowCount: query.count
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({ error: err })
+            const id = req.params.id
+
+            const result = await this.services.department.getOneById(id)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    createDepartment = async (req, res) => {
+    getMany = async (req, res) => {
         try {
-            const { name, desc } = req.body;
-            if (!name) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
+            const offset = req.query.offset ? parseInt(req.query.offset) : undefined
+            const limit = req.query.limit ? parseInt(req.query.limit) : undefined
+            const search = req.query.search
+
+            const params = {
+                offset: offset,
+                limit: limit,
+                search: search
             }
-            const dept = await this.departmentService.createDepartment(name, desc);
-            return res.status(200).json({
-                success: `Successfully created department: ${dept.name} id: ${dept.id}`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({ error: err })
+
+            const result = await this.services.department.getMany(params)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    updateDepartment = async (req, res) => {
+    updateOneById = async (req, res) => {
         try {
-            const { id, name, desc } = req.body;
-            if (!id || !name) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
+            const id = req.params.id
+
+            const data = {
+                name: req.body.name,
+                description: req.body.description
             }
-            const dept = await this.departmentService.updateDepartment(id, name, desc);
-            return res.status(200).json({
-                success: dept.length > 1 ? "Successfully batch updated departments" : `Successfully updated department ${dept[0].id}`,
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({ error: err })
+
+            const result = await this.services.department.updateOneById(id, data)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    deleteDepartment = async (req, res) => {
+    updateManyByIds = async (req, res) => {
         try {
-            const { id } = req.query;
-            const dept = await this.departmentService.deleteDepartment(id);
-            return res.status(200).json({
-                success: dept.length > 1 ? "Successfully batch deleted departments" : `Successfully deleted department ID: ${dept.id}`,
-            })
-        } catch (err) {
-            return res.status(500).json({ error: err })
+            const ids = req.body.ids
+            delete req.body.ids
+
+            const result = await this.services.department.updateManyByIds(ids, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    getDepartmentCount = async (req, res) => {
+    deleteManyByIds = async (req, res) => {
         try {
-            const departmentCount = await this.departmentService.getDepartmentCount();
-            return res.status(200).json({
-                departmentCount: departmentCount
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({ error: err })
+            const ids = req.body.ids
+            delete req.body.ids
+
+            await this.services.department.deleteManyByIds(ids)
+
+            res.status(200).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 }

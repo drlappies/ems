@@ -22,7 +22,7 @@ const container = {
     overtime: new OvertimeRepository(knex, "overtime"),
     position: new PositionRepository(knex, "position"),
     reimbursement: new ReimbursementRepository(knex, "reimbursement"),
-    department: new DepartmentRepository(knex, "department")
+    department: new DepartmentRepository(knex, "departments")
 }
 
 export default container

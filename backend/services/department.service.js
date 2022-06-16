@@ -1,62 +1,97 @@
 class DepartmentService {
-    constructor(knex) {
-        this.knex = knex
+    constructor(models, repositories) {
+        this.models = models
+        this.repositories = repositories
     }
 
-    getDepartment = async (id) => {
-        const [dept] = await this.knex.select().from('departments').where({ id: id })
-        return dept;
+    createOne = async (name, desc) => {
+        try {
+            const model = this.models.department.create(name, desc)
+            const result = await this.repositories.department.createOne(model, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getAllDepartment = async (offset, limit, search) => {
-        const [count] = await this.knex('departments')
-            .modify(qb => {
+    getOneById = async (id) => {
+        try {
+            const result = this.repositories.department.getOneById(id)
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
+
+    getMany = async (params) => {
+        try {
+            const offset = params.offset
+            const limit = params.limit
+            const search = params.search
+
+            const query = (qb) => {
                 if (search) qb.whereRaw(`to_tsvector(name || ' ' || description) @@ plainto_tsquery('${search}')`)
-            })
-            .count('id')
+                if (offset) qb.offset(offset)
+                if (limit) qb.limit(limit)
+            }
 
-        const dept = await this.knex('departments')
-            .select()
-            .modify(qb => {
-                if (search) qb.whereRaw(`to_tsvector(name || ' ' || description) @@ plainto_tsquery('${search}')`)
-            })
-            .limit(parseInt(limit))
-            .offset(parseInt(limit) * parseInt(offset))
-            .orderBy('id')
+            const result = await this.repositories.department.getMany(query)
 
-        return { dept: dept, count: count }
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    createDepartment = async (name, description) => {
-        const [dept] = await this.knex.insert({
-            name: name,
-            description: description
-        }).into('departments').returning(['id', 'name'])
-        return dept
+    updateOneById = async (id, params) => {
+        try {
+            const name = params.name
+            const description = params.description
+
+            const data = {}
+            if (name) data.name = name
+            if (description) data.description = description
+
+            const result = await this.repositories.department.updateOneById(id, data)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    updateDepartment = async (id, name, description) => {
-        if (!Array.isArray(id)) id = [id];
-        let update = {}
-        if (name) update.name = name;
-        if (description) update.description = description
-        const dept = await this.knex('departments').whereIn('id', id).update(update, ['id', 'name', 'description'])
-        return dept
+    updateManyByIds = async (ids, params) => {
+        try {
+            const name = params.name
+            const description = params.description
+
+            const data = {}
+            if (name) data.name = name
+            if (description) data.description = description
+
+            const result = await this.repositories.department.updateManyByIds(ids, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    deleteDepartment = async (id) => {
-        console.log(id)
-        if (!Array.isArray(id)) id = [id]
-        const [dept] = await this.knex('departments')
-            .whereIn('id', id)
-            .del(['id'])
-        return dept
+    deleteOneById = async (id) => {
+        try {
+            await this.repositories.department.deleteOneById(id)
+        } catch (error) {
+            throw error
+        }
     }
 
-    getDepartmentCount = async () => {
-        const [count] = await this.knex('departments')
-            .count()
-        return count.count
+    deleteManyByIds = async (ids) => {
+        try {
+            await this.repositories.department.deleteManyByIds(ids)
+        } catch (error) {
+            throw error
+        }
     }
 }
 

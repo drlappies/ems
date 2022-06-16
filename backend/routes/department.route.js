@@ -5,12 +5,12 @@ class DepartmentRoute {
     }
 
     get route() {
-        this.router.get('/department', this.controller.getAllDepartment);
-        this.router.get('/department/metric', this.controller.getDepartmentCount);
-        this.router.get('/department/:id', this.controller.getDepartment);
-        this.router.post('/department', this.controller.createDepartment);
-        this.router.put('/department', this.controller.updateDepartment);
-        this.router.delete('/department', this.controller.deleteDepartment);
+        this.router.get('/api/department', this.controller.getMany);
+        this.router.get('/api/department/:id', this.controller.getOneById);
+        this.router.post('/api/department', this.controller.createOne);
+        this.router.put('/api/department/:id', this.controller.updateOneById);
+        this.router.post('/api/department/batch_update', this.controller.updateManyByIds)
+        this.router.post('/api/department/batch_delete', this.controller.deleteManyByIds)
 
         return this.router
     }
