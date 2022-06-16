@@ -9,7 +9,7 @@ class PasswordUtil {
     }
 
     validatePassword = async (plainPw, hashedPw) => {
-        return await bcrypt.compare(plainPw, hashedPw);
+        return await this.bcrypt.compare(plainPw, hashedPw);
     }
 }
 

@@ -1,29 +1,37 @@
 class LoginController {
-    constructor({ logger, services }) {
+    constructor({ logger, services, utils, jwt }) {
         this.logger = logger
         this.services = services
+        this.utils = utils
+        this.jwt = jwt
     }
 
     login = async (req, res) => {
         try {
-            const { username, password } = req.body;
+            const username = req.body.username
+            const password = req.body.password
+
             if (!username || !password) {
                 return res.status(401).json({
                     error: 'Incorrect credentials.'
                 })
             }
-            const user = await this.LoginService.getUserByUsername(username);
+
+            const user = await this.services.employee.getOneByUsername(username)
             if (!user || user.status === 'unavailable' || user.status === 'temporarily_unavailable') {
                 return res.status(401).json({
                     error: 'Incorrect credentials.'
                 })
             }
-            const isPasswordValid = await checkPassword(password, user.password)
-            if (!isPasswordValid) {
+
+            const isPwValid = await this.utils.password.validatePassword(password, user.password)
+
+            if (!isPwValid) {
                 return res.status(401).json({
                     error: 'Incorrect credentials.'
                 })
             }
+
             const payload = {
                 id: user.id,
                 department: user.name,
@@ -43,31 +51,13 @@ class LoginController {
                 firstname: user.firstname,
                 lastname: user.lastname
             }
-            const token = jwt.sign(payload, process.env.JWT_SECRET)
-            return res.status(200).json({
-                token: token,
-                payload: payload
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
 
-    verify = async (req, res) => {
-        try {
-            const { token } = req.headers
-            const decoded = jwt.verify(token, process.env.JWT_SECRET)
-            return res.status(200).json({
-                token: token,
-                payload: decoded
-            })
-        } catch (err) {
-            return res.status(500).json({
-                error: err
-            })
+            const token = await this.jwt.sign(payload, process.env.SECRET, { expiresIn: '7d' })
+
+            res.status(200).json({ token, payload })
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 }

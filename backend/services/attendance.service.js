@@ -4,21 +4,21 @@ class AttendanceService {
         this.repositories = repositories
     }
 
-    checkIn = async (employeeId) => {
+    checkIn = async (employee) => {
         try {
             const currentTime = new Date()
             const checkInTime = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
             const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
 
-            const model = this.models.attendance.create(employeeId, date, checkInTime, null, null)
+            const model = this.models.attendance.create(employee.id, date, checkInTime, null, null)
 
-            if (false) {  //TODO check employee/user start hour to determine whether hes late or not
+            if (checkInTime > employee.start_hour) {
                 model.status = "late"
             } else {
                 model.status = "on_time"
             }
 
-            const result = await this.repositories.attendance.createOne(model)
+            const result = await this.repositories.attendance.createOne(model, ['*'])
 
             return result
         } catch (error) {
@@ -26,14 +26,14 @@ class AttendanceService {
         }
     }
 
-    checkOut = async (employeeId) => {
+    checkOut = async (employee) => {
         try {
             const currentTime = new Date()
             const checkOutTime = `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`;
             const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
 
             const query = (qb) => {
-                qb.where('employee_id', employeeId)
+                qb.where('employee_id', employee.id)
                 qb.andWhere('date', date)
             }
 

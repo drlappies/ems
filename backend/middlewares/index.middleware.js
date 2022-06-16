@@ -1,10 +1,11 @@
 import services from '../services/index.service'
-import jwt from 'jwt'
+import jwt from 'jsonwebtoken'
+import utils from '../utils/index.util'
 import UserMiddleware from "./user.middleware";
 
 
 const container = {
-    userMiddleware: new UserMiddleware({ jwt, services })
+    user: new UserMiddleware({ utils, services, jwt })
 }
 
 export default container

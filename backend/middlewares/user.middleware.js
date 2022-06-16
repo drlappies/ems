@@ -1,22 +1,18 @@
 class UserMiddleware {
-    constructor({ jwt, services }) {
-        this.jwt = jwt
+    constructor({ utils, services, jwt }) {
+        this.utils = utils
         this.services = services
+        this.jwt = jwt
     }
 
-    getUser = (req, res, next) => {
+    verify = async (req, res, next) => {
         try {
             const token = req.headers.token
+            const jwtRes = await this.jwt.verify(token, process.env.SECRET)
 
-            this.jwt.verify(token, process.env.SECRET, err => {
-                if (err) {
-                    res.status(400).json({ error: "unauthorised" })
-                    return
-                }
-            })
+            const user = await this.services.employee.getOneById(jwtRes.id)
 
-            //TODO fetch user from here
-
+            req.user = user
             next()
         } catch (error) {
             res.status(500).json(error)

@@ -6,21 +6,19 @@ class AttendanceController {
 
     checkIn = async (req, res) => {
         try {
-            //TODO get employeeId from user middleware
-            const employeeId = req.body.employee_id
+            const employee = req.user
 
-            //TODO check if employee exists
             const currentTime = new Date()
             const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
 
-            const todayAttendance = await this.services.attendance.getOneByEmployeeIdAndDate(employeeId, date)
+            const todayAttendance = await this.services.attendance.getOneByEmployeeIdAndDate(employee.id, date)
 
             if (todayAttendance) {
                 res.status(400).json({ error: "already checked in" })
                 return
             }
 
-            const result = await this.services.attendance.checkIn(employeeId)
+            const result = await this.services.attendance.checkIn(employee)
 
             res.status(200).json(result)
         } catch (error) {
@@ -32,13 +30,11 @@ class AttendanceController {
 
     checkOut = async (req, res) => {
         try {
-            const employeeId = req.body.employee_id
-            //TODO get employeeId from user middleware
-            //TODO check if employee exists
+            const employee = req.user
             const currentTime = new Date()
             const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
 
-            const todayAttendance = await this.services.attendance.getOneByEmployeeIdAndDate(employeeId, date)
+            const todayAttendance = await this.services.attendance.getOneByEmployeeIdAndDate(employee.id, date)
 
             if (!todayAttendance) {
                 res.status(400).json({ error: "Haven't checked in today!" })
@@ -48,7 +44,7 @@ class AttendanceController {
                 return
             }
 
-            const result = await this.services.attendance.checkOut(employeeId)
+            const result = await this.services.attendance.checkOut(employee)
 
             res.status(200).json(result)
         } catch (error) {

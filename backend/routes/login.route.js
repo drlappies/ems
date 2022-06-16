@@ -1,12 +1,12 @@
 class LoginRoute {
-    constructor(router, controller) {
+    constructor({ router, controller, middlewares }) {
         this.router = router()
         this.controller = controller
+        this.middlewares = middlewares
     }
 
     get route() {
-        this.router.post('/login', this.controller.login)
-        this.router.get('/verify', this.controller.verify)
+        this.router.post('/api/login', this.middlewares.user.verify, this.controller.login)
 
         return this.router
     }

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import middlewares from '../middlewares/index.middleware'
 import controllerCont from '../controllers/index.controller'
 import AllowanceRoute from "./allowance.route";
 import AttendanceRoute from './attendance.route';
@@ -15,19 +16,19 @@ import ReimbursementRoute from './reimbursement.route';
 import AllowanceEmployeeRoute from './allowance_employee.route';
 
 const container = {
-    allowanceEmployee: new AllowanceEmployeeRoute(Router, controllerCont.allowanceEmployee),
-    allowance: new AllowanceRoute(Router, controllerCont.allowance),
-    attendance: new AttendanceRoute(Router, controllerCont.attenddence),
-    bonus: new BonusRoute(Router, controllerCont.bonus),
-    deduction: new DeductionRoute(Router, controllerCont.deduction),
-    department: new DepartmentRoute(Router, controllerCont.department),
-    employee: new EmployeeRoute(Router, controllerCont.employee),
-    leave: new LeaveRoute(Router, controllerCont.leave),
-    login: new LoginRoute(Router, controllerCont.login),
-    overtime: new OvertimeRoute(Router, controllerCont.overtime),
-    payroll: new PayrollRoute(Router, controllerCont.payroll),
-    position: new PositionRoute(Router, controllerCont.position),
-    reimbursement: new ReimbursementRoute(Router, controllerCont.reimbursement)
+    allowanceEmployee: new AllowanceEmployeeRoute({ router: Router, controller: controllerCont.allowanceEmployee, middlewares }),
+    allowance: new AllowanceRoute({ router: Router, controller: controllerCont.allowance, middlewares }),
+    attendance: new AttendanceRoute({ router: Router, controller: controllerCont.attendence, middlewares }),
+    bonus: new BonusRoute({ router: Router, controller: controllerCont.bonus, middlewares }),
+    deduction: new DeductionRoute({ router: Router, controller: controllerCont.deduction, middlewares }),
+    department: new DepartmentRoute({ router: Router, controller: controllerCont.department, middlewares }),
+    employee: new EmployeeRoute({ router: Router, controller: controllerCont.employee, middlewares }),
+    leave: new LeaveRoute({ router: Router, controller: controllerCont.leave, middlewares }),
+    login: new LoginRoute({ router: Router, controller: controllerCont.login, middlewares }),
+    overtime: new OvertimeRoute({ router: Router, controller: controllerCont.overtime, middlewares }),
+    payroll: new PayrollRoute({ router: Router, controller: controllerCont.payroll, middlewares }),
+    position: new PositionRoute({ router: Router, controller: controllerCont.position, middlewares }),
+    reimbursement: new ReimbursementRoute({ router: Router, controller: controllerCont.reimbursement, middlewares })
 }
 
 export default container

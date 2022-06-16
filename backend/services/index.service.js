@@ -7,7 +7,6 @@ import BonusService from './bonus.service';
 import DeductionService from './deduction.service';
 import DepartmentService from './department.service';
 import LeaveService from './leave.service';
-import LoginService from './login.service';
 import OvertimeService from './overtime.service';
 import PayrollService from './payroll.service';
 import PositionService from './position.service';
@@ -22,7 +21,6 @@ const container = {
     deduction: new DeductionService(modelCont, repositoryCont),
     department: new DepartmentService(modelCont, repositoryCont),
     leave: new LeaveService(modelCont, repositoryCont),
-    login: new LoginService(modelCont, repositoryCont),
     overtime: new OvertimeService(modelCont, repositoryCont),
     payroll: new PayrollService(modelCont, repositoryCont),
     position: new PositionService(modelCont, repositoryCont),
