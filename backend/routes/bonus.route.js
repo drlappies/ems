@@ -5,12 +5,11 @@ class BonusRoute {
     }
 
     get route() {
-        this.router.post('/bonus', this.controller.createBonus);
-        this.router.put('/bonus', this.controller.editBonus);
-        this.router.delete('/bonus', this.controller.deleteBonus)
-        this.router.get('/bonus', this.controller.getAllBonus);
-        this.router.get('/bonus/:id', this.controller.getBonus)
-        this.router.get('/bonus/user/:id', this.controller.getBonusByEmployee)
+        this.router.post('/api/bonus', this.controller.createOne);
+        this.router.put('/api/bonus/:id', this.controller.updateOneById);
+        this.router.delete('/api/bonus/:id', this.controller.deleteOneById)
+        this.router.get('/api/bonus', this.controller.getMany);
+        this.router.get('/api/bonus/:id', this.controller.getOneById)
 
         return this.router
     }

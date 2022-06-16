@@ -1,63 +1,80 @@
 class BonusService {
-    constructor(knex) {
-        this.knex = knex
+    constructor(models, repositories) {
+        this.models = models
+        this.repositories = repositories
     }
 
-    createBonus = async (employeeId, reason, amount, date) => {
-        const [bonus] = await this.knex('bonus').insert({
-            employee_id: employeeId,
-            reason: reason,
-            amount: amount,
-            date: date
-        }).returning(['id', 'employee_id', 'reason', 'amount', 'date'])
-        return bonus
+    createOne = async (employeeId, reason, amount, date) => {
+        try {
+            const model = this.models.bonus.create(employeeId, reason, amount, date)
+            const result = await this.repositories.bonus.createOne(model, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    deleteBonus = async (id) => {
-        if (!Array.isArray(id)) id = [id]
-        const bonus = await this.knex('bonus').whereIn('id', id).del(['id'])
-        return bonus
+    deleteOneById = async (id) => {
+        try {
+            await this.repositories.bonus.deleteOneById(id)
+        } catch (error) {
+            throw error
+        }
     }
 
-    editBonus = async (id, employeeId, reason, amount, date) => {
-        if (!Array.isArray(id)) id = [id]
-        let update = {};
-        if (employeeId) update.employee_id = employeeId
-        if (date) update.date = date;
-        if (reason) update.reason = reason;
-        if (amount) update.amount = amount;
-        const [bonus] = await this.knex('bonus')
-            .whereIn('id', id)
-            .update(update, ['id'])
-        return bonus
+    updateOneById = async (id, params) => {
+        try {
+            const data = {};
+
+            if (params.employeeId) data.employee_id = params.employee_id
+            if (params.reason) data.reason = params.reason
+            if (params.amount) data.amount = params.amount
+            if (params.date) data.date = params.date
+
+            const result = await this.repositories.bonus.updateOneById(id, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getAllBonus = async (offset, limit, search, employeeId, amountFrom, amountTo) => {
-        const [count] = await this.knex('bonus')
-            .join('employee', 'bonus.employee_id', 'employee.id')
-            .modify(qb => {
-                if (amountFrom && amountTo) qb.whereBetween('bonus.amount', [amountFrom, amountTo])
-                if (employeeId) qb.where('bonus.employee_id', '=', employeeId)
+    getMany = async (params) => {
+        try {
+            const offset = params.offset
+            const limit = params.limit
+            const search = params.search
+            const employee_id = params.employee_id
+            const minamount = params.minamount
+            const maxamount = params.maxamount
+
+            const query = qb => {
+                qb.join('employee', 'bonus.employee_id', 'employee.id')
+                qb.select(['bonus.id', 'bonus.employee_id', 'employee.firstname', 'employee.lastname', 'bonus.date', 'bonus.reason', 'bonus.amount'])
+                if (minamount && maxamount) qb.whereBetween('bonus.amount', [minamount, maxamount])
+                if (employee_id) qb.where('bonus.employee_id', '=', employee_id)
                 if (search) qb.whereRaw(`to_tsvector(bonus.id || ' ' || bonus.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || bonus.date || ' ' || bonus.reason || ' ' || bonus.amount) @@ plainto_tsquery('${search}')`)
-            })
-            .count()
+                if (offset) qb.offset(offset)
+                if (limit) qb.limit(limit)
+            }
 
-        const bonus = await this.knex('bonus')
-            .join('employee', 'bonus.employee_id', 'employee.id')
-            .select(['bonus.id', 'bonus.employee_id', 'employee.firstname', 'employee.lastname', 'bonus.date', 'bonus.reason', 'bonus.amount'])
-            .modify(qb => {
-                if (amountFrom && amountTo) qb.whereBetween('bonus.amount', [amountFrom, amountTo])
-                if (employeeId) qb.where('bonus.employee_id', '=', employeeId)
-                if (search) qb.whereRaw(`to_tsvector(bonus.id || ' ' || bonus.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || bonus.date || ' ' || bonus.reason || ' ' || bonus.amount) @@ plainto_tsquery('${search}')`)
-            })
-            .limit(parseInt(limit))
-            .offset(parseInt(limit) * parseInt(offset))
-            .orderBy('bonus.id')
+            const result = await this.repositories.bonus.getMany(query)
 
-        const employee = await this.knex('employee')
-            .select(['id', 'firstname', 'lastname'])
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
 
-        return { count: count, bonus: bonus, employee: employee }
+    getOneById = async (id) => {
+        try {
+            const result = await this.repositories.bonus.getOneById(id)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
     getBonus = async (id) => {

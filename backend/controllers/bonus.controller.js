@@ -3,117 +3,87 @@ class BonusController {
         this.logger = logger
         this.services = services
     }
-    createBonus = async (req, res) => {
+
+    createOne = async (req, res) => {
         try {
-            const { employeeId, reason, amount, date } = req.body;
+            const employeeId = req.body.employee_id
+            const reason = req.body.reason
+            const amount = req.body.amount
+            const date = req.body.date
+
             if (!employeeId || !reason || !amount || !date) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
+                res.status(400).json({ error: "missing required fields" })
+                return
             }
-            const bonus = await this.BonusService.createBonus(employeeId, reason, amount, date);
-            return res.status(200).json({
-                success: `Successfully created bonus ${bonus.id}. Amount: ${bonus.amount}.`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+
+            const result = await this.services.bonus.createOne(employeeId, reason, amount, date)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    deleteBonus = async (req, res) => {
+    deleteOneById = async (req, res) => {
         try {
-            const { id } = req.query;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
+            const id = req.params.id
+
+            await this.services.bonus.deleteOneById(id)
+
+            res.status(204).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    updateOneById = async (req, res) => {
+        try {
+            const id = req.params.id
+
+            const result = await this.services.bonus.updateOneById(id, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    getMany = async (req, res) => {
+        try {
+            const offset = req.query.offset ? parseInt(req.query.offset) : undefined
+            const limit = req.query.limit ? parseInt(req.query.limit) : undefined
+
+            const params = {
+                offset: offset,
+                limit: limit,
+                search: req.query.search,
+                employee_id: req.query.employee_id,
+                minamount: req.query.minamount,
+                maxamount: req.query.maxamount,
             }
-            const bonus = await this.BonusService.deleteBonus(id);
-            return res.status(200).json({
-                success: bonus.length > 1 ? "Successfully batch deleted bonus" : `Successfully deleted bonus ID: ${bonus[0].id}.`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+
+            const result = await this.services.bonus.getMany(params)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    editBonus = async (req, res) => {
+    getOneById = async (req, res) => {
         try {
-            const { id, employeeId, reason, amount, date } = req.body;
-            if (!id && !employeeId && !reason && !amount && !date) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const bonus = await this.BonusService.editBonus(id, employeeId, reason, amount, date);
-            return res.status(200).json({
-                success: `Successfully edited bouns ${bonus.id}`,
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const id = req.params.id
 
-    getAllBonus = async (req, res) => {
-        try {
-            const { offset, limit, search, employee, amountFrom, amountTo } = req.query
-            const query = await this.BonusService.getAllBonus(offset, limit, search, employee, amountFrom, amountTo);
-            return res.status(200).json({
-                bonus: query.bonus,
-                rowCount: query.count,
-                employee: query.employee
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const result = await this.services.bonus.getOneById(id)
 
-    getBonus = async (req, res) => {
-        try {
-            const { id } = req.params;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const bonus = await this.BonusService.getBonus(id);
-            return res.status(200).json({
-                bonus: bonus,
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    getBonusByEmployee = async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { offset, limit } = req.query
-            const query = await this.BonusService.getBonusByEmployee(id, offset, limit);
-            return res.status(200).json({
-                bonus: query.bonus,
-                rowCount: query.count
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 }
