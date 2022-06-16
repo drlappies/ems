@@ -1,91 +1,124 @@
 class DeductionService {
-    constructor(knex) {
-        this.knex = knex
+    constructor(models, repositories) {
+        this.models = models
+        this.repositories = repositories
     }
 
-    createDeduction = async (employeeId, reason, amount, date) => {
-        const [deduction] = await this.knex('deduction').insert({
-            employee_id: employeeId,
-            reason: reason,
-            amount: amount,
-            date: date
-        }).returning(['id', 'reason', 'amount', 'date'])
-        return deduction
+    createOne = async (employeeId, reason, amount, date) => {
+        try {
+            const model = this.models.deduction.create(employeeId, reason, amount, date)
+            const result = await this.repositories.deduction.createOne(model, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    deleteDeduction = async (id) => {
-        if (!Array.isArray(id)) id = [id]
-        const [deduction] = await this.knex('deduction').whereIn('id', id).del(['id'])
-        return deduction
+    deleteOneById = async (id) => {
+        try {
+            await this.repositories.deduction.deleteOneById(id)
+        } catch (error) {
+            throw error
+        }
     }
 
-    updateDeduction = async (id, employeeId, reason, amount, date) => {
-        if (!Array.isArray(id)) id = [id]
-        let update = {}
-        if (employeeId) update.employee_id = employeeId
-        if (reason) update.reason = reason
-        if (amount) update.amount = amount
-        if (date) update.date = date
-
-        const deduction = await this.knex('deduction')
-            .whereIn('id', id).update(update, ['id'])
-        return deduction
+    deleteManyByIds = async (ids) => {
+        try {
+            await this.repositories.deduction.deleteManyByIds(ids)
+        } catch (error) {
+            throw error
+        }
     }
 
-    getAllDeduction = async (offset, limit, search, employeeId, amountFrom, amountTo) => {
-        const employee = await this.knex('employee').select(['id', 'firstname', 'lastname']).where('status', '=', 'available')
+    updateOneById = async (id, params) => {
+        try {
+            const reason = params.reason
+            const amount = params.amount
+            const date = params.date
+            const employee_id = params.employee_id
 
-        const [count] = await this.knex('deduction')
-            .join('employee', 'deduction.employee_id', 'employee.id')
-            .modify(qb => {
-                if (employeeId) qb.where('deduction.employee_id', '=', employeeId)
-                if (amountFrom && amountTo) qb.whereBetween('deduction.amount', [amountFrom, amountTo])
+            console.log(amount)
+
+            const data = {}
+
+            if (reason) data.reason = reason
+            if (amount) data.amount = amount
+            if (date) data.date = date
+            if (employee_id) data.employee_id = employee_id
+
+            const result = await this.repositories.deduction.updateOneById(id, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
+
+    getMany = async (params) => {
+        try {
+            const offset = params.offset
+            const limit = params.limit
+            const search = params.search
+            const employeeId = params.employee_id
+            const minamount = params.minamount
+            const maxamount = params.maxamount
+
+            const query = (qb) => {
+                qb.join('employee', 'deduction.employee_id', 'employee.id')
+                qb.select(['deduction.id', 'deduction.employee_id', 'employee.firstname', 'employee.lastname', 'deduction.date', 'deduction.reason', 'deduction.amount'])
+
+                if (employeeId) qb.where('deduction.employee_id', employeeId)
                 if (search) qb.whereRaw(`to_tsvector(deduction.id || ' ' || deduction.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || deduction.date || ' ' || deduction.reason || ' ' || deduction.amount) @@ plainto_tsquery('${search}')`)
-            })
-            .count()
+                if (minamount && maxamount) qb.whereBetween('deduction.amount', [minamount, maxamount])
 
-        const deduction = await this.knex('deduction')
-            .join('employee', 'deduction.employee_id', 'employee.id')
-            .select(['deduction.id', 'deduction.employee_id', 'employee.firstname', 'employee.lastname', 'deduction.date', 'deduction.reason', 'deduction.amount'])
-            .modify(qb => {
-                if (amountFrom && amountTo) qb.whereBetween('deduction.amount', [amountFrom, amountTo])
-                if (employeeId) qb.where('deduction.employee_id', '=', employeeId)
-                if (search) qb.whereRaw(`to_tsvector(deduction.id || ' ' || deduction.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || deduction.date || ' ' || deduction.reason || ' ' || deduction.amount) @@ plainto_tsquery('${search}')`)
-            })
-            .limit(parseInt(limit))
-            .offset(parseInt(limit) * parseInt(offset))
-            .orderBy('deduction.id')
+                if (offset) qb.offset(offset)
+                if (limit) qb.limit(limit)
+            }
 
-        return { employee: employee, count: count, deduction: deduction }
+            const result = await this.repositories.deduction.getMany(query)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getDeduction = async (id) => {
-        const [deduction] = await this.knex('deduction')
-            .join('employee', 'deduction.employee_id', 'employee.id')
-            .select(['deduction.id', 'deduction.employee_id', 'deduction.reason', 'deduction.amount', 'deduction.date', 'employee.firstname', 'employee.lastname'])
-            .where('deduction.id', id)
-        return deduction
+    getOneById = async (id) => {
+        try {
+            const query = qb => {
+                qb.join('employee', 'deduction.employee_id', 'employee.id')
+                qb.select(['deduction.id', 'deduction.employee_id', 'deduction.reason', 'deduction.amount', 'deduction.date', 'employee.firstname', 'employee.lastname'])
+                qb.where('deduction.id', id)
+            }
+
+            const result = await this.repositories.deduction.getOne(query)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getDeductionByEmployee = async (id) => {
-        const deduction = await this.knex('deduction')
-            .select(['deduction.id', 'deduction.reason', 'deduction.amount', 'deduction.date'])
-            .where('employee_id', id)
-        return deduction
-    }
+    updateManyByIds = async (ids, params) => {
+        try {
+            const employeeId = params.employee_id
+            const date = params.date
+            const reason = params.reason
+            const amount = params.amount
 
-    batchUpdateDeduction = async (id, employee_id, date, reason, amount) => {
-        if (!Array.isArray(id)) id = [id]
-        let update = {};
-        if (employee_id) update.employee_id = employee_id
-        if (date) update.date = date
-        if (reason) update.reason = reason
-        if (amount) update.amount = amount
-        const deduction = await this.knex('deduction')
-            .whereIn('id', id)
-            .update(update)
+            const data = {}
+            if (employeeId) data.employee_id = employeeId
+            if (date) data.date = date
+            if (reason) data.reason = reason
+            if (amount) data.amount = amount
 
-        return deduction
+            const result = await this.repositories.deduction.updateManyByIds(ids, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 }
 

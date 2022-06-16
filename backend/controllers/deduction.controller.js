@@ -4,109 +4,109 @@ class DeductionController {
         this.services = services
     }
 
-    createDeduction = async (req, res) => {
+    createOne = async (req, res) => {
         try {
-            const { employeeId, reason, amount, date } = req.body
-            if (!employeeId || !reason || !amount || !date) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
+            const employeeId = req.body.employee_id
+            const reason = req.body.reason
+            const amount = req.body.amount
+            const date = req.body.date
+
+            const result = await this.services.deduction.createOne(employeeId, reason, amount, date)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json({ error: error })
+        }
+    }
+
+    deleteOneById = async (req, res) => {
+        try {
+            const id = req.params.id
+
+            await this.services.deduction.deleteOneById(id)
+
+            res.status(204).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json({ error: error })
+        }
+    }
+
+    deleteManyByIds = async (req, res) => {
+        try {
+            const ids = req.body.ids
+
+            await this.services.deduction.deleteManyByIds(ids)
+
+            res.status(204).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json({ error: error })
+        }
+    }
+
+    updateOneById = async (req, res) => {
+        try {
+            const id = req.params.id
+
+            const result = await this.services.deduction.updateOneById(id, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            console.log(error)
+            this.logger.error(error)
+            res.status(500).json({ error: error })
+        }
+    }
+
+    updateManyByIds = async (req, res) => {
+        try {
+            const ids = req.body.ids
+            delete req.body.ids
+
+            const result = await this.services.deduction.updateManyByIds(ids, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json({ error: error })
+        }
+    }
+
+    getMany = async (req, res) => {
+        try {
+            const offset = req.query.offset ? parseInt(req.query.offset) : undefined
+            const limit = req.query.limit ? parseInt(req.query.limit) : undefined
+
+            const params = {
+                offset: offset,
+                limit: limit,
+                search: req.query.search,
+                minamount: req.query.minamount,
+                maxamount: req.query.maxamount,
+                employee_id: req.query.employee_id
             }
-            const deduction = await this.DeductionService.createDeduction(employeeId, reason, amount, date)
-            return res.status(200).json({
-                success: `Successfully created deduction. Reason: ${deduction.reason}. Amount: ${deduction.amount}. Date: ${deduction.date} `
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+
+            const result = await this.services.deduction.getMany(params)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json({ error: error })
         }
     }
 
-    deleteDeduction = async (req, res) => {
+    getOneById = async (req, res) => {
         try {
-            const { id } = req.query;
-            const deduction = await this.DeductionService.deleteDeduction(id)
-            return res.status(200).json({
-                success: `Successfully removed deduction record.`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const id = req.params.id
 
-    updateDeduction = async (req, res) => {
-        try {
-            const { id, employeeId, reason, amount, date } = req.body;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const deduction = await this.DeductionService.updateDeduction(id, employeeId, reason, amount, date)
-            return res.status(200).json({
-                success: deduction.length > 1 ? "Successfully batch updated deduction" : `Successfully updated deduction. ID: ${deduction[0].id}`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const result = await this.services.deduction.getOneById(id)
 
-    getAllDeduction = async (req, res) => {
-        try {
-            const { offset, limit, search, employee, amountFrom, amountTo } = req.query
-            const query = await this.DeductionService.getAllDeduction(offset, limit, search, employee, amountFrom, amountTo)
-            return res.status(200).json({
-                deduction: query.deduction,
-                employee: query.employee,
-                rowCount: query.count
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    getDeduction = async (req, res) => {
-        try {
-            const { id } = req.params
-            if (!id) {
-                return res.status(200).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const deduction = await this.DeductionService.getDeduction(id)
-            return res.status(200).json({
-                deduction: deduction
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    getDeductionByEmployee = async (req, res) => {
-        try {
-            const { id } = req.params
-            const deduction = await this.DeductionService.getDeductionByEmployee(id);
-            return res.status(200).json({
-                deduction: deduction
-            })
-        } catch (err) {
-            return res.status(500).json({
-                error: err
-            })
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json({ error: error })
         }
     }
 }
