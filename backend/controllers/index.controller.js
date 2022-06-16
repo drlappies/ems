@@ -1,4 +1,5 @@
 import logger from '../logger/logger';
+import utils from '../utils/index.util'
 import services from '../services/index.service';
 import AllowanceController from './allowance.controller';
 import AllowanceEmployeeController from './allowance_employee.controller';
@@ -20,7 +21,7 @@ const container = {
     allowanceEmployee: new AllowanceEmployeeController({ logger, services }),
     bonus: new BonusController({ logger, services }),
     deduction: new DeductionController({ logger, services }),
-    employee: new EmployeeController({ logger, services }),
+    employee: new EmployeeController({ logger, services, utils }),
     leave: new LeaveController({ logger, services }),
     login: new LoginController({ logger, services }),
     overtime: new OvertimeController({ logger, services }),

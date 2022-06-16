@@ -1,6 +1,3 @@
-const { checkPassword } = require('../utils/hashPassword')
-const jwt = require('jsonwebtoken');
-
 class LoginController {
     constructor({ logger, services }) {
         this.logger = logger

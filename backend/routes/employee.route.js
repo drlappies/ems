@@ -5,12 +5,13 @@ class EmployeeRoute {
     }
 
     get route() {
-        this.router.get('/employee', this.controller.getAllEmployee)
-        this.router.get('/employee/metric', this.controller.getEmployeeCount)
-        this.router.get('/employee/:id', this.controller.getEmployee);
-        this.router.post('/employee', this.controller.createEmployee);
-        this.router.put('/employee', this.controller.updateEmployee);
-        this.router.delete('/employee', this.controller.deleteEmployee);
+        this.router.get('/api/employee', this.controller.getMany)
+        this.router.get('/api/employee/:id', this.controller.getOneById);
+        this.router.post('/api/employee', this.controller.createOne);
+        this.router.put('/api/employee/:id', this.controller.updateOneById);
+        this.router.delete('/api/employee/:id', this.controller.deleteOneById);
+        this.router.post('/api/employee/batch_update', this.controller.updateManyByIds)
+        this.router.post('/api/employee/batch_delete', this.controller.deleteManyByIds)
 
         return this.router
     }

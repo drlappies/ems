@@ -1,23 +1,23 @@
 class Employee {
-    create = (username, password, role, posId, deptId, firstname, lastname, address, startHour, endHour, phoneNo, eContactPerson, eContactNo, onBoardDate, payMonthly, hasOt, otPay) => {
+    create = (username, password, role, firstname, lastname, address, phone_number, emergency_contact_person, emergency_contact_number, onboard_date, salary_monthly, start_hour, end_hour, post_id, dept_id, ot_hourly_salary, ot_pay_entitled) => {
         return {
             username: username,
             password: password,
             role: role,
-            post_id: posId,
-            dept_id: deptId,
+            post_id: post_id,
+            dept_id: dept_id,
             firstname: firstname,
             lastname: lastname,
             address: address,
-            start_hour: startHour,
-            end_hour: endHour,
-            phone_number: phoneNo,
-            emergency_contact_person: eContactPerson,
-            emergency_contact_number: eContactNo,
-            onboard_date: onBoardDate,
-            salary_monthly: payMonthly,
-            ot_pay_entitled: hasOt,
-            ot_hourly_salary: otPay
+            start_hour: start_hour,
+            end_hour: end_hour,
+            phone_number: phone_number,
+            emergency_contact_person: emergency_contact_person,
+            emergency_contact_number: emergency_contact_number,
+            onboard_date: onboard_date,
+            salary_monthly: salary_monthly,
+            ot_pay_entitled: ot_pay_entitled,
+            ot_hourly_salary: ot_hourly_salary
         }
     }
 }
