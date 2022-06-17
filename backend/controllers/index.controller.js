@@ -25,7 +25,7 @@ const container = {
     employee: new EmployeeController({ logger, services, utils }),
     leave: new LeaveController({ logger, services }),
     login: new LoginController({ logger, services, jwt, utils }),
-    overtime: new OvertimeController({ logger, services }),
+    overtime: new OvertimeController({ logger, services, utils }),
     payroll: new PayrollController({ logger, services }),
     position: new PositionController({ logger, services }),
     reimbursement: new ReimbursementController({ logger, services }),

@@ -1,220 +1,198 @@
 class OvertimeController {
-    constructor({ logger, services }) {
+    constructor({ logger, services, utils }) {
         this.logger = logger
         this.services = services
+        this.utils = utils
     }
-    createOvertimeTimein = async (req, res) => {
+
+    checkIn = async (req, res) => {
         try {
-            const { employee_id } = req.body;
-            if (!employee_id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const isTimedin = await this.OvertimeService.checkIfTimedin(employee_id)
-            if (isTimedin.length >= 1) {
-                return res.status(400).json({
+            const employee = req.user
+
+            const hasCheckedIn = await this.services.overtime.getOneByEmployeeIdAndDate(employee.id, this.utils.time.getDate())
+
+            if (hasCheckedIn) {
+                res.status(400).json({
                     error: 'Already checked in for overtime today.'
                 })
+                return;
             }
-            const timein = await this.OvertimeService.createOvertimeTimein(employee_id, 'now');
-            return res.status(200).json({
-                success: `Successfully checked in (OT) at ${timein.from} on ${timein.date.getFullYear()}-${timein.date.getMonth() + 1}-${timein.date.getDate()}`,
-                timein: timein.from
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+
+            const result = await this.services.overtime.checkIn(employee)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    createOvertimeTimeout = async (req, res) => {
+    checkOut = async (req, res) => {
         try {
-            const { employee_id } = req.body;
-            if (!employee_id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
+            const employee = req.user
+
+            const checkIn = await this.services.overtime.getOneByEmployeeIdAndDate(employee.id, this.utils.time.getDate())
+
+
+            if (checkIn) {
+                if (checkIn.to) {
+                    res.status(400).json({ error: "Already timed out for overtime today" })
+                    return
+                }
             }
-            const isTimedout = await this.OvertimeService.checkIfTimedout(employee_id)
-            if (isTimedout.length >= 1) {
-                return res.status(400).json({
-                    error: 'Already timed out for overtime today.'
-                })
-            }
-            const timeout = await this.OvertimeService.createOvertimeTimeout(employee_id);
-            return res.status(200).json({
-                success: `Successfully checked out (OT) at ${timeout.to} on ${timeout.date.getFullYear()}-${timeout.date.getMonth() + 1}-${timeout.date.getDate()}`,
-                timeout: timeout.to
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+
+            const result = await this.services.overtime.checkOut(employee)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    createOvertime = async (req, res) => {
+    createOne = async (req, res) => {
         try {
-            const { employee_id, date, from, to, status } = req.body;
-            if (!employee_id || !date || !from || !to) {
-                return res.status(400).json({
+            const employeeId = req.body.employee_id
+            const date = req.body.date
+            const from = req.body.from
+            const to = req.body.to
+            const status = req.body.status
+
+            if (!employeeId || !date || !from || !to) {
+                res.status(400).json({
                     error: 'Missing required fields!'
                 })
+                return
             }
-            const currentDate = new Date(new Date().setHours(0, 0, 0, 0))
-            if (new Date(date) > currentDate) {
-                return res.status(400).json({
+
+            const currentDate = this.utils.time.getDate()
+
+            if (date > currentDate) {
+                res.status(400).json({
                     error: 'Cannot time in future dates!'
                 })
+                return
             }
-            if (await this.OvertimeService.checkForConflict(employee_id, date)) {
-                return res.status(400).json({
+
+            const hasCheckedIn = await this.services.overtime.getOneByEmployeeIdAndDate(employeeId, date)
+
+            if (hasCheckedIn) {
+                res.status(400).json({
                     error: 'Already timed in that day!'
                 })
+                return
             }
 
             if (from >= to) {
-                return res.status(400).json({
+                res.status(400).json({
                     error: 'Check in time cannot be greater than or equal to check out time!'
                 })
+                return
             }
 
-            const overtime = await this.OvertimeService.createOvertime(employee_id, date, from, to, status)
-            return res.status(200).json({
-                success: `Succsesfully created specific overtime record on ${overtime[0].date.getFullYear()}-${overtime[0].date.getMonth() + 1}-${overtime[0].date.getDate()}`,
-                overtime: overtime
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const result = await this.services.overtime.createOne(employeeId, date, from, to, status)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    updateOvertime = async (req, res) => {
+    updateOneById = async (req, res) => {
         try {
-            const { id } = req.params;
-            const { from, to, status } = req.body;
-            const overtime = await this.OvertimeService.updateOvertime(id, from, to, status);
-            return res.status(200).json({
-                success: `Successfully updated overtime record ID: ${overtime.map(el => `${el.id}`)}`,
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const id = req.params.id
+
+            const result = await this.services.overtime.updateOneById(id, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            throw error
         }
     }
 
-    deleteOvertime = async (req, res) => {
+    updateManyByIds = async (req, res) => {
         try {
-            const { id } = req.params
-            const overtime = await this.OvertimeService.deleteOvertime(id);
-            return res.status(200).json({
-                success: `Successfully deleted overtime record ${overtime.id}`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const ids = req.body.ids
+            delete req.body.ids
+
+            const result = await this.services.overtime.updateManyByIds(ids, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            throw error
         }
     }
 
-    getAllOvertime = async (req, res) => {
+    deleteOneById = async (req, res) => {
         try {
-            const { offset, limit, search, dateTo, dateFrom, status, employee } = req.query
-            const query = await this.OvertimeService.getAllOvertime(offset, limit, search, dateFrom, dateTo, employee, status);
-            return res.status(200).json({
-                overtime: query.overtime,
-                employee: query.employee,
-                count: query.count
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const id = req.params.id
+
+            await this.services.overtime.deleteOneById(id)
+
+            res.status(204).json()
+        } catch (error) {
+            throw error
         }
     }
 
-    getOvertime = async (req, res) => {
+    deleteManyByIds = async (req, res) => {
         try {
-            const { id } = req.params
-            const overtime = await this.OvertimeService.getOvertime(id)
-            return res.status(200).json({
-                overtime: overtime
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const ids = req.body.ids
+            delete req.body.ids
+
+            await this.services.overtime.deleteManyByIds(ids)
+
+            res.status(204).json()
+        } catch (error) {
+            throw error
         }
     }
 
-    getEmployeeOvertimeStatus = async (req, res) => {
+    getMany = async (req, res) => {
         try {
-            const { employeeId } = req.params;
-            const overtime = await this.OvertimeService.getEmployeeOvertimeStatus(employeeId);
-            return res.status(200).json(overtime)
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const offset = req.query.offset ? parseInt(req.query.offset) : undefined
+            const limit = req.query.limit ? parseInt(req.query.limit) : undefined
+
+            const params = {
+                offset: offset,
+                limit: limit,
+                search: req.query.search,
+                mindate: req.query.mindate,
+                maxdate: req.query.maxdate,
+                employee_id: req.query.employee_id,
+                status: req.query.status
+            }
+
+            const result = await this.services.overtime.getMany(params)
+
+            res.status(200).json(result)
+        } catch (error) {
+            throw error
         }
     }
 
-    batchDeleteOvertime = async (req, res) => {
+    getOneById = async (req, res) => {
         try {
-            const { id } = req.query;
-            const overtime = await this.OvertimeService.batchDeleteOvertime(id)
-            return res.status(200).json({
-                success: 'Successfully batch deleted overtime records.'
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const id = req.params.id
+
+            const result = await this.services.overtime.getOneById(id)
+
+            res.status(200).json(result)
+        } catch (error) {
+            throw error
         }
     }
 
-    batchUpdateOvertime = async (req, res) => {
+    deleteManyByIds = async (req, res) => {
         try {
-            const { id, from, to, status } = req.body
-            const overtime = await this.OvertimeService.batchUpdateOvertime(id, from, to, status)
-            return res.status(200).json({
-                success: 'Successfully batch updated overtime records.'
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const ids = req.body.ids
 
-    getAllOvertimeByEmployee = async (req, res) => {
-        try {
-            const { employeeId } = req.params;
-            const { dateFrom, dateTo } = req.query;
-            const overtime = await this.OvertimeService.getAllOvertimeByEmployee(employeeId, dateFrom, dateTo)
-            return res.status(200).json({
-                overtime: overtime
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const result = await this.services.overtime.deleteManyByIds(ids)
+
+            res.status(200).json(result)
+        } catch (error) {
+            throw error
         }
     }
 }

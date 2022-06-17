@@ -6,7 +6,7 @@ class LoginRoute {
     }
 
     get route() {
-        this.router.post('/api/login', this.middlewares.user.verify, this.controller.login)
+        this.router.post('/api/login', this.controller.login)
 
         return this.router
     }

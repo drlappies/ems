@@ -6,17 +6,13 @@ class OvertimeRoute {
     }
 
     get route() {
-        this.router.get('/overtime', this.middlewares.user.verify, this.controller.getAllOvertime);
-        this.router.get('/overtime/user/:employeeId/status', this.middlewares.user.verify, this.controller.getEmployeeOvertimeStatus);
-        this.router.get('/overtime/user/:employeeId/history', this.controller.getAllOvertimeByEmployee)
-        this.router.get('/overtime/:id', this.middlewares.user.verify, this.controller.getOvertime)
-        this.router.post('/overtime', this.middlewares.user.verify, this.controller.createOvertime);
-        this.router.post('/overtime/timein', this.middlewares.user.verify, this.controller.createOvertimeTimein);
-        this.router.post('/overtime/timeout', this.middlewares.user.verify, this.controller.createOvertimeTimeout);
-        this.router.put('/overtime', this.middlewares.user.verify, this.controller.batchUpdateOvertime)
-        this.router.put('/overtime/:id', this.middlewares.user.verify, this.controller.updateOvertime);
-        this.router.delete('/overtime', this.middlewares.user.verify, this.controller.batchDeleteOvertime);
-        this.router.delete('/overtime/:id', this.middlewares.user.verify, this.controller.deleteOvertime);
+        this.router.post('/api/overtime', this.middlewares.user.verify, this.controller.createOne)
+        this.router.put('/api/overtime/:id', this.middlewares.user.verify, this.controller.updateOneById)
+        this.router.delete('/api/overtime/:id', this.middlewares.user.verify, this.controller.deleteOneById)
+        this.router.get('/api/overtime', this.middlewares.user.verify, this.controller.getMany)
+        this.router.get('/api/overtime/:id', this.middlewares.user.verify, this.controller.getOneById)
+        this.router.post('/api/overtime/check_in', this.middlewares.user.verify, this.controller.checkIn)
+        this.router.post('/api/overtime/check_out', this.middlewares.user.verify, this.controller.checkOut)
 
         return this.router
     }
