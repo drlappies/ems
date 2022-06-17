@@ -6,11 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:local": "env-cmd -f .env.local nodemon -r esm index.js",
-    "migrate:latest": "env-cmd -f .env.local npx knex migrate:latest",
-    "migrate:up": "env-cmd -f .env.local npx knex migrate:up",
-    "migrate:down": "env-cmd -f .env.local npx knex migrate:down",
-    "migrate:reset": "env-cmd -f .env.local npx knex migrate:rollback --all",
-    "seed": "env-cmd -f .env.local npx knex seed:run"
+    "migrate:latest": "env-cmd -f .env.local yarn knex migrate:latest",
+    "migrate:up": "env-cmd -f .env.local yarn knex migrate:up",
+    "migrate:down": "env-cmd -f .env.local yarn knex migrate:down",
+    "migrate:reset": "env-cmd -f .env.local yarn knex migrate:rollback --all",
+    "seed": "env-cmd -f .env.local yarn knex seed:run --esm"
   },
   "keywords": [],
   "author": "",

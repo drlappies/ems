@@ -10,6 +10,7 @@ import OvertimeRepository from './overtime.repository';
 import PositionRepository from './position.repository';
 import ReimbursementRepository from './reimbursement.repository';
 import DepartmentRepository from './department.repository';
+import PayrollRepository from './payroll.repository';
 
 const container = {
     allowanceEmployee: new AllowanceEmployeeRepository(knex, "allowance_employee"),
@@ -22,7 +23,8 @@ const container = {
     overtime: new OvertimeRepository(knex, "overtime"),
     position: new PositionRepository(knex, "position"),
     reimbursement: new ReimbursementRepository(knex, "reimbursement"),
-    department: new DepartmentRepository(knex, "departments")
+    department: new DepartmentRepository(knex, "departments"),
+    payroll: new PayrollRepository(knex, "payroll")
 }
 
 export default container

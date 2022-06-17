@@ -1,6 +1,6 @@
-const { hashPassword } = require('../utils/hashPassword');
+import utils from '../utils/index.util'
 
-exports.seed = async function (knex) {
+export async function seed(knex) {
   await knex('reimbursement').del();
   await knex('deduction').del();
   await knex('bonus').del();
@@ -52,7 +52,7 @@ exports.seed = async function (knex) {
       emergency_contact_number: '87654321',
       onboard_date: new Date().toISOString(),
       username: 'root',
-      password: await hashPassword('root'),
+      password: await utils.password.hashPassword('root'),
       role: 'admin',
       start_hour: '09:00 AM',
       end_hour: '06:00 PM',
@@ -68,7 +68,7 @@ exports.seed = async function (knex) {
       emergency_contact_number: '53423433',
       onboard_date: new Date().toISOString(),
       username: 'user1',
-      password: await hashPassword('user1'),
+      password: await utils.password.hashPassword('user1'),
       role: 'employee',
       start_hour: '09:00 AM',
       end_hour: '06:00 PM',
@@ -117,4 +117,4 @@ exports.seed = async function (knex) {
 
   const attendance = generateAttendance(365, employeeSeed[1].id)
   await knex.insert(attendance).into('attendance')
-};
+}

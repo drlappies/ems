@@ -6,12 +6,13 @@ class PayrollRoute {
     }
 
     get route() {
-        this.router.post('/payroll', this.middlewares.user.verify, this.controller.createPayroll);
-        this.router.put('/payroll', this.middlewares.user.verify, this.controller.updatePayroll);
-        this.router.delete('/payroll', this.middlewares.user.verify, this.controller.deletePayroll);
-        this.router.get('/payroll', this.middlewares.user.verify, this.controller.getAllPayroll);
-        this.router.get('/payroll/:id', this.middlewares.user.verify, this.controller.getPayroll);
-        this.router.get('/payroll/user/:id', this.middlewares.user.verify, this.controller.getPayrollByEmployee);
+        this.router.post('/api/payroll', this.middlewares.user.verify, this.controller.createOne);
+        this.router.put('/api/payroll/:id', this.middlewares.user.verify, this.controller.updateOneById);
+        this.router.delete('/api/payroll/:id', this.middlewares.user.verify, this.controller.deleteOneById);
+        this.router.get('/api/payroll', this.middlewares.user.verify, this.controller.getMany);
+        this.router.get('/api/payroll/:id', this.middlewares.user.verify, this.controller.getOneById);
+        this.router.post('/api/payroll/batch_update', this.middlewares.user.verify, this.controller.updateManyByIds)
+        this.router.post('/api/payroll/batch_delete', this.middlewares.user.verify, this.controller.deleteManyByIds)
 
         return this.router
     }

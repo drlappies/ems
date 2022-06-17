@@ -75,11 +75,17 @@ class AllowanceService {
             const minamount = params.minamount
             const maxamount = params.maxamount
             const search = params.search
+            const employee_id = params.employee_id
 
             const query = (qb) => {
-                if (status) qb.where('status', '=', status)
-                if (minamount && maxamount) qb.whereBetween('amount', [minamount, maxamount])
-                if (search) qb.whereRaw(`to_tsvector(name || ' ' || description || ' ' || amount || ' ' || status) @@ plainto_tsquery('${search}')`)
+                qb.select(['allowance_employee.allowance_id', 'allowance_employee.employee_id', 'allowance.name', 'allowance.amount', 'allowance.minimum_attendance_required', 'allowance.required_attendance_rate', 'allowance.status'])
+                qb.join('allowance', 'allowance_employee.allowance_id', 'allowance.id')
+                qb.join('employee', 'allowance_employee.employee_id', 'employee.id')
+
+                if (status) qb.where('allowance.status', '=', status)
+                if (minamount && maxamount) qb.whereBetween('allowance.amount', [minamount, maxamount])
+                if (search) qb.whereRaw(`to_tsvector(allowanec.name || ' ' || allowance.description || ' ' || allowance.amount || ' ' || allowance.status) @@ plainto_tsquery('${search}')`)
+                if (employee_id) qb.where('employee.id', employee_id)
 
                 if (offset) qb.offset(offset)
                 if (limit) qb.limit(limit)
