@@ -21,7 +21,7 @@ const container = {
     employee: new EmployeeRepository(knex, "employee"),
     leave: new LeaveRepository(knex, "leave"),
     overtime: new OvertimeRepository(knex, "overtime"),
-    position: new PositionRepository(knex, "position"),
+    position: new PositionRepository(knex, "positions"),
     reimbursement: new ReimbursementRepository(knex, "reimbursement"),
     department: new DepartmentRepository(knex, "departments"),
     payroll: new PayrollRepository(knex, "payroll")

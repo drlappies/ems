@@ -4,98 +4,120 @@ class PositionController {
         this.services = services
     }
 
-    createPosition = async (req, res) => {
+    createOne = async (req, res) => {
         try {
-            const { name } = req.body;
-            const position = await this.PositionService.createPosition(name);
-            return res.status(200).json({
-                success: `Successfully created position ${position.post}`,
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const post = req.body.post
 
-    updatePosition = async (req, res) => {
-        try {
-            const { id, name } = req.body
-            if (!name) {
-                return res.status(400).json({
-                    error: 'Missing required fields!'
-                })
+            if (!post) {
+                res.status(400).json({ error: "Position name is required" })
+                return
             }
-            const position = await this.PositionService.updatePosition(id, name)
-            return res.status(200).json({
-                success: position.length > 1 ? "Successfully batch updated positions" : `Successfully updated position ID: ${position[0].id}`,
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
+
+            const result = await this.services.position.createOne(post)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    getAllPosition = async (req, res) => {
+    updateOneById = async (req, res) => {
         try {
-            const { offset, limit, search } = req.query
-            const query = await this.PositionService.getAllPosition(offset, limit, search)
-            return res.status(200).json({
-                position: query.position,
-                rowCount: query.count
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
+            const id = req.params.id
+            const post = req.body.post
+
+            if (!post) {
+                res.status(400).json({ error: "Position name is required" })
+                return
+            }
+
+            const result = await this.services.position.updateOneById(id, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    getPosition = async (req, res) => {
+    updateManyByIds = async (req, res) => {
         try {
-            const { id } = req.params
-            const position = await this.PositionService.getPosition(id)
-            return res.status(200).json({
-                position: position
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
+            const ids = req.body.ids
+            delete req.body.ids
+
+            const post = req.body.post
+
+            if (!post) {
+                res.status(400).json({ error: "Position name is required" })
+                return
+            }
+
+            const result = await this.services.position.updateManyByIds(ids, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    deletePosition = async (req, res) => {
+    getMany = async (req, res) => {
         try {
-            const { id } = req.query
-            const position = await this.PositionService.deletePosition(id)
-            return res.status(200).json({
-                success: position.length > 1 ? "Successfully batch deleted positions" : `Successfully deleted position ID: ${position[0].id}`
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
+            const offset = req.query.offset ? parseInt(req.query.offset) : req.query.offset
+            const limit = req.query.limit ? parseInt(req.query.limit) : req.query.limit
+
+            const params = {
+                offset: offset,
+                limit: limit,
+                search: req.query.search
+            }
+
+            const result = await this.services.position.getMany(params)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
-    getPositionCount = async (req, res) => {
+    getOneById = async (req, res) => {
         try {
-            const positionCount = await this.PositionService.getPositionCount();
-            return res.status(200).json({
-                positionCount: positionCount
-            })
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({
-                error: err
-            })
+            const id = req.params.id
+
+            const result = await this.services.position.getOneById(id)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    deleteOneById = async (req, res) => {
+        try {
+            const id = req.params.id
+
+            await this.services.position.deleteOneById(id)
+
+            res.status(204).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    deleteManyByIds = async (req, res) => {
+        try {
+            const ids = req.body.ids
+
+            await this.services.position.deleteManyByIds(ids)
+
+            res.status(204).json()
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 }

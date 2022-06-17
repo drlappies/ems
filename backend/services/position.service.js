@@ -1,61 +1,95 @@
 class PositionService {
-    constructor(knex) {
-        this.knex = knex
+    constructor(models, repositories) {
+        this.models = models
+        this.repositories = repositories
     }
 
-    createPosition = async (name) => {
-        const [position] = await this.knex('positions').insert({
-            post: name
-        }, ['id', 'post'])
-        return position
+    createOne = async (post) => {
+        try {
+            const model = this.models.position.create(post)
+            const result = await this.repositories.position.createOne(model, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    updatePosition = async (id, name) => {
-        if (!Array.isArray(id)) id = [id];
-        const position = await this.knex('positions')
-            .whereIn('id', id)
-            .update({ post: name }, ['id'])
-        return position
+    updateOneById = async (id, params) => {
+        try {
+            const post = params.post
+
+            const data = {}
+            if (post) data.post = post
+
+            const result = await this.repositories.position.updateOneById(id, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getAllPosition = async (offset, limit, search) => {
-        const [count] = await this.knex('positions')
-            .modify(qb => {
+    updateManyByIds = async (ids, params) => {
+        try {
+            const post = params.post
+
+            const data = {}
+            if (post) data.post = post
+
+            const result = await this.repositories.position.updateManyByIds(ids, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
+
+    getMany = async (params) => {
+        try {
+            const offset = params.offset
+            const limit = params.limit
+            const search = params.search
+
+            const query = qb => {
+                qb.select(['id', 'post'])
                 if (search) qb.whereRaw(`to_tsvector(id || ' ' || post) @@ plainto_tsquery('${search}')`)
-            })
-            .count('id')
+                if (offset) qb.offset(offset)
+                if (limit) qb.limit(limit)
+            }
 
-        const position = await this.knex('positions')
-            .select(['id', 'post'])
-            .modify(qb => {
-                if (search) qb.whereRaw(`to_tsvector(id || ' ' || post) @@ plainto_tsquery('${search}')`)
-            })
-            .limit(parseInt(limit))
-            .offset(parseInt(offset) * parseInt(limit))
-            .orderBy('id')
+            const result = await this.repositories.position.getMany(query)
 
-        return { count: count, position: position }
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getPosition = async (id) => {
-        const [position] = await this.knex('positions')
-            .select()
-            .where('id', id)
-        return position
+    getOneById = async (id) => {
+        try {
+            const result = await this.repositories.position.getOneById(id)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    deletePosition = async (id) => {
-        if (!Array.isArray(id)) id = [id];
-        const position = await this.knex('positions')
-            .whereIn('id', id)
-            .del(['id'])
-        return position
+    deleteOneById = async (id) => {
+        try {
+            await this.repositories.position.deleteOneById(id)
+        } catch (error) {
+            throw error
+        }
     }
 
-    getPositionCount = async () => {
-        const [count] = await this.knex('positions')
-            .count()
-        return count.count
+    deleteManyByIds = async (ids) => {
+        try {
+            await this.repositories.position.deleteManyByIds(ids)
+        } catch (error) {
+            throw error
+        }
     }
 }
 

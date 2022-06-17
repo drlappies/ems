@@ -6,12 +6,13 @@ class PositionRoute {
     }
 
     get route() {
-        this.router.get('/position/', this.middlewares.user.verify, this.controller.getAllPosition)
-        this.router.get('/position/metric', this.middlewares.user.verify, this.controller.getPositionCount)
-        this.router.get('/position/:id', this.middlewares.user.verify, this.controller.getPosition)
-        this.router.post('/position', this.middlewares.user.verify, this.controller.createPosition)
-        this.router.put('/position', this.middlewares.user.verify, this.controller.updatePosition)
-        this.router.delete('/position', this.middlewares.user.verify, this.controller.deletePosition)
+        this.router.get('/api/position', this.middlewares.user.verify, this.controller.getMany)
+        this.router.get('/api/position/:id', this.middlewares.user.verify, this.controller.getOneById)
+        this.router.post('/api/position', this.middlewares.user.verify, this.controller.createOne)
+        this.router.put('/api/position/:id', this.middlewares.user.verify, this.controller.updateOneById)
+        this.router.delete('/api/position/:id', this.middlewares.user.verify, this.controller.deleteOneById)
+        this.router.post('/api/position/batch_update', this.middlewares.user.verify, this.controller.updateManyByIds)
+        this.router.post('/api/position/batch_delete', this.middlewares.user.verify, this.controller.deleteManyByIds)
 
         return this.router
     }
