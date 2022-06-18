@@ -12,6 +12,11 @@ class UserMiddleware {
 
             const user = await this.services.employee.getOneById(jwtRes.id)
 
+            if (user.status === "unavailable") {
+                res.status(400).json({ error: "user is unavailable/banned" })
+                return
+            }
+
             req.user = user
             next()
         } catch (error) {
