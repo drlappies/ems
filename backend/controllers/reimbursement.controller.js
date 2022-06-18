@@ -4,127 +4,105 @@ class ReimbursementController {
         this.services = services
     }
 
-    createReimbursement = async (req, res) => {
+    createOne = async (req, res) => {
         try {
-            const { employeeId, date, amount, reason, status } = req.body;
-            if (!employeeId || !date || !amount || !reason) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const reimbursement = await this.ReimbursementService.createReimbursement(employeeId, date, amount, reason, status);
-            return res.status(200).json({
-                success: `Successfully created reimbursement. Date: ${new Date(reimbursement.date).getFullYear()} - ${new Date(reimbursement.date).getMonth() + 1} - ${new Date(reimbursement.date).getDate()} Reason: ${reimbursement.reason} Amount: ${reimbursement.amount} `
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const employeeId = req.body.employee_id
+            const date = req.body.date
+            const amount = req.body.amount
+            const reason = req.body.reason
+            const status = req.body.status
+
+            const result = await this.services.reimbursement.createOne(employeeId, date, amount, reason, status)
+
+            res.status(200).json(result)
+        } catch (error) {
+            res.status(500).json(error)
         }
     }
 
-    updateReimbursement = async (req, res) => {
+    updateOneById = async (req, res) => {
         try {
-            const { id, status, reason, date, amount } = req.body;
-            if (!id) {
-                return res.status(400).json({
-                    error: 'Missing required fields.'
-                })
-            }
-            const reimbursement = await this.ReimbursementService.updateReimbursement(id, status, reason, date, amount);
-            return res.status(200).json({
-                success: reimbursement.length > 1 ? "Successfully batch updated reimbursement" : `Successfully updated reimbursement ID: ${reimbursement[0].id}`,
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const id = req.params.id
+
+            const result = await this.services.reimbursement.updateOneById(id, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            res.status(500).json(error)
         }
     }
 
-    getAllReimbursement = async (req, res) => {
+    updateManyByIds = async (req, res) => {
         try {
-            const { offset, limit, search, employee, status, dateFrom, dateTo, amountFrom, amountTo } = req.query
-            const query = await this.ReimbursementService.getAllReimbursement(offset, limit, search, employee, status, dateFrom, dateTo, amountFrom, amountTo);
-            return res.status(200).json({
-                reimbursement: query.reimbursement,
-                rowCount: query.count,
-                employee: query.employee
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const ids = req.body.ids
+            delete req.body.ids
+
+            const result = await this.services.reimbursement.updateManyByIds(ids, req.body)
+
+            res.status(200).json(result)
+        } catch (error) {
+            res.status(500).json(error)
         }
     }
 
-    getReimbursement = async (req, res) => {
+    getMany = async (req, res) => {
         try {
-            const { id } = req.params;
-            const reimbursement = await this.ReimbursementService.getReimbursement(id)
-            return res.status(200).json({
-                reimbursement: reimbursement
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
+            const offset = req.query.offset ? parseInt(req.query.offset) : req.query.offset
+            const limit = req.query.limit ? parseInt(req.query.limit) : req.query.limit
 
-    getReimbursementByEmployee = async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { offset, limit } = req.query;
-            const query = await this.ReimbursementService.getReimbursementByEmployee(id, offset, limit);
-            return res.status(200).json({
-                reimbursement: query.reimbursement,
-                rowCount: query.count
-            })
-        } catch (err) {
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    getReimbursementCount = async (req, res) => {
-        try {
-            const reimbursementCount = await this.ReimbursementService.getReimbursementCount();
-            return res.status(200).json({
-                reimbursementCount: reimbursementCount
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
-        }
-    }
-
-    deleteReimbursement = async (req, res) => {
-        try {
-            const { id } = req.query;
-            const activeReimbursement = await this.ReimbursementService.checkIfStatusActive(id)
-            if (activeReimbursement.length > 0) {
-                return res.status(400).json({
-                    error: 'Cannot delete approved reimbursement!'
-                })
+            const params = {
+                offset: offset,
+                limit: limit,
+                search: req.query.search,
+                employee_id: req.query.employee_id,
+                status: req.query.status,
+                mindate: req.query.mindate,
+                maxdate: req.query.maxdate,
+                minamount: req.query.minamount,
+                maxamount: req.query.maxamount
             }
 
-            const reimbursement = await this.ReimbursementService.deleteReimbursement(id)
-            return res.status(200).json({
-                success: reimbursement.length > 1 ? "Successfully batch deleted reimubursement" : `Successfully deleted reimbursement record ID: ${reimbursement[0].id}`
-            })
-        } catch (err) {
-            console.log(err)
-            return res.status(500).json({
-                error: err
-            })
+            const result = await this.services.reimbursement.getMany(params)
+
+            res.status(200).json(result)
+        } catch (error) {
+            res.status(500).json(error)
+        }
+    }
+
+    getOneById = async (req, res) => {
+        try {
+            const id = req.params.id
+
+            const result = await this.services.reimbursement.getOneById(id)
+
+            res.status(200).json(result)
+        } catch (error) {
+            res.status(500).json(error)
+        }
+    }
+
+    deleteOneById = async (req, res) => {
+        try {
+            const id = req.params.id
+
+            await this.services.reimbursement.deleteOneById(id)
+
+            res.status(204).json()
+        } catch (error) {
+            res.status(500).json(error)
+        }
+    }
+
+    deleteManyByIds = async (req, res) => {
+        try {
+            const ids = req.body.ids
+
+            await this.services.reimbursement.deleteManyByIds(ids)
+
+            res.status(204).json()
+        } catch (error) {
+            res.status(500).json(error)
         }
     }
 }

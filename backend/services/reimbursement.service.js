@@ -1,100 +1,118 @@
 class ReimbursementService {
-    constructor(knex) {
-        this.knex = knex
+    constructor(models, repositories) {
+        this.models = models
+        this.repositories = repositories
     }
 
-    createReimbursement = async (employeeId, date, amount, reason, status) => {
-        const [reimbursement] = await this.knex('reimbursement').insert({
-            employee_id: employeeId,
-            date: date,
-            amount: amount,
-            reason: reason,
-            status: status
-        }).returning(['date', 'amount', 'reason'])
-        return reimbursement
+    createOne = async (employee_id, date, amount, reason, status) => {
+        try {
+            const model = this.models.reimbursement.create(employee_id, date, amount, reason, status)
+            const result = await this.repositories.reimbursement.createOne(model, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    updateReimbursement = async (id, status, reason, date, amount) => {
-        if (!Array.isArray(id)) id = [id]
-        let update = {};
-        if (status) update.status = status
-        if (reason) update.reason = reason
-        if (amount) update.amount = amount
-        if (date) update.date = date
+    updateOneById = async (id, params) => {
+        try {
+            const status = params.status
+            const reason = params.reason
+            const amount = params.amount
+            const date = params.date
 
-        const reimbursement = await this.knex('reimbursement')
-            .whereIn('id', id)
-            .update(update, ['id'])
-        return reimbursement
+            const data = {}
+            if (status) data.status = status
+            if (reason) data.reason = reason
+            if (amount) data.amount = amount
+            if (date) data.date = date
+
+            const result = await this.repositories.reimbursement.updateOneById(id, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getAllReimbursement = async (offset, limit, search, employeeId, status, dateFrom, dateTo, amountFrom, amountTo) => {
-        const [count] = await this.knex('reimbursement')
-            .join('employee', 'reimbursement.employee_id', 'employee.id')
-            .modify(qb => {
-                if (amountFrom && amountTo) qb.whereBetween('reimbursement.amount', [amountFrom, amountTo])
-                if (dateFrom && dateTo) qb.whereBetween('reimbursement.date', [dateFrom, dateTo])
-                if (status) qb.where('reimbursement.status', '=', status)
-                if (employeeId) qb.where('reimbursement.employee_id', '=', employeeId)
+    updateManyByIds = async (ids, params) => {
+        try {
+            const status = params.status
+            const reason = params.reason
+            const amount = params.amount
+            const date = params.date
+
+            const data = {}
+            if (status) data.status = status
+            if (reason) data.reason = reason
+            if (amount) data.amount = amount
+            if (date) data.date = date
+
+            const result = await this.repositories.reimbursement.updateManyByIds(ids, data, ['*'])
+
+            return result
+        } catch (error) {
+            throw error
+        }
+    }
+
+    getMany = async (params) => {
+        try {
+            const offset = params.offset
+            const limit = params.limit
+            const search = params.search
+            const employee_id = params.employee_id
+            const status = params.status
+            const mindate = params.mindate
+            const maxdate = params.maxdate
+            const minamount = params.minamount
+            const maxamount = params.maxamount
+
+            const query = (qb) => {
+                qb.join('employee', 'reimbursement.employee_id', 'employee.id')
+                qb.select(['reimbursement.id', 'reimbursement.employee_id', 'employee.firstname', 'employee.lastname', 'reimbursement.reason', 'reimbursement.date', 'reimbursement.amount', 'reimbursement.status',])
+                if (employee_id) qb.where('reimbursement.employee_id', employee_id)
                 if (search) qb.whereRaw(`to_tsvector(reimbursement.id || ' ' || reimbursement.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || reimbursement.reason || ' ' || reimbursement.date || ' ' || reimbursement.amount || reimbursement.status) @@ plainto_tsquery('${search}')`)
-            })
-            .count()
-
-        const reimbursement = await this.knex('reimbursement')
-            .join('employee', 'reimbursement.employee_id', 'employee.id')
-            .select(['reimbursement.id', 'reimbursement.employee_id', 'employee.firstname', 'employee.lastname', 'reimbursement.reason', 'reimbursement.date', 'reimbursement.amount', 'reimbursement.status',])
-            .modify(qb => {
-                if (amountFrom && amountTo) qb.whereBetween('reimbursement.amount', [amountFrom, amountTo])
-                if (dateFrom && dateTo) qb.whereBetween('reimbursement.date', [dateFrom, dateTo])
                 if (status) qb.where('reimbursement.status', '=', status)
-                if (employeeId) qb.where('reimbursement.employee_id', '=', employeeId)
-                if (search) qb.whereRaw(`to_tsvector(reimbursement.id || ' ' || reimbursement.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || reimbursement.reason || ' ' || reimbursement.date || ' ' || reimbursement.amount || reimbursement.status) @@ plainto_tsquery('${search}')`)
-            })
-            .limit(parseInt(limit))
-            .offset(parseInt(limit) * parseInt(offset))
-            .orderBy('id')
+                if (mindate && maxdate) qb.whereBetween('reimbursement.date', [mindate, maxdate])
+                if (minamount && maxamount) qb.whereBetween('reimbursement.amount', [minamount, maxamount])
+                if (offset) qb.offset(offset)
+                if (limit) qb.limit(limit)
+            }
 
-        const employee = await this.knex('employee').select(['id', 'firstname', 'lastname']).where('status', 'available')
+            const result = await this.repositories.reimbursement.getMany(query)
 
-        return { count: count, reimbursement: reimbursement, employee: employee }
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getReimbursement = async (id) => {
-        const [reimbursement] = await this.knex('reimbursement')
-            .join('employee', 'reimbursement.employee_id', 'employee.id')
-            .select(['reimbursement.id', 'reimbursement.reason', 'reimbursement.status', 'reimbursement.amount', 'reimbursement.date', 'employee.firstname', 'employee.lastname', 'reimbursement.employee_id'])
-            .where('reimbursement.id', id)
-        return reimbursement
+    getOneById = async (id) => {
+        try {
+            const result = await this.repositories.reimbursement.getOneById(id)
+
+            return result
+        } catch (error) {
+            throw error
+        }
     }
 
-    getReimbursementByEmployee = async (id, offset, limit) => {
-        const [count] = await this.knex('reimbursement').where('employee_id', id).count()
-
-        const reimbursement = await this.knex('reimbursement')
-            .select(['id', 'reason', 'status', 'amount', 'date'])
-            .limit(parseInt(limit))
-            .offset(parseInt(limit) * parseInt(offset))
-            .where('employee_id', id)
-        return { reimbursement: reimbursement, count: count }
+    deleteOneById = async (id) => {
+        try {
+            await this.repositories.reimbursement.deleteOneById(id)
+        } catch (error) {
+            throw error
+        }
     }
 
-    getReimbursementCount = async () => {
-        const [count] = await this.knex('reimbursement')
-            .count()
-            .where('status', 'pending')
-        return count.count
-    }
-
-    deleteReimbursement = async (id) => {
-        if (!Array.isArray(id)) id = [id]
-        const reimbursement = await this.knex('reimbursement').whereIn('id', id).del(['id'])
-        return reimbursement
-    }
-
-    checkIfStatusActive = async (id) => {
-        if (!Array.isArray(id)) id = [id]
-        const reimbursement = await this.knex('reimbursement').where('status', '=', 'approved').whereIn('id', id)
-        return reimbursement
+    deleteManyByIds = async (ids) => {
+        try {
+            await this.repositories.reimbursement.deleteManyByIds(ids)
+        } catch (error) {
+            throw error
+        }
     }
 }
 

@@ -6,13 +6,12 @@ class ReimbursementRoute {
     }
 
     get route() {
-        this.router.post('/position', this.middlewares.user.verify, this.controller.createReimbursement);
-        this.router.get('/position/metric', this.middlewares.user.verify, this.controller.getReimbursementCount);
-        this.router.put('/position', this.middlewares.user.verify, this.controller.updateReimbursement)
-        this.router.get('/position', this.middlewares.user.verify, this.controller.getAllReimbursement);
-        this.router.get('/position/:id', this.middlewares.user.verify, this.controller.getReimbursement);
-        this.router.get('/position/user/:id', this.middlewares.user.verify, this.controller.getReimbursementByEmployee);
-        this.router.delete('/position', this.middlewares.user.verify, this.controller.deleteReimbursement);
+        this.router.post('/api/reimbursement', this.middlewares.user.verify, this.controller.createOne)
+        this.router.put('/api/reimbursement/:id', this.middlewares.user.verify, this.controller.updateOneById)
+        this.router.post('/api/reimbursement/batch_update', this.middlewares.user.verify, this.controller.updateManyByIds)
+        this.router.get('/api/reimbursement', this.middlewares.user.verify, this.controller.getMany)
+        this.router.get('/api/reimbursement/:id', this.middlewares.user.verify, this.controller.getOneById)
+        this.router.post('/api/reimbursement/batch_delete', this.middlewares.user.verify, this.controller.deleteManyByIds)
 
         return this.router
     }
