@@ -6,6 +6,7 @@ class AttendanceRoute {
     }
 
     get route() {
+        this.router.get('/api/attendance/user_check_in_status', this.middlewares.user.verify, this.controller.getCheckInStatusByUser)
         this.router.get('/api/attendance/:id', this.middlewares.user.verify, this.controller.getOneById)
         this.router.get('/api/attendance', this.middlewares.user.verify, this.controller.getMany)
         this.router.delete('/api/attendance/:id', this.middlewares.user.verify, this.controller.deleteOneById)

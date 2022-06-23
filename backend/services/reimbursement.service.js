@@ -30,7 +30,7 @@ class ReimbursementService {
 
             const result = await this.repositories.reimbursement.updateOneById(id, data, ['*'])
 
-            return result
+            return { result }
         } catch (error) {
             throw error
         }

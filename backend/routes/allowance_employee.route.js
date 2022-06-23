@@ -6,8 +6,8 @@ class AllowanceEmployeeRoute {
     }
 
     get route() {
-        this.router.post('/api/allowance_employee/entitle', this.middlewares.user.verify, this.controller.entitle)
-        this.router.post('/api/allowance_employee/disentitle', this.middlewares.user.verify, this.controller.disentitle)
+        this.router.post('/api/allowance_employee/entitle', this.middlewares.user.verify, this.middlewares.user.verifyRole, this.controller.entitle)
+        this.router.post('/api/allowance_employee/disentitle', this.middlewares.user.verify, this.middlewares.user.verifyRole, this.controller.disentitle)
         this.router.get('/api/allowance_employee', this.middlewares.user.verify, this.controller.getMany)
 
         return this.router

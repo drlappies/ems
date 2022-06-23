@@ -262,7 +262,7 @@ class PayrollService {
 
             const result = await this.repositories.payroll.getMany(query)
 
-            return result
+            return { result }
         } catch (error) {
             throw error
         }

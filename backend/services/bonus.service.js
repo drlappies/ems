@@ -77,26 +77,40 @@ class BonusService {
         }
     }
 
-    getBonus = async (id) => {
-        const [bonus] = await this.knex('bonus')
-            .join('employee', 'bonus.employee_id', 'employee.id')
-            .select(['bonus.employee_id', 'bonus.id', 'bonus.reason', 'bonus.amount', 'bonus.date', 'employee.firstname', 'employee.lastname'])
-            .where('bonus.id', id)
+    getBonusByEmployee = async (params) => {
+        try {
+            const offset = params.offset
+            const limit = params.limit
+            const employeeId = params.employee_id
 
-        return bonus
+            const query = (qb) => {
+                qb.where('employee_id', employeeId)
+
+                if (offset) qb.offset(offset)
+                if (limit) qb.limit(limit)
+            }
+
+            const result = await this.repositories.bonus.getMany(query)
+
+            return { result }
+        } catch (error) {
+            throw error
+        }
     }
 
-    getBonusByEmployee = async (id, offset, limit) => {
-        const [count] = await this.knex('bonus').where('employee_id', id).count()
 
-        const bonus = await this.knex('bonus')
-            .select(['bonus.id', 'bonus.reason', 'bonus.amount', 'bonus.date'])
-            .limit(parseInt(limit))
-            .offset(parseInt(offset) * parseInt(limit))
-            .where('employee_id', id)
 
-        return { bonus: bonus, count: count }
-    }
+    // getBonusByEmployee = async (id, offset, limit) => {
+    //     const [count] = await this.knex('bonus').where('employee_id', id).count()
+
+    //     const bonus = await this.knex('bonus')
+    //         .select(['bonus.id', 'bonus.reason', 'bonus.amount', 'bonus.date'])
+    //         .limit(parseInt(limit))
+    //         .offset(parseInt(offset) * parseInt(limit))
+    //         .where('employee_id', id)
+
+    //     return { bonus: bonus, count: count }
+    // }
 }
 
 export default BonusService

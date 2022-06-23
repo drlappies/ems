@@ -78,7 +78,7 @@ class DeductionService {
 
             const result = await this.repositories.deduction.getMany(query)
 
-            return result
+            return { result }
         } catch (error) {
             throw error
         }

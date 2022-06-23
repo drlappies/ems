@@ -22,7 +22,6 @@ class AttendanceController {
 
             res.status(200).json(result)
         } catch (error) {
-            console.log(error)
             this.logger.error(error)
             res.status(500).json(error)
         }
@@ -192,12 +191,18 @@ class AttendanceController {
 
     createOne = async (req, res) => {
         try {
-            //TODO retrieve employee from middleware
             const employeeId = req.body.employee_id
             const date = req.body.date
             const checkIn = req.body.check_in
             const checkOut = req.body.check_out
             const status = req.body.status
+
+            if (!date || !checkIn || !checkOut || !status || !employeeId) {
+                res.status(400).json({
+                    error: "Missing required fields"
+                })
+                return
+            }
 
             if (checkIn >= checkOut) {
                 res.status(400).json({
@@ -220,7 +225,22 @@ class AttendanceController {
 
             res.status(200).json(result)
         } catch (error) {
-            console.log(error)
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    getCheckInStatusByUser = async (req, res) => {
+        try {
+            const employee = req.user
+
+            const currentTime = new Date()
+            const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
+
+            const result = await this.services.attendance.getOneByEmployeeIdAndDate(employee.id, date)
+
+            res.status(200).json(result)
+        } catch (error) {
             this.logger.error(error)
             res.status(500).json(error)
         }

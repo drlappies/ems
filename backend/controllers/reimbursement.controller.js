@@ -105,6 +105,21 @@ class ReimbursementController {
             res.status(500).json(error)
         }
     }
+
+    apply = async (req, res) => {
+        try {
+            const employee = req.user
+            const reason = req.body.reason
+            const date = req.body.date
+            const amount = req.body.amount
+
+            const result = await this.services.reimbursement.createOne(employee.id, date, amount, reason, "pending")
+
+            res.status(200).json(result)
+        } catch (error) {
+            res.status(500).json(error)
+        }
+    }
 }
 
 export default ReimbursementController

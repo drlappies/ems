@@ -18,7 +18,6 @@ export async function seed(knex) {
     const time = new Date();
     time.setMonth(0)
     time.setDate(1);
-    time.setFullYear(2021);
 
     const attendance = [];
     for (let i = 0; i < timespan; i++) {

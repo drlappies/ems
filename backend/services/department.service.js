@@ -38,7 +38,7 @@ class DepartmentService {
 
             const result = await this.repositories.department.getMany(query)
 
-            return result
+            return { result }
         } catch (error) {
             throw error
         }

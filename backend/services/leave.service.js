@@ -42,7 +42,7 @@ class LeaveService {
 
             const result = await this.repositories.leave.getMany(query)
 
-            return result
+            return { result }
         } catch (error) {
             throw error
         }

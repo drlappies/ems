@@ -120,7 +120,8 @@ class OvertimeController {
 
             res.status(200).json(result)
         } catch (error) {
-            throw error
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
@@ -132,7 +133,8 @@ class OvertimeController {
 
             res.status(204).json()
         } catch (error) {
-            throw error
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
@@ -145,14 +147,15 @@ class OvertimeController {
 
             res.status(204).json()
         } catch (error) {
-            throw error
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
     getMany = async (req, res) => {
         try {
-            const offset = req.query.offset ? parseInt(req.query.offset) : undefined
-            const limit = req.query.limit ? parseInt(req.query.limit) : undefined
+            const offset = req.query.offset ? parseInt(req.query.offset) : null
+            const limit = req.query.limit ? parseInt(req.query.limit) : null
 
             const params = {
                 offset: offset,
@@ -168,7 +171,8 @@ class OvertimeController {
 
             res.status(200).json(result)
         } catch (error) {
-            throw error
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
@@ -192,7 +196,24 @@ class OvertimeController {
 
             res.status(200).json(result)
         } catch (error) {
-            throw error
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
+
+    getCheckInStatusByUser = async (req, res) => {
+        try {
+            const employee = req.user
+
+            const currentTime = new Date()
+            const date = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`
+
+            const result = await this.services.overtime.getOneByEmployeeIdAndDate(employee.id, date)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 }

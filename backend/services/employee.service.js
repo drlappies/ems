@@ -113,12 +113,9 @@ class EmployeeService {
                 if (dept) qb.where('employee.dept_id', '=', dept)
                 if (pos) qb.where('employee.post_id', '=', pos)
                 if (search) qb.whereRaw(`to_tsvector(employee.id || ' ' || employee.post_id || ' ' || employee.dept_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || employee.address || ' ' || employee.phone_number || ' ' || employee.emergency_contact_person || ' ' || employee.emergency_contact_number || ' ' || employee.onboard_date || ' ' || employee.status || ' ' || employee.created_at || ' ' || employee.updated_at || ' ' || employee.role || ' ' || employee.start_hour || ' ' || employee.end_hour || ' ' || employee.salary_monthly || ' ' || employee.ot_pay_entitled || ' ' || employee.ot_hourly_salary || ' ' || employee.annual_leave_count || ' ' || departments.name || ' ' || positions.post) @@ plainto_tsquery(${search})`)
-
-                if (offset) qb.offset(offset)
-                if (limit) qb.limit(limit)
             }
 
-            const result = await this.repositories.employee.getMany(query)
+            const result = await this.repositories.employee.getMany(query, { offset, limit })
 
             return result
         } catch (error) {

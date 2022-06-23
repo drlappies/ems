@@ -13,6 +13,7 @@ class LeaveRoute {
         this.router.delete('/api/leave/:id', this.middlewares.user.verify, this.controller.deleteOneById)
         this.router.post('/api/leave/batch_update', this.middlewares.user.verify, this.controller.updateManyByIds)
         this.router.post('/api/leave/batch_delete', this.middlewares.user.verify, this.controller.deleteManyByIds)
+        this.router.post('/api/leave/apply', this.middlewares.user.verify, this.controller.applyForLeave)
 
         return this.router
     }

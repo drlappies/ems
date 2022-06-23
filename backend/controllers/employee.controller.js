@@ -71,8 +71,8 @@ class EmployeeController {
 
     getMany = async (req, res) => {
         try {
-            const offset = req.query.offset ? parseInt(req.query.offset) : req.query.offset
-            const limit = req.query.limit ? parseInt(req.query.limit) : req.query.limit
+            const offset = req.query.offset ? parseInt(req.query.offset) : null
+            const limit = req.query.limit ? parseInt(req.query.limit) : null
 
             const params = {
                 offset: offset,
@@ -89,7 +89,8 @@ class EmployeeController {
 
             res.status(200).json(result)
         } catch (error) {
-            throw error
+            this.logger.error(error)
+            res.status(500).json(error)
         }
     }
 
@@ -123,7 +124,6 @@ class EmployeeController {
 
             res.status(200).json(result)
         } catch (error) {
-            console.log(error)
             this.logger.error(error)
             res.status(500).json(error)
         }

@@ -14,6 +14,7 @@ import PayrollRoute from './payroll.route';
 import PositionRoute from './position.route';
 import ReimbursementRoute from './reimbursement.route';
 import AllowanceEmployeeRoute from './allowance_employee.route';
+import UserRoute from './user.route'
 
 const container = {
     allowanceEmployee: new AllowanceEmployeeRoute({ router: Router, controller: controllerCont.allowanceEmployee, middlewares }),
@@ -28,7 +29,8 @@ const container = {
     overtime: new OvertimeRoute({ router: Router, controller: controllerCont.overtime, middlewares }),
     payroll: new PayrollRoute({ router: Router, controller: controllerCont.payroll, middlewares }),
     position: new PositionRoute({ router: Router, controller: controllerCont.position, middlewares }),
-    reimbursement: new ReimbursementRoute({ router: Router, controller: controllerCont.reimbursement, middlewares })
+    reimbursement: new ReimbursementRoute({ router: Router, controller: controllerCont.reimbursement, middlewares }),
+    user: new UserRoute({ router: Router, controller: controllerCont.user, middlewares })
 }
 
 export default container

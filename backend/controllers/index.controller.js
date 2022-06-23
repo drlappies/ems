@@ -15,6 +15,7 @@ import PayrollController from './payroll.controller';
 import PositionController from './position.controller';
 import ReimbursementController from './reimbursement.controller';
 import DepartmentController from './department.controller';
+import UserController from './user.controller'
 
 const container = {
     allowance: new AllowanceController({ logger, services }),
@@ -30,7 +31,8 @@ const container = {
     position: new PositionController({ logger, services }),
     reimbursement: new ReimbursementController({ logger, services }),
     department: new DepartmentController({ logger, services }),
-    allowanceEmployee: new AllowanceEmployeeController({ logger, services })
+    allowanceEmployee: new AllowanceEmployeeController({ logger, services }),
+    user: new UserController({ logger, services })
 }
 
 export default container

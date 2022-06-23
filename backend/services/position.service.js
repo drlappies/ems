@@ -60,7 +60,7 @@ class PositionService {
 
             const result = await this.repositories.position.getMany(query)
 
-            return result
+            return { result }
         } catch (error) {
             throw error
         }

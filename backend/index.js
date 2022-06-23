@@ -7,7 +7,7 @@ logger.info(`Current env: ${process.env.ENV}`)
 
 const app = express();
 
-app.use(cors())
+app.use(cors({ origin: '*' }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
@@ -24,4 +24,5 @@ app.use(routeCont.payroll.route)
 app.use(routeCont.position.route)
 app.use(routeCont.reimbursement.route)
 app.use(routeCont.allowanceEmployee.route)
+app.use(routeCont.user.route)
 app.listen(process.env.PORT, process.env.HOST, () => console.log(`running: ${process.env.HOST}:${process.env.PORT}`))

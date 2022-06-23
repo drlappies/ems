@@ -64,23 +64,18 @@ class AttendanceService {
             const mindate = params.mindate
             const maxdate = params.maxdate
             const employeeId = params.employeeId
-            const orderBy = params.orderBy
 
             const query = (qb) => {
-                qb.select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
                 qb.join('employee', 'attendance.employee_id', 'employee.id')
+                qb.select(['attendance.id', 'attendance.employee_id', 'employee.firstname', 'employee.lastname', 'attendance.date', 'attendance.check_in', 'attendance.check_out', 'attendance.status'])
 
                 if (search) qb.whereRaw(`to_tsvector(attendance.id || ' ' || attendance.employee_id || ' ' || employee.firstname || ' ' || employee.lastname || ' ' || attendance.date || ' ' || attendance.check_in || ' ' || attendance.check_out || ' ' || attendance.status) @@ plainto_tsquery('${search}')`)
                 if (employeeId) qb.where('attendance.employee_id', '=', employeeId);
                 if (status) qb.where('attendance.status', '=', status);
                 if (mindate && maxdate) qb.whereBetween('attendance.date', [mindate, maxdate])
-
-                if (offset) qb.offset(offset)
-                if (limit) qb.limit(limit)
-                if (orderBy) qb.orderBy(orderBy)
             }
 
-            const result = await this.repositories.attendance.getMany(query)
+            const result = await this.repositories.attendance.getMany(query, { offset, limit })
 
             return result
         } catch (error) {

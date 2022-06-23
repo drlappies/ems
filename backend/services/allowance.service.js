@@ -94,7 +94,7 @@ class AllowanceService {
 
             const result = await this.repositories.allowance.getMany(query)
 
-            return result
+            return { result }
         } catch (error) {
             console.log(error)
             throw error

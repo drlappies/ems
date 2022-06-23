@@ -75,10 +75,24 @@ class Repository {
         }
     }
 
-    getMany = async (query) => {
+    getMany = async (query, params) => {
         try {
-            const result = await this.knex(this.tableName).modify(query)
-            return result
+            if (!params.limit) params.limit = null
+            if (!params.offset) params.offset = null
+            if (!params.orderBy) params.orderBy = 'id'
+
+            const result = await this.knex(this.tableName)
+                .modify(query)
+                .offset(params.offset)
+                .limit(params.limit)
+                .orderBy(params.orderBy)
+
+            const [count] = await this.knex(this.tableName)
+                .modify(query)
+                .clearSelect()
+                .count()
+
+            return { result, count }
         } catch (error) {
             throw error
         }

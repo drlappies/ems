@@ -159,6 +159,24 @@ class LeaveController {
             res.status(500).json(error)
         }
     }
+
+    applyForLeave = async (req, res) => {
+        try {
+            const employee = req.user
+            const reason = req.body.reason
+            const from = req.body.from
+            const to = req.body.to
+            const duration = req.body.duration
+            const type = req.body.type
+
+            const result = await this.services.leave.createOne(employee.id, reason, from, to, duration, type)
+
+            res.status(200).json(result)
+        } catch (error) {
+            this.logger.error(error)
+            res.status(500).json(error)
+        }
+    }
 }
 
 export default LeaveController

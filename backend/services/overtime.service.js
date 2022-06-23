@@ -126,11 +126,9 @@ class OvertimeService {
                 if (mindate && maxdate) qb.whereBetween('overtime.date', [mindate, maxdate])
                 if (status) qb.where('overtime.status', '=', status)
                 if (employee_id) qb.where('overtime.employee_id', '=', employee_id)
-                if (offset) qb.offset(offset)
-                if (limit) qb.limit(limit)
             }
 
-            const result = await this.repositories.overtime.getMany(query)
+            const result = await this.repositories.overtime.getMany(query, { offset, limit })
 
             return result
         } catch (error) {
