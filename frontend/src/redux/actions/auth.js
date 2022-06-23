@@ -1,0 +1,70 @@
+import axios from 'axios'
+import { popMessage } from './ui'
+// import { LOGIN, LOGOUT } from '../../types/auth'
+
+export const verifyThunk = (history) => {
+    return async (dispatch) => {
+        try {
+            const res = await axios.get(`${process.env.REACT_APP_API}/api/auth/verify`, {
+                headers: { 'token': window.localStorage.getItem('jwt') }
+            })
+
+        } catch (err) {
+            window.localStorage.removeItem('jwt')
+            history.push('/')
+            dispatch({
+
+            })
+        }
+    }
+}
+
+export const loginThunk = (username, password, history) => {
+    return async (dispatch) => {
+        try {
+            const body = {
+                username: username,
+                password: password
+            }
+            const res = await axios.post(`${process.env.REACT_APP_API}/api/auth/login`, body)
+            dispatch({
+
+                payload: {
+                    isAuthenticated: true,
+                    id: res.data.payload.id,
+                    department: res.data.payload.department,
+                    position: res.data.payload.position,
+                    address: res.data.payload.address,
+                    phone_number: res.data.payload.phone_number,
+                    emergency_contact_person: res.data.payload.emergency_contact_person,
+                    emergency_contact_number: res.data.payload.emergency_contact_number,
+                    onboard_date: res.data.payload.onboard_date,
+                    role: res.data.payload.role,
+                    start_hour: res.data.payload.start_hour,
+                    end_hour: res.data.payload.end_hour,
+                    ot_pay_entitled: res.data.payload.ot_pay_entitled,
+                    ot_hourly_salary: res.data.payload.ot_hourly_salary,
+                    annual_leave_count: res.data.payload.annual_leave_count,
+                    username: res.data.payload.username,
+                    firstname: res.data.payload.firstname,
+                    lastname: res.data.payload.lastname
+                }
+            })
+            dispatch(popMessage(`Welcome, ${res.data.payload.lastname} ${res.data.payload.firstname}`, 'success'))
+            window.localStorage.setItem('jwt', res.data.token)
+            history.push('/user')
+        } catch (err) {
+            console.log(err)
+            dispatch(popMessage(err.response.data.error, "error"))
+        }
+    }
+}
+
+export const logoutThunk = (history) => {
+    return (dispatch) => {
+
+        dispatch(popMessage('Logged out successfully!', 'success'))
+        window.localStorage.removeItem('jwt')
+        history.push('/')
+    }
+}

@@ -1,4 +1,4 @@
-import { LOGIN, LOGOUT } from '../types/auth'
+// import { LOGIN, LOGOUT } from '../types/auth'
 
 const initialState = {
     isAuthenticated: false,
@@ -23,7 +23,7 @@ const initialState = {
 
 const authReducer = (state = initialState, action) => {
     switch (action.type) {
-        case LOGIN:
+        case "lol":
             return {
                 isAuthenticated: action.payload.isAuthenticated,
                 id: action.payload.id,
@@ -44,7 +44,7 @@ const authReducer = (state = initialState, action) => {
                 firstname: action.payload.firstname,
                 lastname: action.payload.lastname
             }
-        case LOGOUT:
+        case "lo ":
             return {
                 username: '',
                 firstname: '',

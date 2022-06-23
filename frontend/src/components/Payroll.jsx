@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useDispatch, useSelector } from 'react-redux'
-import { popMessage } from '../actions/ui';
+import { popMessage } from '../redux/actions/ui';
 import { DataGrid } from '@mui/x-data-grid';
 import Toolbar from './Toolbar';
 import Grid from '@mui/material/Grid';

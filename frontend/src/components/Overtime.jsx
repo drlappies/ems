@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { popMessage } from '../actions/ui'
+import { popMessage } from '../redux/actions/ui'
 import Clock from 'react-live-clock';
 import { useSelector, useDispatch } from 'react-redux';
 import Card from '@mui/material/Card';

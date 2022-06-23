@@ -1,0 +1,27 @@
+.calendar-container {
+  height: 555px;
+}
+
+.calendar {
+  width: 100%;
+}
+
+.calendar-date {
+  height: 80px;
+  width: 100px;
+  background-color: #aae4ff;
+  text-align: end;
+  vertical-align: bottom;
+}
+
+.calendar-date-status {
+  color: #ffffff;
+}
+
+.calendar-date-status.on_time {
+  background-color: green;
+}
+
+.calendar-date-status.late {
+  background-color: red;
+}

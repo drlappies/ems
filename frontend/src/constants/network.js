@@ -1,0 +1,6 @@
+export const networkStatus = {
+    IDLE: "IDLE",
+    FETCH_IN_PROGRESS: "FETCH_IN_PROGRESS",
+    FETCH_SUCCEEDED: "FETCH_SUCCEEDED",
+    FETCH_FAILED: "FETCH_FAILED"
+}
